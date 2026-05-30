@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PinScope · Field Instrument 005</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* === PINSCOPE · FIELD INSTRUMENT 005 =================================== */
+  /* Industrial console for Arduino Uno Q. Amber-on-dark, mono, etched feel. */
+
+  :root{
+    --bg:            #0c0c0c;
+    --panel:         #161513;
+    --panel-2:       #1d1c19;
+    --panel-3:       #232220;
+    --line:          #2a2826;
+    --line-bright:   #3d3a36;
+    --amber:         #d4a017;
+    --amber-bright:  #f5b724;
+    --amber-dim:     #8a6914;
+    --amber-low:     #4a3a0a;
+    --muted:         #6b5e43;
+    --muted-dim:     #4a4133;
+    --good:          #6ba368;
+    --good-dim:      #3e5a3c;
+    --bad:           #c9554d;
+    --bad-dim:       #5a2e2a;
+    --warn:          #c8941a;
+
+    --font-display:  'Major Mono Display', 'JetBrains Mono', ui-monospace, monospace;
+    --font-mono:     'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--amber);font-family:var(--font-mono);font-size:13px;line-height:1.45;min-height:100vh}
+  body{
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(212,160,23,.07), transparent 50%),
+      radial-gradient(ellipse at 50% 110%, rgba(212,160,23,.04), transparent 50%),
+      var(--bg);
+    background-attachment:fixed;
+  }
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  button:disabled{cursor:not-allowed;opacity:.4}
+  select{font:inherit;color:inherit;background:var(--panel-3);border:1px solid var(--line-bright);padding:3px 6px;border-radius:2px}
+  input[type=range]{accent-color:var(--amber)}
+
+  /* === TOP BAR ========================================================== */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 24px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(212,160,23,.03), transparent);
+  }
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .brand h1{
+    font-family:var(--font-display);
+    font-size:22px;font-weight:400;letter-spacing:.08em;
+    color:var(--amber-bright);
+    text-shadow:0 0 18px rgba(245,183,36,.18);
+  }
+  .brand .sub{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--amber-dim)}
+  .session{display:flex;align-items:center;gap:14px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+  .session .dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 8px rgba(107,163,104,.5)}
+
+  /* === ACTION RAIL ====================================================== */
+  .rail{
+    display:flex;align-items:center;gap:10px;
+    padding:14px 24px;
+    border-bottom:1px solid var(--line);
+    background:var(--panel);
+  }
+  .rail .label{font-size:9.5px;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 13px;
+    border:1px solid var(--line-bright);
+    background:var(--panel-2);
+    color:var(--amber);
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    border-radius:2px;
+    transition:background .12s, border-color .12s, color .12s;
+  }
+  .btn:hover{background:var(--panel-3);border-color:var(--amber-dim);color:var(--amber-bright)}
+  .btn.primary{border-color:var(--amber-dim);background:rgba(212,160,23,.06)}
+  .btn.primary:hover{background:rgba(212,160,23,.12)}
+  .btn.danger{color:var(--bad)}
+  .btn.danger:hover{border-color:var(--bad);background:rgba(201,85,77,.08);color:var(--bad)}
+  .btn .glyph{font-size:14px;line-height:1}
+
+  .rail .spacer{flex:1}
+  .rail .counter{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+  .rail .counter b{color:var(--amber);font-weight:500}
+
+  /* === MAIN AREA ======================================================== */
+  main{padding:22px 24px 80px;max-width:1400px;margin:0 auto}
+  .empty{
+    border:1px dashed var(--line-bright);
+    padding:60px 30px;
+    text-align:center;
+    border-radius:3px;
+    background:rgba(212,160,23,.015);
+  }
+  .empty .title{font-size:11px;letter-spacing:.4em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:14px}
+  .empty .hint{font-size:12px;color:var(--muted);max-width:520px;margin:0 auto;line-height:1.7}
+  .empty .hint code{background:var(--panel-2);padding:1px 6px;border-radius:2px;color:var(--amber-dim)}
+
+  /* === DEVICE CARD ====================================================== */
+  .card{
+    border:1px solid var(--line-bright);
+    border-radius:3px;
+    background:var(--panel);
+    margin-bottom:18px;
+    overflow:hidden;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
+  }
+  .card.dead{opacity:.55}
+  .card .head{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:center;gap:16px;
+    padding:14px 18px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(212,160,23,.04), transparent);
+  }
+  .card .ident{display:flex;flex-direction:column;gap:3px}
+  .card .ident .name{font-size:13px;font-weight:500;letter-spacing:.08em;color:var(--amber-bright)}
+  .card .ident .id{font-size:10px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+  .card .meta{display:flex;align-items:center;gap:14px;justify-content:center;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+  .card .meta .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:3px 9px;border:1px solid var(--line-bright);border-radius:11px;
+    background:var(--panel-2);color:var(--amber-dim);
+  }
+  .card .meta .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+  .card .meta .pill.ok .dot{background:var(--good);box-shadow:0 0 6px rgba(107,163,104,.5)}
+  .card .meta .pill.err .dot{background:var(--bad);box-shadow:0 0 6px rgba(201,85,77,.5)}
+  .card .meta .pill.ok{color:var(--good);border-color:var(--good-dim)}
+  .card .meta .pill.err{color:var(--bad);border-color:var(--bad-dim)}
+  .card .actions{display:flex;gap:6px}
+
+  /* === SECTIONS ========================================================= */
+  .section{padding:16px 18px;border-bottom:1px solid var(--line)}
+  .section:last-child{border-bottom:none}
+  .section h3{
+    font-size:9.5px;letter-spacing:.4em;text-transform:uppercase;color:var(--amber-dim);
+    font-weight:400;margin-bottom:12px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .section h3 .line{flex:1;height:1px;background:var(--line)}
+
+  /* === DIGITAL PIN GRID ================================================= */
+  .pingrid{
+    display:grid;
+    grid-template-columns:repeat(7, minmax(0,1fr));
+    gap:8px;
+  }
+  @media (max-width:880px){.pingrid{grid-template-columns:repeat(4, minmax(0,1fr))}}
+  @media (max-width:540px){.pingrid{grid-template-columns:repeat(2, minmax(0,1fr))}}
+
+  .pin{
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:var(--panel-2);
+    padding:10px 10px 12px;
+    display:flex;flex-direction:column;gap:9px;
+    min-height:118px;
+    transition:border-color .15s, background .15s;
+  }
+  .pin.reserved{opacity:.45}
+  .pin:not(.reserved):hover{border-color:var(--line-bright)}
+  .pin.active{border-color:var(--amber-dim)}
+  .pin .top{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+  .pin .label{
+    font-size:13px;font-weight:500;letter-spacing:.05em;color:var(--amber);
+  }
+  .pin .label .tilde{color:var(--amber-bright);margin-right:1px}
+  .pin .label .led{color:var(--amber-dim);font-size:9px;letter-spacing:.2em;margin-left:4px}
+  .pin .mode{
+    font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;
+    background:var(--panel-3);color:var(--muted);
+    padding:2px 6px;border-radius:2px;cursor:pointer;
+    border:1px solid var(--line-bright);
+    user-select:none;
+  }
+  .pin .mode:hover{color:var(--amber-dim);border-color:var(--amber-dim)}
+  .pin.m-in .mode,
+  .pin.m-inp .mode{background:rgba(212,160,23,.04);color:var(--amber-dim);border-color:var(--amber-low)}
+  .pin.m-out .mode,
+  .pin.m-pwm .mode{background:rgba(212,160,23,.12);color:var(--amber);border-color:var(--amber-dim)}
+
+  /* digital state indicator */
+  .pin .face{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    min-height:48px;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:#0a0a09;
+    position:relative;
+  }
+  .pin .lamp{
+    width:18px;height:18px;border-radius:50%;
+    background:#1a1816;
+    border:1px solid #232220;
+    box-shadow:inset 0 0 4px rgba(0,0,0,.5);
+    transition:background .12s, box-shadow .12s, border-color .12s;
+  }
+  .pin .lamp.on{
+    background:radial-gradient(circle at 35% 30%, var(--amber-bright), var(--amber) 60%, var(--amber-dim) 100%);
+    border-color:var(--amber-bright);
+    box-shadow:
+      0 0 14px rgba(245,183,36,.6),
+      inset 0 0 3px rgba(255,255,255,.15);
+  }
+  .pin .reading{
+    font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;
+    color:var(--amber-dim);
+    position:absolute;top:4px;right:6px;
+  }
+  .pin .pwmbar{
+    position:absolute;left:6px;right:6px;bottom:6px;
+    height:4px;background:#1a1816;border-radius:1px;overflow:hidden;
+  }
+  .pin .pwmbar > i{display:block;height:100%;background:linear-gradient(90deg, var(--amber-dim), var(--amber-bright));transition:width .1s}
+  .pin .ctrl{display:flex;align-items:center;gap:6px;min-height:22px}
+  .pin .toggle{
+    flex:1;
+    padding:4px 0;
+    text-align:center;
+    border:1px solid var(--line-bright);
+    border-radius:2px;
+    font-size:9px;letter-spacing:.28em;text-transform:uppercase;
+    background:var(--panel-3);color:var(--amber-dim);
+  }
+  .pin .toggle.high{background:rgba(212,160,23,.14);border-color:var(--amber-dim);color:var(--amber-bright)}
+  .pin .toggle:hover{border-color:var(--amber-dim);color:var(--amber)}
+  .pin .slider{flex:1;display:flex;align-items:center;gap:6px}
+  .pin .slider input{flex:1;height:14px}
+  .pin .slider .val{font-size:10px;color:var(--amber-dim);min-width:26px;text-align:right}
+
+  /* === ANALOG ROWS ====================================================== */
+  .analog{display:flex;flex-direction:column;gap:5px}
+  .arow{
+    display:grid;
+    grid-template-columns:36px 1fr 60px;
+    align-items:center;gap:12px;
+  }
+  .arow .lab{font-size:11px;letter-spacing:.12em;color:var(--amber)}
+  .arow .bar{
+    height:14px;background:#0a0a09;border:1px solid var(--line);border-radius:1px;overflow:hidden;position:relative;
+  }
+  .arow .bar > i{
+    display:block;height:100%;
+    background:linear-gradient(90deg, var(--amber-low), var(--amber-dim) 40%, var(--amber-bright));
+    transition:width .12s;
+  }
+  .arow .val{font-size:11px;text-align:right;color:var(--amber-dim);letter-spacing:.06em}
+
+  /* === LOG ============================================================== */
+  .log-wrap{padding:12px 18px 16px}
+  .log-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .log-head h3{margin:0;flex:0;border:none}
+  .log{
+    background:#0a0a09;
+    border:1px solid var(--line);
+    border-radius:2px;
+    font-size:10.5px;
+    color:var(--muted);
+    height:120px;overflow:auto;
+    padding:8px 10px;
+    line-height:1.55;
+    white-space:pre-wrap;word-break:break-all;
+  }
+  .log .tx{color:var(--amber-bright)}
+  .log .rx{color:var(--amber-dim)}
+  .log .err{color:var(--bad)}
+  .log .sys{color:var(--muted-dim)}
+
+  /* === MODAL ============================================================ */
+  .modal{
+    position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.6);backdrop-filter:blur(2px);z-index:50;
+  }
+  .modal.show{display:flex}
+  .modal .box{
+    background:var(--panel);border:1px solid var(--line-bright);border-radius:3px;
+    padding:22px 24px;min-width:340px;max-width:440px;
+    box-shadow:0 24px 60px rgba(0,0,0,.5);
+  }
+  .modal h2{font-family:var(--font-display);font-size:14px;font-weight:400;letter-spacing:.18em;color:var(--amber-bright);margin-bottom:14px}
+  .modal label{display:block;font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .modal input[type=text]{
+    width:100%;padding:8px 10px;background:var(--panel-3);border:1px solid var(--line-bright);
+    color:var(--amber);font:inherit;border-radius:2px;outline:none;
+  }
+  .modal input[type=text]:focus{border-color:var(--amber-dim)}
+  .modal .row{margin-bottom:14px}
+  .modal .hint{font-size:10.5px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+  .modal .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+
+  /* === FOOTER NAMEPLATE ================================================= */
+  .credit{
+    display:flex;align-items:center;justify-content:space-between;
+    border-top:1px solid var(--line);
+    padding:13px 24px 16px;
+    font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--amber-dim);
+    background:var(--panel);
+  }
+  .credit .by{color:var(--muted);letter-spacing:.2em}
+
+  /* === TOAST ============================================================ */
+  .toasts{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:60}
+  .toast{
+    background:var(--panel-2);border:1px solid var(--line-bright);
+    padding:10px 14px;font-size:11px;letter-spacing:.12em;color:var(--amber-dim);
+    border-radius:2px;max-width:340px;
+    box-shadow:0 8px 20px rgba(0,0,0,.4);
+    animation:slidein .18s ease-out;
+  }
+  .toast.err{border-color:var(--bad-dim);color:var(--bad)}
+  @keyframes slidein{from{transform:translateY(6px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <h1>PINSCOPE</h1>
+    <span class="sub">Field Instrument 005</span>
+  </div>
+  <div class="session">
+    <span class="dot"></span>
+    <span id="session-text">pinscope online</span>
+  </div>
+</header>
+
+<nav class="rail">
+  <span class="label">Connect</span>
+  <button class="btn primary" id="btn-serial"><span class="glyph">⌁</span>SERIAL</button>
+  <button class="btn primary" id="btn-wifi"><span class="glyph">⟿</span>WIFI</button>
+  <div class="spacer"></div>
+  <span class="counter">Units: <b id="device-count">0</b></span>
+</nav>
+
+<main id="main">
+  <div class="empty" id="empty">
+    <div class="title">no units connected</div>
+    <div class="hint">
+      Connect an Arduino Uno Q over USB via <code>SERIAL</code> (Web Serial, Chrome / Edge),<br>
+      or attach to a board running a WebSocket bridge via <code>WIFI</code>.<br><br>
+      Boards must run the PinScope reference firmware (or a compatible JSON-line protocol on 115200 baud).
+    </div>
+  </div>
+</main>
+
+<!-- WiFi connect modal -->
+<div class="modal" id="wifi-modal">
+  <div class="box">
+    <h2>WIFI CONNECT</h2>
+    <div class="hint">
+      Enter the WebSocket URL of an Arduino Uno Q bridge.
+      Format: <code>ws://host:port</code> or <code>wss://host:port</code>.
+    </div>
+    <div class="row">
+      <label>Websocket URL</label>
+      <input type="text" id="ws-url" placeholder="ws://192.168.1.50:81" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="foot">
+      <button class="btn" id="ws-cancel">CANCEL</button>
+      <button class="btn primary" id="ws-go">CONNECT</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<footer class="credit">
+  <span>Field Instrument 005</span>
+  <span class="by">by M.B. Parks</span>
+</footer>
+
+<script>
+/* ============================================================================
+ * PINSCOPE . Field Instrument 005 . Uno Q I/O console
+ *
+ * Architecture (extension points marked with [+]):
+ *
+ *   Transport (base)            EventTarget: open, close, message, error
+ *     ├─ SerialTransport        Web Serial API, line-delimited JSON
+ *     ├─ WiFiTransport          WebSocket, line-delimited JSON
+ *     └─ [+] add new transports (BLE, MQTT, USB-CDC) by subclassing
+ *
+ *   Device                      One Arduino Uno Q board over a Transport
+ *     - state: digital[14], analog[6], modes[14]
+ *     - methods: setMode, setDigital, setPWM, poll
+ *
+ *   DeviceManager               Collection of Devices; emits change
+ *
+ *   DeviceCard                  Per-device DOM view; reacts to Device events
+ *
+ * Wire protocol (line-delimited JSON, both directions):
+ *
+ *   Browser -> device:
+ *     {"cmd":"hello"}
+ *     {"cmd":"poll"}
+ *     {"cmd":"mode","pin":N,"mode":"off|in|inp|out|pwm"}
+ *     {"cmd":"set","pin":N,"val":0|1}
+ *     {"cmd":"pwm","pin":N,"val":0..255}
+ *
+ *   Device -> browser:
+ *     {"t":"hello","id":"FI005-XXXX","name":"Arduino Uno Q"}
+ *     {"t":"state","d":[14 ints],"a":[6 ints],"m":[14 strings]}
+ *     {"t":"ack","cmd":"..."}
+ *     {"t":"err","msg":"..."}
+ * ========================================================================= */
+
+/* === CONSTANTS ============================================================ */
+const DIGITAL_COUNT = 14;
+const ANALOG_COUNT  = 6;
+const PWM_PINS      = new Set([3, 5, 6, 9, 10, 11]);
+const RESERVED_PINS = new Set([0, 1]); // RX/TX on USB-serial path
+const ADC_MAX       = 1023;            // matches reference sketch
+const MODE_CYCLE    = ['off', 'in', 'inp', 'out', 'pwm'];
+
+/* === HELPERS ============================================================== */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') node.className = v;
+    else if (k === 'html') node.innerHTML = v;
+    else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) node.setAttribute(k, v);
+  }
+  for (const c of children.flat()) {
+    if (c == null || c === false) continue;
+    node.append(c.nodeType ? c : document.createTextNode(c));
+  }
+  return node;
+}
+
+function toast(msg, kind = 'info') {
+  const t = el('div', { class: 'toast ' + (kind === 'err' ? 'err' : '') }, msg);
+  $('#toasts').append(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; }, 2800);
+  setTimeout(() => t.remove(), 3200);
+}
+
+/* === TRANSPORT BASE ======================================================= */
+class Transport extends EventTarget {
+  constructor(label) {
+    super();
+    this.label = label;
+    this.kind  = 'transport';
+    this.connected = false;
+  }
+  async connect()    { throw new Error('connect() not implemented'); }
+  async disconnect() { throw new Error('disconnect() not implemented'); }
+  async send(_obj)   { throw new Error('send() not implemented'); }
+  emit(name, detail) { this.dispatchEvent(new CustomEvent(name, { detail })); }
+}
+
+/* === SERIAL TRANSPORT (Web Serial API) ==================================== */
+class SerialTransport extends Transport {
+  constructor() { super('serial'); this.kind = 'serial'; }
+
+  async connect() {
+    if (!('serial' in navigator)) {
+      throw new Error('Web Serial not supported. Use Chrome, Edge, or Opera over HTTPS / localhost.');
+    }
+    this.port = await navigator.serial.requestPort();
+    await this.port.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
+    const info = this.port.getInfo();
+    const vid = info.usbVendorId ? info.usbVendorId.toString(16).padStart(4, '0') : '?';
+    const pid = info.usbProductId ? info.usbProductId.toString(16).padStart(4, '0') : '?';
+    this.label = `serial · ${vid}:${pid}`;
+    this.connected = true;
+    this.emit('open');
+    this._readLoop();
+  }
+
+  async _readLoop() {
+    const decoder = new TextDecoderStream();
+    this._readClosed = this.port.readable.pipeTo(decoder.writable).catch(() => {});
+    const reader = decoder.readable.getReader();
+    this.reader = reader;
+    let buf = '';
+    try {
+      while (this.connected) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += value;
+        let nl;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl).replace(/\r$/, '').trim();
+          buf = buf.slice(nl + 1);
+          if (!line) continue;
+          try { this.emit('message', JSON.parse(line)); }
+          catch { this.emit('error', new Error('malformed JSON: ' + line.slice(0, 60))); }
+        }
+      }
+    } catch (e) {
+      this.emit('error', e);
+    } finally {
+      this.connected = false;
+      this.emit('close');
+    }
+  }
+
+  async send(obj) {
+    if (!this.port?.writable) return;
+    const writer = this.port.writable.getWriter();
+    try {
+      const data = new TextEncoder().encode(JSON.stringify(obj) + '\n');
+      await writer.write(data);
+    } finally {
+      writer.releaseLock();
+    }
+  }
+
+  async disconnect() {
+    this.connected = false;
+    try { await this.reader?.cancel(); } catch {}
+    try { await this._readClosed; } catch {}
+    try { await this.port?.close(); } catch {}
+    this.emit('close');
+  }
+}
+
+/* === WIFI TRANSPORT (WebSocket) =========================================== */
+class WiFiTransport extends Transport {
+  constructor(url) { super('wifi · ' + url); this.kind = 'wifi'; this.url = url; }
+
+  async connect() {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      try { this.ws = new WebSocket(this.url); }
+      catch (e) { reject(e); return; }
+
+      this.ws.onopen = () => {
+        this.connected = true;
+        settled = true;
+        this.emit('open');
+        resolve();
+      };
+      this.ws.onmessage = (ev) => {
+        const data = typeof ev.data === 'string' ? ev.data : '';
+        for (const raw of data.split('\n')) {
+          const line = raw.trim();
+          if (!line) continue;
+          try { this.emit('message', JSON.parse(line)); }
+          catch { this.emit('error', new Error('malformed JSON from socket')); }
+        }
+      };
+      this.ws.onerror = (e) => {
+        this.emit('error', e);
+        if (!settled) { settled = true; reject(new Error('WebSocket connection failed')); }
+      };
+      this.ws.onclose = () => {
+        this.connected = false;
+        this.emit('close');
+      };
+    });
+  }
+
+  async send(obj) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(obj) + '\n');
+    }
+  }
+
+  async disconnect() {
+    try { this.ws?.close(); } catch {}
+  }
+}
+
+/* === DEVICE =============================================================== */
+class Device extends EventTarget {
+  constructor(transport) {
+    super();
+    this.transport = transport;
+    this.id        = '----';
+    this.name      = 'Arduino Uno Q';
+    this.modes     = Array(DIGITAL_COUNT).fill('off');
+    this.digital   = Array(DIGITAL_COUNT).fill(0);
+    this.analog    = Array(ANALOG_COUNT).fill(0);
+    this.pwm       = Array(DIGITAL_COUNT).fill(0);  // cached PWM duty for UI
+    this.lastError = null;
+    this.lastSeen  = 0;
+    this.txCount   = 0;
+    this.rxCount   = 0;
+
+    transport.addEventListener('message', (e) => this._handle(e.detail));
+    transport.addEventListener('close',   ()  => this.emit('disconnect'));
+    transport.addEventListener('error',   (e) => {
+      this.lastError = e.detail?.message || String(e.detail);
+      this.emit('log', { kind: 'err', text: this.lastError });
+    });
+  }
+
+  async start() {
+    await this.send({ cmd: 'hello' });
+    await this.send({ cmd: 'poll' });
+  }
+
+  _handle(msg) {
+    this.lastSeen = Date.now();
+    this.rxCount++;
+    this.emit('log', { kind: 'rx', text: JSON.stringify(msg) });
+
+    if (msg.t === 'hello') {
+      if (msg.id)   this.id   = msg.id;
+      if (msg.name) this.name = msg.name;
+      this.emit('identified');
+    } else if (msg.t === 'state') {
+      if (Array.isArray(msg.d)) this.digital = msg.d.slice(0, DIGITAL_COUNT);
+      if (Array.isArray(msg.a)) this.analog  = msg.a.slice(0, ANALOG_COUNT);
+      if (Array.isArray(msg.m)) this.modes   = msg.m.slice(0, DIGITAL_COUNT);
+      this.emit('state');
+    } else if (msg.t === 'err') {
+      toast(`${this.id}: ${msg.msg}`, 'err');
+    }
+  }
+
+  async send(obj) {
+    this.txCount++;
+    this.emit('log', { kind: 'tx', text: JSON.stringify(obj) });
+    try { await this.transport.send(obj); }
+    catch (e) { this.emit('log', { kind: 'err', text: e.message }); }
+  }
+
+  setMode(pin, mode)    { return this.send({ cmd: 'mode', pin, mode }); }
+  setDigital(pin, val)  { return this.send({ cmd: 'set',  pin, val: val ? 1 : 0 }); }
+  setPWM(pin, val)      { this.pwm[pin] = val | 0; return this.send({ cmd: 'pwm', pin, val: Math.max(0, Math.min(255, val | 0)) }); }
+  poll()                { return this.send({ cmd: 'poll' }); }
+  disconnect()          { return this.transport.disconnect(); }
+
+  emit(name, detail) { this.dispatchEvent(new CustomEvent(name, { detail })); }
+}
+
+/* === DEVICE MANAGER ======================================================= */
+class DeviceManager extends EventTarget {
+  constructor() { super(); this.devices = []; }
+
+  add(device) {
+    this.devices.push(device);
+    device.addEventListener('disconnect', () => this.remove(device));
+    this.emit('change');
+  }
+
+  remove(device) {
+    const i = this.devices.indexOf(device);
+    if (i >= 0) {
+      this.devices.splice(i, 1);
+      this.emit('change');
+    }
+  }
+
+  emit(name) { this.dispatchEvent(new CustomEvent(name)); }
+}
+
+/* === DEVICE CARD (view) =================================================== */
+class DeviceCard {
+  constructor(device) {
+    this.device = device;
+    this.root = el('section', { class: 'card', 'data-id': device.id });
+    this.build();
+    this.bind();
+  }
+
+  build() {
+    // Head
+    this.elName  = el('span', { class: 'name' }, this.device.name);
+    this.elId    = el('span', { class: 'id' }, this.device.id + ' · ' + this.device.transport.label);
+    this.elPill  = el('span', { class: 'pill ok' }, el('span', { class: 'dot' }), 'live');
+    this.elStats = el('span', { class: 'pill' }, el('span', { class: 'dot' }), 'tx 0 · rx 0');
+    this.elDisc  = el('button', { class: 'btn danger' }, 'DISCONNECT');
+
+    const head = el('div', { class: 'head' },
+      el('div', { class: 'ident' }, this.elName, this.elId),
+      el('div', { class: 'meta' }, this.elPill, this.elStats),
+      el('div', { class: 'actions' }, this.elDisc),
+    );
+
+    // Digital section
+    this.pinNodes = [];
+    const grid = el('div', { class: 'pingrid' });
+    for (let p = 0; p < DIGITAL_COUNT; p++) {
+      const node = this.makePin(p);
+      this.pinNodes.push(node);
+      grid.append(node.root);
+    }
+    const digSection = el('section', { class: 'section' },
+      el('h3', {}, 'Digital I/O · D0-D13', el('span', { class: 'line' })),
+      grid,
+    );
+
+    // Analog section
+    this.aNodes = [];
+    const arows = el('div', { class: 'analog' });
+    for (let a = 0; a < ANALOG_COUNT; a++) {
+      const bar = el('i', {});
+      bar.style.width = '0%';
+      const val = el('span', { class: 'val' }, '0');
+      const row = el('div', { class: 'arow' },
+        el('span', { class: 'lab' }, 'A' + a),
+        el('span', { class: 'bar' }, bar),
+        val,
+      );
+      this.aNodes.push({ bar, val });
+      arows.append(row);
+    }
+    const anaSection = el('section', { class: 'section' },
+      el('h3', {}, 'Analog Inputs · A0-A5 · 10-bit (0-' + ADC_MAX + ')', el('span', { class: 'line' })),
+      arows,
+    );
+
+    // Log section
+    this.elLog = el('div', { class: 'log' });
+    const logHead = el('div', { class: 'log-head' },
+      el('h3', {}, 'Wire Log'),
+      el('button', { class: 'btn', onclick: () => this.elLog.innerHTML = '' }, 'CLEAR'),
+    );
+    const logSection = el('section', { class: 'section log-wrap' }, logHead, this.elLog);
+
+    this.root.append(head, digSection, anaSection, logSection);
+  }
+
+  makePin(p) {
+    const isPwm = PWM_PINS.has(p);
+    const isReserved = RESERVED_PINS.has(p);
+
+    const label = el('span', { class: 'label' },
+      isPwm ? el('span', { class: 'tilde' }, '~') : '',
+      'D' + p,
+      p === 13 ? el('span', { class: 'led' }, 'LED') : (isReserved ? el('span', { class: 'led' }, p === 0 ? 'RX' : 'TX') : ''),
+    );
+    const mode = el('span', { class: 'mode' }, 'OFF');
+
+    const lamp = el('div', { class: 'lamp' });
+    const reading = el('span', { class: 'reading' }, '');
+    const pwmbar = el('div', { class: 'pwmbar' }, el('i', {}));
+    pwmbar.style.display = 'none';
+    pwmbar.querySelector('i').style.width = '0%';
+    const face = el('div', { class: 'face' }, lamp, reading, pwmbar);
+
+    // Control area (built dynamically per mode)
+    const ctrl = el('div', { class: 'ctrl' });
+
+    const root = el('div', { class: 'pin' + (isReserved ? ' reserved' : '') },
+      el('div', { class: 'top' }, label, mode),
+      face,
+      ctrl,
+    );
+
+    // mode cycling on click
+    if (!isReserved) {
+      mode.addEventListener('click', () => {
+        const cur = this.device.modes[p] || 'off';
+        let idx = MODE_CYCLE.indexOf(cur);
+        // skip pwm if not pwm-capable
+        for (let n = 0; n < MODE_CYCLE.length; n++) {
+          idx = (idx + 1) % MODE_CYCLE.length;
+          if (MODE_CYCLE[idx] === 'pwm' && !isPwm) continue;
+          break;
+        }
+        this.device.setMode(p, MODE_CYCLE[idx]);
+      });
+    }
+
+    return { p, isPwm, isReserved, root, label, mode, lamp, reading, pwmbar, face, ctrl };
+  }
+
+  bind() {
+    this.elDisc.addEventListener('click', () => this.device.disconnect());
+    this.device.addEventListener('identified', () => this.refreshHead());
+    this.device.addEventListener('state',      () => this.refreshState());
+    this.device.addEventListener('log',        (e) => this.appendLog(e.detail));
+    this.device.addEventListener('disconnect', () => this.die());
+  }
+
+  refreshHead() {
+    this.elName.textContent = this.device.name;
+    this.elId.textContent = this.device.id + ' · ' + this.device.transport.label;
+    this.root.setAttribute('data-id', this.device.id);
+  }
+
+  refreshState() {
+    const d = this.device;
+
+    // Stats
+    this.elStats.lastChild.nodeValue = `tx ${d.txCount} · rx ${d.rxCount}`;
+
+    // Pins
+    for (let p = 0; p < DIGITAL_COUNT; p++) {
+      const node = this.pinNodes[p];
+      const m = d.modes[p] || 'off';
+      const v = d.digital[p] || 0;
+
+      // mode badge + class
+      node.mode.textContent = (m === 'inp') ? 'IN-PU' : m.toUpperCase();
+      node.root.className = 'pin' + (node.isReserved ? ' reserved' : '') + ' m-' + m + ((m === 'out' && v) || m === 'pwm' && d.pwm[p] ? ' active' : '');
+
+      // lamp / reading / pwm
+      if (m === 'pwm') {
+        node.lamp.style.display = 'none';
+        node.pwmbar.style.display = '';
+        node.pwmbar.firstChild.style.width = (d.pwm[p] / 255 * 100).toFixed(0) + '%';
+        node.reading.textContent = d.pwm[p] + '/255';
+      } else if (m === 'off') {
+        node.lamp.style.display = '';
+        node.lamp.classList.remove('on');
+        node.pwmbar.style.display = 'none';
+        node.reading.textContent = '';
+      } else {
+        node.lamp.style.display = '';
+        node.lamp.classList.toggle('on', !!v);
+        node.pwmbar.style.display = 'none';
+        node.reading.textContent = v ? 'HIGH' : 'LOW';
+      }
+
+      // ctrl area
+      this.renderCtrl(node, m, v);
+    }
+
+    // Analog bars
+    for (let a = 0; a < ANALOG_COUNT; a++) {
+      const v = d.analog[a] | 0;
+      const pct = Math.max(0, Math.min(100, (v / ADC_MAX) * 100));
+      this.aNodes[a].bar.style.width = pct.toFixed(1) + '%';
+      this.aNodes[a].val.textContent = v;
+    }
+  }
+
+  renderCtrl(node, mode, val) {
+    // Re-render only if the control shape changed
+    const sig = mode + (mode === 'pwm' ? ':' + this.device.pwm[node.p] : (mode === 'out' ? ':' + val : ''));
+    if (node._ctrlSig === sig) return;
+    node._ctrlSig = sig;
+    node.ctrl.innerHTML = '';
+
+    if (node.isReserved) {
+      node.ctrl.append(el('span', { style: 'font-size:9px;letter-spacing:.22em;color:var(--muted)' }, 'USB SERIAL'));
+      return;
+    }
+    if (mode === 'out') {
+      const btn = el('button', { class: 'toggle' + (val ? ' high' : '') }, val ? 'HIGH' : 'LOW');
+      btn.addEventListener('click', () => this.device.setDigital(node.p, !val));
+      node.ctrl.append(btn);
+    } else if (mode === 'pwm') {
+      const slider = el('input', { type: 'range', min: '0', max: '255', value: String(this.device.pwm[node.p] || 0) });
+      const lab = el('span', { class: 'val' }, String(this.device.pwm[node.p] || 0));
+      slider.addEventListener('input', () => {
+        lab.textContent = slider.value;
+        this.device.setPWM(node.p, +slider.value);
+      });
+      node.ctrl.append(el('span', { class: 'slider' }, slider, lab));
+    } else if (mode === 'in' || mode === 'inp') {
+      node.ctrl.append(el('span', { style: 'font-size:9px;letter-spacing:.22em;color:var(--muted)' }, mode === 'inp' ? 'PULL-UP' : 'INPUT'));
+    } else {
+      node.ctrl.append(el('span', { style: 'font-size:9px;letter-spacing:.22em;color:var(--muted-dim)' }, 'click mode →'));
+    }
+  }
+
+  appendLog(entry) {
+    const line = el('div', { class: entry.kind || 'sys' },
+      (entry.kind === 'tx' ? '> ' : entry.kind === 'rx' ? '< ' : entry.kind === 'err' ? '! ' : '· ') + entry.text);
+    this.elLog.append(line);
+    if (this.elLog.childElementCount > 200) this.elLog.firstChild.remove();
+    this.elLog.scrollTop = this.elLog.scrollHeight;
+  }
+
+  die() {
+    this.elPill.className = 'pill err';
+    this.elPill.lastChild.nodeValue = 'offline';
+    this.root.classList.add('dead');
+    this.elDisc.disabled = true;
+  }
+}
+
+/* === APP CONTROLLER ======================================================= */
+const manager = new DeviceManager();
+const main    = $('#main');
+const empty   = $('#empty');
+const counter = $('#device-count');
+
+manager.addEventListener('change', () => {
+  counter.textContent = String(manager.devices.length);
+  empty.style.display = manager.devices.length ? 'none' : '';
+});
+
+async function attach(transport) {
+  try {
+    await transport.connect();
+  } catch (e) {
+    toast(e.message || 'connect failed', 'err');
+    return;
+  }
+  const device = new Device(transport);
+  const card   = new DeviceCard(device);
+  main.append(card.root);
+  manager.add(device);
+
+  // Auto-cleanup card on permanent disconnect
+  device.addEventListener('disconnect', () => {
+    setTimeout(() => { if (card.root.isConnected) card.root.remove(); }, 4000);
+  });
+
+  // Kick off identification & state pump
+  await device.start();
+  toast('Unit connected · ' + transport.label);
+}
+
+$('#btn-serial').addEventListener('click', () => attach(new SerialTransport()));
+
+$('#btn-wifi').addEventListener('click', () => {
+  $('#wifi-modal').classList.add('show');
+  $('#ws-url').focus();
+});
+$('#ws-cancel').addEventListener('click', () => $('#wifi-modal').classList.remove('show'));
+$('#ws-go').addEventListener('click', () => {
+  const url = $('#ws-url').value.trim();
+  if (!/^wss?:\/\//.test(url)) { toast('URL must start with ws:// or wss://', 'err'); return; }
+  $('#wifi-modal').classList.remove('show');
+  attach(new WiFiTransport(url));
+});
+$('#ws-url').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#ws-go').click(); });
+
+// Disable serial button if Web Serial unsupported
+if (!('serial' in navigator)) {
+  const b = $('#btn-serial');
+  b.disabled = true;
+  b.title = 'Web Serial not supported in this browser';
+}
+</script>
+</body>
+</html>
