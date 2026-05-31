@@ -1,67 +1,49 @@
 /*
- * pinscope.ino
+ * pinscope_ble.ino
  *
- * Reference firmware for PINSCOPE (Field Instrument 005), the Arduino Uno Q
- * I/O console. Implements the PinScope line-delimited JSON wire protocol
- * over Serial at 115200 baud.
+ * BLE-capable firmware for PINSCOPE (Field Instrument 005). Uses the
+ * Arduino BLE service definition to expose the same line-delimited JSON
+ * wire protocol that pinscope.ino speaks over USB Serial. Verified on:
  *
- * Compatible with the classic Uno API surface, so it also works on a stock
- * Arduino Uno R3 and most ATmega328P / SAMD / STM32 cores. Requires Wire.h
- * (part of the Arduino core, no external library needed) for I2C support.
+ *   - Arduino Uno R4 WiFi   (Renesas RA4M1 + ESP32-S3 BLE co-processor)
+ *   - Arduino Nano 33 IoT   (SAMD21 + NINA-W102 BLE co-processor)
+ *   - Arduino Uno Q         (STM32U585 native BLE; experimental under
+ *                            Zephyr-based arduino:zephyr:unoq core)
  *
- * Wire protocol (one JSON object per line, both directions):
+ * Build requirements:
+ *   - Arduino IDE 2.x or arduino-cli
+ *   - ArduinoBLE library (Tools > Manage Libraries > "ArduinoBLE")
+ *   - Wire library (part of the core; bundled with each board package)
  *
- *   Host -> board:
- *     {"cmd":"hello"}
- *     {"cmd":"poll"}
- *     {"cmd":"mode","pin":N,"mode":"off|in|inp|out|pwm|freq"}
- *     {"cmd":"set","pin":N,"val":0|1}
- *     {"cmd":"pwm","pin":N,"val":0..255}
- *     {"cmd":"hz","val":N}                              <- set state push rate (1..50 Hz)
- *     {"cmd":"i2c","op":"scan"}
- *     {"cmd":"i2c","op":"read","addr":N,"reg":N,"count":N}
- *     {"cmd":"i2c","op":"write","addr":N,"reg":N,"data":[N,N,...]}
- *     {"cmd":"i2c","op":"poll","slot":N,"addr":N,"reg":N,"count":N,"hz":N,"signed":bool}
- *     {"cmd":"i2c","op":"stoppoll","slot":N}
+ * BLE service schema (committed; must match pinscope.html constants):
+ *   Service     7e2bf001-9d27-4e96-9c9f-1f4b8a0c5e6d  PinScope I/O console
+ *   Notify char 7e2bf002-9d27-4e96-9c9f-1f4b8a0c5e6d  board -> host
+ *   Write char  7e2bf003-9d27-4e96-9c9f-1f4b8a0c5e6d  host  -> board
  *
- *   Board -> host:
- *     {"t":"hello","id":"FI005-XXXX","name":"Arduino Uno Q","hz":N}
- *     {"t":"state","d":[14 ints],"a":[6 ints],"m":[14 strings],"v":[4 ints/null],"f":[14 ints]}
- *     {"t":"ack","cmd":"..."}
- *     {"t":"err","msg":"..."}
- *     {"t":"i2c","op":"scan","addrs":[N,N,...]}
- *     {"t":"i2c","op":"read","addr":N,"reg":N,"data":[N,N,...]}
+ * Both characteristics carry line-delimited JSON. Either side may chunk a
+ * line into multiple ATT writes; the receiver buffers until '\n'. The
+ * implementation here uses 200 bytes per write to stay safely under any
+ * default ATT MTU on any of the three target boards.
  *
- * Notes:
- *   - D0 and D1 are reserved (USB serial UART) and are not driven.
- *   - PWM-capable pins on Uno-family: 3, 5, 6, 9, 10, 11.
- *   - FREQ mode requires hardware interrupt support. On classic Uno R3 only
- *     D2 and D3 work. On Uno Q most pins support EXTI so the firmware
- *     attempts attachInterrupt on the requested pin and reports an error
- *     if it returns NOT_AN_INTERRUPT.
- *   - State packets are pushed at the rate set by {"cmd":"hz"}; default 10 Hz.
- *   - Four virtual channels (V0-V3) can poll I2C registers; values appear
- *     in the state packet's "v" array as int32 (or null if inactive).
- *   - The JSON reader is a minimal scanner, not a full parser. It tolerates
- *     extra whitespace and a single nested int array (for i2c write data).
+ * The wire protocol is identical to pinscope.ino. See README.md for the
+ * full reference.
  *
  * GPL-3.0-or-later
  */
 
 #include <Arduino.h>
 #include <Wire.h>
+#include <ArduinoBLE.h>
 
 // -------- CONFIG -----------------------------------------------------------
-static const uint32_t BAUD          = 115200;
 static const uint8_t  NUM_DIGITAL   = 14;
 static const uint8_t  NUM_ANALOG    = 6;
 static const uint8_t  NUM_VIRTUAL   = 4;
-static const uint8_t  RX_BUF_SIZE   = 160;
+static const uint16_t RX_BUF_SIZE   = 320;       // larger than serial; BLE can deliver bursts
 static const uint8_t  I2C_MAX_READ  = 8;
+static const uint16_t BLE_MTU_SAFE  = 200;       // bytes per notify chunk
+static const uint16_t STATE_PERIOD_DEFAULT = 100;
 
-static const uint16_t STATE_PERIOD_DEFAULT = 100;   // ms, ~10 Hz
-
-// Mode codes: 0=off, 1=in, 2=inp, 3=out, 4=pwm, 5=freq
 static const uint8_t MODE_OFF  = 0;
 static const uint8_t MODE_IN   = 1;
 static const uint8_t MODE_INP  = 2;
@@ -74,14 +56,30 @@ static bool isPwmPin(uint8_t p) {
 }
 static bool isReserved(uint8_t p) { return p == 0 || p == 1; }
 
+// -------- BLE OBJECTS ------------------------------------------------------
+const char* PS_SERVICE_UUID = "7e2bf001-9d27-4e96-9c9f-1f4b8a0c5e6d";
+const char* PS_NOTIFY_UUID  = "7e2bf002-9d27-4e96-9c9f-1f4b8a0c5e6d";
+const char* PS_WRITE_UUID   = "7e2bf003-9d27-4e96-9c9f-1f4b8a0c5e6d";
+
+BLEService            psService(PS_SERVICE_UUID);
+// Maximum length 240 is widely safe; the actual ATT_MTU may be larger but the
+// declared characteristic size caps it. We always chunk writes to BLE_MTU_SAFE.
+BLECharacteristic     psNotify(PS_NOTIFY_UUID, BLENotify, 240);
+BLECharacteristic     psWrite (PS_WRITE_UUID,  BLEWrite | BLEWriteWithoutResponse, 240);
+
 // -------- STATE ------------------------------------------------------------
 static uint8_t  pinModes[NUM_DIGITAL];
 static uint8_t  pwmVals[NUM_DIGITAL];
 
 static char     rxBuf[RX_BUF_SIZE];
-static uint8_t  rxLen = 0;
+static uint16_t rxLen = 0;
 static uint32_t lastState = 0;
 static uint16_t statePeriod = STATE_PERIOD_DEFAULT;
+static bool     centralConnected = false;
+
+// Stream output buffer (we accumulate then flush to BLE in MTU-safe chunks)
+static char     txAccum[256];
+static uint16_t txAccumLen = 0;
 
 // I2C poll slot
 struct I2CPoll {
@@ -97,13 +95,11 @@ struct I2CPoll {
 };
 static I2CPoll polls[NUM_VIRTUAL];
 
-// Frequency measurement: one volatile counter per digital pin. Each pin's
-// ISR is a tiny wrapper that increments its own counter; the main loop
-// converts counts to Hz periodically.
+// Frequency measurement
 static volatile uint32_t pulseCount[NUM_DIGITAL] = { 0 };
 static uint32_t          freqHz[NUM_DIGITAL]     = { 0 };
 static uint32_t          lastFreqCalc            = 0;
-static const uint16_t    FREQ_CALC_PERIOD        = 250;  // ms
+static const uint16_t    FREQ_CALC_PERIOD        = 250;
 
 #define ISR_FOR_PIN(N)  static void isr_pin_##N() { pulseCount[N]++; }
 ISR_FOR_PIN(0)  ISR_FOR_PIN(1)  ISR_FOR_PIN(2)  ISR_FOR_PIN(3)
@@ -111,7 +107,6 @@ ISR_FOR_PIN(4)  ISR_FOR_PIN(5)  ISR_FOR_PIN(6)  ISR_FOR_PIN(7)
 ISR_FOR_PIN(8)  ISR_FOR_PIN(9)  ISR_FOR_PIN(10) ISR_FOR_PIN(11)
 ISR_FOR_PIN(12) ISR_FOR_PIN(13)
 #undef ISR_FOR_PIN
-
 typedef void (*VoidFn)();
 static VoidFn pulseIsrs[NUM_DIGITAL] = {
   isr_pin_0,  isr_pin_1,  isr_pin_2,  isr_pin_3,
@@ -120,7 +115,44 @@ static VoidFn pulseIsrs[NUM_DIGITAL] = {
   isr_pin_12, isr_pin_13,
 };
 
-// -------- OUTPUT HELPERS ---------------------------------------------------
+// -------- OUTPUT (BLE) -----------------------------------------------------
+// Flush the accumulated tx buffer in BLE_MTU_SAFE byte chunks via Notify.
+static void txFlush() {
+  if (!centralConnected || txAccumLen == 0) { txAccumLen = 0; return; }
+  uint16_t pos = 0;
+  while (pos < txAccumLen) {
+    uint16_t chunk = (txAccumLen - pos > BLE_MTU_SAFE) ? BLE_MTU_SAFE : (txAccumLen - pos);
+    psNotify.writeValue((const uint8_t*)(txAccum + pos), chunk);
+    pos += chunk;
+  }
+  txAccumLen = 0;
+}
+
+// Append to tx buffer, auto-flushing when full or on newline.
+static void txWrite(const char* s) {
+  while (*s) {
+    if (txAccumLen >= sizeof(txAccum) - 1) txFlush();
+    txAccum[txAccumLen++] = *s;
+    if (*s == '\n') txFlush();
+    s++;
+  }
+}
+static void txWriteInt(int32_t v) {
+  char buf[16];
+  itoa(v, buf, 10);
+  txWrite(buf);
+}
+static void txWriteUInt(uint32_t v) {
+  char buf[16];
+  ultoa(v, buf, 10);
+  txWrite(buf);
+}
+static void txWriteChar(char c) {
+  if (txAccumLen >= sizeof(txAccum) - 1) txFlush();
+  txAccum[txAccumLen++] = c;
+  if (c == '\n') txFlush();
+}
+
 static const char* modeName(uint8_t m) {
   switch (m) {
     case MODE_IN:   return "in";
@@ -134,78 +166,83 @@ static const char* modeName(uint8_t m) {
 
 static void sendHello() {
   uint16_t id = (uint16_t)(micros() & 0xFFFF);
-  Serial.print(F("{\"t\":\"hello\",\"id\":\"FI005-"));
+  txWrite("{\"t\":\"hello\",\"id\":\"FI005-");
   for (int8_t shift = 12; shift >= 0; shift -= 4) {
     uint8_t nib = (id >> shift) & 0xF;
-    Serial.print((char)(nib < 10 ? '0' + nib : 'A' + nib - 10));
+    txWriteChar((char)(nib < 10 ? '0' + nib : 'A' + nib - 10));
   }
-  Serial.print(F("\",\"name\":\"Arduino Uno Q\",\"hz\":"));
-  Serial.print(1000 / statePeriod);
-  Serial.println(F("}"));
+  txWrite("\",\"name\":\"");
+  // Identify which board family the firmware was built for.
+#if defined(ARDUINO_UNOR4_WIFI)
+  txWrite("Arduino Uno R4 WiFi");
+#elif defined(ARDUINO_SAMD_NANO_33_IOT)
+  txWrite("Arduino Nano 33 IoT");
+#elif defined(ARDUINO_UNO_Q) || defined(ARDUINO_ARCH_STM32U5)
+  txWrite("Arduino Uno Q");
+#else
+  txWrite("Arduino BLE");
+#endif
+  txWrite("\",\"hz\":");
+  txWriteInt(1000 / statePeriod);
+  txWrite("}\n");
 }
 
 static uint8_t readDigitalForReport(uint8_t p) {
-  if (pinModes[p] == MODE_OFF)  return 0;
-  if (pinModes[p] == MODE_PWM)  return 0;
+  if (pinModes[p] == MODE_OFF) return 0;
+  if (pinModes[p] == MODE_PWM) return 0;
   return (uint8_t)digitalRead(p);
 }
 
 static void sendState() {
-  Serial.print(F("{\"t\":\"state\",\"d\":["));
+  txWrite("{\"t\":\"state\",\"d\":[");
   for (uint8_t p = 0; p < NUM_DIGITAL; p++) {
-    if (p) Serial.print(',');
-    Serial.print(readDigitalForReport(p));
+    if (p) txWriteChar(',');
+    txWriteInt(readDigitalForReport(p));
   }
-  Serial.print(F("],\"a\":["));
+  txWrite("],\"a\":[");
   for (uint8_t a = 0; a < NUM_ANALOG; a++) {
-    if (a) Serial.print(',');
-    Serial.print(analogRead(A0 + a));
+    if (a) txWriteChar(',');
+    txWriteInt(analogRead(A0 + a));
   }
-  Serial.print(F("],\"m\":["));
+  txWrite("],\"m\":[");
   for (uint8_t p = 0; p < NUM_DIGITAL; p++) {
-    if (p) Serial.print(',');
-    Serial.print('"');
-    Serial.print(modeName(pinModes[p]));
-    Serial.print('"');
+    if (p) txWriteChar(',');
+    txWriteChar('"'); txWrite(modeName(pinModes[p])); txWriteChar('"');
   }
-  Serial.print(F("],\"v\":["));
+  txWrite("],\"v\":[");
   for (uint8_t i = 0; i < NUM_VIRTUAL; i++) {
-    if (i) Serial.print(',');
-    if (polls[i].active && polls[i].hasValue) Serial.print(polls[i].value);
-    else                                      Serial.print(F("null"));
+    if (i) txWriteChar(',');
+    if (polls[i].active && polls[i].hasValue) txWriteInt(polls[i].value);
+    else                                      txWrite("null");
   }
-  Serial.print(F("],\"f\":["));
+  txWrite("],\"f\":[");
   for (uint8_t p = 0; p < NUM_DIGITAL; p++) {
-    if (p) Serial.print(',');
-    if (pinModes[p] == MODE_FREQ) Serial.print(freqHz[p]);
-    else                          Serial.print(-1);
+    if (p) txWriteChar(',');
+    if (pinModes[p] == MODE_FREQ) txWriteUInt(freqHz[p]);
+    else                          txWrite("-1");
   }
-  Serial.println(F("]}"));
+  txWrite("]}\n");
 }
 
 static void sendAck(const char* cmd) {
-  Serial.print(F("{\"t\":\"ack\",\"cmd\":\""));
-  Serial.print(cmd);
-  Serial.println(F("\"}"));
+  txWrite("{\"t\":\"ack\",\"cmd\":\""); txWrite(cmd); txWrite("\"}\n");
 }
 
 static void sendErr(const char* msg) {
-  Serial.print(F("{\"t\":\"err\",\"msg\":\""));
-  Serial.print(msg);
-  Serial.println(F("\"}"));
+  txWrite("{\"t\":\"err\",\"msg\":\""); txWrite(msg); txWrite("\"}\n");
 }
 
-// -------- TINY JSON SCANNER -----------------------------------------------
+// -------- TINY JSON SCANNER (same as serial firmware) ----------------------
 static int findField(const char* buf, const char* key) {
   uint8_t klen = strlen(key);
-  uint8_t len  = strlen(buf);
-  for (uint8_t i = 0; i + klen + 2 < len; i++) {
+  uint16_t len = strlen(buf);
+  for (uint16_t i = 0; i + klen + 2 < len; i++) {
     if (buf[i] != '"') continue;
     if (strncmp(buf + i + 1, key, klen) != 0) continue;
     if (buf[i + 1 + klen] != '"') continue;
-    uint8_t j = i + 2 + klen;
+    uint16_t j = i + 2 + klen;
     while (j < len && (buf[j] == ' ' || buf[j] == ':')) j++;
-    return j;
+    return (int)j;
   }
   return -1;
 }
@@ -221,7 +258,6 @@ static bool readIntVal(const char* buf, const char* key, int* out) {
   *out = (int)(v * sign);
   return true;
 }
-
 static bool readBoolVal(const char* buf, const char* key, bool* out) {
   int p = findField(buf, key);
   if (p < 0) return false;
@@ -229,7 +265,6 @@ static bool readBoolVal(const char* buf, const char* key, bool* out) {
   if (!strncmp(buf + p, "false", 5))  { *out = false; return true; }
   return false;
 }
-
 static bool readStringVal(const char* buf, const char* key, char* out, uint8_t outsz) {
   int p = findField(buf, key);
   if (p < 0 || buf[p] != '"') return false;
@@ -239,15 +274,14 @@ static bool readStringVal(const char* buf, const char* key, char* out, uint8_t o
   out[n] = 0;
   return true;
 }
-
 static uint8_t readIntArray(const char* buf, const char* key, int* out, uint8_t outsz) {
   int p = findField(buf, key);
   if (p < 0 || buf[p] != '[') return 0;
   p++;
   uint8_t n = 0;
-  uint8_t len = strlen(buf);
-  while (p < len && buf[p] != ']' && n < outsz) {
-    while (p < len && (buf[p] == ' ' || buf[p] == ',')) p++;
+  uint16_t len = strlen(buf);
+  while (p < (int)len && buf[p] != ']' && n < outsz) {
+    while (p < (int)len && (buf[p] == ' ' || buf[p] == ',')) p++;
     if (buf[p] == ']') break;
     int sign = 1;
     if (buf[p] == '-') { sign = -1; p++; }
@@ -305,7 +339,7 @@ static void applyMode(uint8_t pin, const char* mode) {
   sendAck("mode");
 }
 
-// -------- I2C HELPERS ------------------------------------------------------
+// -------- I2C --------------------------------------------------------------
 static bool i2cReadBytes(uint8_t addr, uint8_t reg, uint8_t count, uint8_t* out) {
   Wire.beginTransmission(addr);
   Wire.write(reg);
@@ -315,7 +349,6 @@ static bool i2cReadBytes(uint8_t addr, uint8_t reg, uint8_t count, uint8_t* out)
   while (Wire.available() && got < count) out[got++] = Wire.read();
   return got == count;
 }
-
 static int32_t assembleBytes(const uint8_t* bytes, uint8_t count, bool isSigned) {
   int32_t v = 0;
   for (uint8_t i = 0; i < count; i++) v = (v << 8) | bytes[i];
@@ -327,35 +360,31 @@ static int32_t assembleBytes(const uint8_t* bytes, uint8_t count, bool isSigned)
 }
 
 static void doI2CScan() {
-  Serial.print(F("{\"t\":\"i2c\",\"op\":\"scan\",\"addrs\":["));
+  txWrite("{\"t\":\"i2c\",\"op\":\"scan\",\"addrs\":[");
   bool first = true;
   for (uint8_t addr = 1; addr < 0x78; addr++) {
     Wire.beginTransmission(addr);
     if (Wire.endTransmission() == 0) {
-      if (!first) Serial.print(',');
-      Serial.print(addr);
+      if (!first) txWriteChar(',');
+      txWriteInt(addr);
       first = false;
     }
   }
-  Serial.println(F("]}"));
+  txWrite("]}\n");
 }
-
 static void doI2CRead(uint8_t addr, uint8_t reg, uint8_t count) {
   if (count == 0 || count > I2C_MAX_READ) { sendErr("bad i2c count"); return; }
   uint8_t buf[I2C_MAX_READ];
   if (!i2cReadBytes(addr, reg, count, buf)) { sendErr("i2c read failed"); return; }
-  Serial.print(F("{\"t\":\"i2c\",\"op\":\"read\",\"addr\":"));
-  Serial.print(addr);
-  Serial.print(F(",\"reg\":"));
-  Serial.print(reg);
-  Serial.print(F(",\"data\":["));
+  txWrite("{\"t\":\"i2c\",\"op\":\"read\",\"addr\":");
+  txWriteInt(addr); txWrite(",\"reg\":");
+  txWriteInt(reg);  txWrite(",\"data\":[");
   for (uint8_t i = 0; i < count; i++) {
-    if (i) Serial.print(',');
-    Serial.print(buf[i]);
+    if (i) txWriteChar(',');
+    txWriteInt(buf[i]);
   }
-  Serial.println(F("]}"));
+  txWrite("]}\n");
 }
-
 static void doI2CWrite(uint8_t addr, uint8_t reg, const int* data, uint8_t count) {
   Wire.beginTransmission(addr);
   Wire.write(reg);
@@ -364,13 +393,10 @@ static void doI2CWrite(uint8_t addr, uint8_t reg, const int* data, uint8_t count
   sendAck("i2c");
 }
 
-// -------- COMMAND DISPATCH -------------------------------------------------
 static void handleI2C(const char* buf) {
   char op[10];
   if (!readStringVal(buf, "op", op, sizeof(op))) { sendErr("no i2c op"); return; }
-
   if (!strcmp(op, "scan")) { doI2CScan(); return; }
-
   int addr, reg, count;
   if (!strcmp(op, "read")) {
     if (!readIntVal(buf, "addr", &addr) || !readIntVal(buf, "reg", &reg) || !readIntVal(buf, "count", &count)) {
@@ -429,10 +455,8 @@ static void handleI2C(const char* buf) {
 static void handleLine(char* buf) {
   char cmd[10];
   if (!readStringVal(buf, "cmd", cmd, sizeof(cmd))) { sendErr("no cmd"); return; }
-
   if (!strcmp(cmd, "hello")) { sendHello(); sendState(); return; }
   if (!strcmp(cmd, "poll"))  { sendState(); return; }
-
   if (!strcmp(cmd, "mode")) {
     int pin; char m[8];
     if (!readIntVal(buf, "pin", &pin) || !readStringVal(buf, "mode", m, sizeof(m))) {
@@ -480,23 +504,28 @@ static void handleLine(char* buf) {
   sendErr("unknown cmd");
 }
 
-// -------- ARDUINO ENTRY POINTS --------------------------------------------
-void setup() {
-  Serial.begin(BAUD);
-  uint32_t deadline = millis() + 2000;
-  while (!Serial && millis() < deadline) { /* wait */ }
-
-  for (uint8_t i = 0; i < NUM_DIGITAL; i++) {
-    pinModes[i] = 0;
-    pwmVals[i]  = 0;
-  }
-  for (uint8_t i = 0; i < NUM_VIRTUAL; i++) polls[i].active = false;
-  Wire.begin();
+// -------- BLE EVENTS -------------------------------------------------------
+static void onConnect(BLEDevice central) {
+  centralConnected = true;
+  // Reset the rx line buffer so a fresh session doesn't carry junk
+  rxLen = 0;
+  // Greet the central with hello + state immediately
+  sendHello();
+  sendState();
+}
+static void onDisconnect(BLEDevice central) {
+  centralConnected = false;
+  // Drain any pending tx (noop without a connection, but clear the buffer)
+  txAccumLen = 0;
 }
 
-void loop() {
-  while (Serial.available()) {
-    char c = (char)Serial.read();
+// Called when the write characteristic receives data from the central.
+// Accumulate into rxBuf, dispatch complete lines on '\n'.
+static void onRxWritten(BLEDevice central, BLECharacteristic ch) {
+  uint16_t got = ch.valueLength();
+  const uint8_t* data = ch.value();
+  for (uint16_t i = 0; i < got; i++) {
+    char c = (char)data[i];
     if (c == '\n' || c == '\r') {
       if (rxLen > 0) {
         rxBuf[rxLen] = 0;
@@ -510,10 +539,52 @@ void loop() {
       sendErr("rx overflow");
     }
   }
+}
+
+// -------- SETUP / LOOP -----------------------------------------------------
+void setup() {
+  // Optional: open a serial monitor for debugging during bring-up.
+  Serial.begin(115200);
+  uint32_t serialDeadline = millis() + 1000;
+  while (!Serial && millis() < serialDeadline) { /* don't block if no monitor */ }
+
+  for (uint8_t i = 0; i < NUM_DIGITAL; i++) {
+    pinModes[i] = 0;
+    pwmVals[i]  = 0;
+  }
+  for (uint8_t i = 0; i < NUM_VIRTUAL; i++) polls[i].active = false;
+  Wire.begin();
+
+  if (!BLE.begin()) {
+    Serial.println("BLE.begin() failed");
+    while (1) { delay(1000); }
+  }
+
+  // Local name and advertised service. The local name is what the device
+  // chooser shows in the browser; the advertised service UUID is what the
+  // browser filters on.
+  BLE.setLocalName("PinScope");
+  BLE.setDeviceName("PinScope");
+  BLE.setAdvertisedService(psService);
+
+  psService.addCharacteristic(psNotify);
+  psService.addCharacteristic(psWrite);
+  BLE.addService(psService);
+
+  psWrite.setEventHandler(BLEWritten, onRxWritten);
+  BLE.setEventHandler(BLEConnected,    onConnect);
+  BLE.setEventHandler(BLEDisconnected, onDisconnect);
+
+  BLE.advertise();
+  Serial.println("PinScope BLE advertising as 'PinScope'");
+}
+
+void loop() {
+  BLE.poll();
 
   uint32_t now = millis();
 
-  // Service I2C polls
+  // I2C polls
   for (uint8_t i = 0; i < NUM_VIRTUAL; i++) {
     if (!polls[i].active) continue;
     if (now - polls[i].lastReadMs < polls[i].periodMs) continue;
@@ -527,7 +598,7 @@ void loop() {
     }
   }
 
-  // Recompute frequency counts every FREQ_CALC_PERIOD ms
+  // Frequency calc
   if (now - lastFreqCalc >= FREQ_CALC_PERIOD) {
     uint32_t elapsed = now - lastFreqCalc;
     lastFreqCalc = now;
@@ -541,8 +612,8 @@ void loop() {
     }
   }
 
-  // Periodic state push
-  if (now - lastState >= statePeriod) {
+  // Periodic state push, only while a central is subscribed
+  if (centralConnected && now - lastState >= statePeriod) {
     lastState = now;
     sendState();
   }

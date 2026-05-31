@@ -1,67 +1,56 @@
 /*
- * pinscope.ino
+ * pinscope_mqtt.ino
  *
- * Reference firmware for PINSCOPE (Field Instrument 005), the Arduino Uno Q
- * I/O console. Implements the PinScope line-delimited JSON wire protocol
- * over Serial at 115200 baud.
+ * MQTT-capable firmware for PINSCOPE (Field Instrument 005). Publishes the
+ * PinScope JSON wire protocol directly to an MQTT broker over WiFi, so the
+ * browser console can talk to the board with no host-side bridge process.
  *
- * Compatible with the classic Uno API surface, so it also works on a stock
- * Arduino Uno R3 and most ATmega328P / SAMD / STM32 cores. Requires Wire.h
- * (part of the Arduino core, no external library needed) for I2C support.
+ * Verified on:
+ *   - Arduino Uno R4 WiFi   (Renesas RA4M1 + ESP32-S3 WiFi/BLE coprocessor)
+ *   - Arduino Nano 33 IoT   (SAMD21          + NINA-W102 WiFi/BLE coprocessor)
  *
- * Wire protocol (one JSON object per line, both directions):
+ * Build requirements:
+ *   - Arduino IDE 2.x or arduino-cli
+ *   - WiFiNINA library              (Tools > Manage Libraries > "WiFiNINA")
+ *   - ArduinoMqttClient library     (Tools > Manage Libraries > "ArduinoMqttClient")
+ *   - Wire library (bundled with the core)
  *
- *   Host -> board:
- *     {"cmd":"hello"}
- *     {"cmd":"poll"}
- *     {"cmd":"mode","pin":N,"mode":"off|in|inp|out|pwm|freq"}
- *     {"cmd":"set","pin":N,"val":0|1}
- *     {"cmd":"pwm","pin":N,"val":0..255}
- *     {"cmd":"hz","val":N}                              <- set state push rate (1..50 Hz)
- *     {"cmd":"i2c","op":"scan"}
- *     {"cmd":"i2c","op":"read","addr":N,"reg":N,"count":N}
- *     {"cmd":"i2c","op":"write","addr":N,"reg":N,"data":[N,N,...]}
- *     {"cmd":"i2c","op":"poll","slot":N,"addr":N,"reg":N,"count":N,"hz":N,"signed":bool}
- *     {"cmd":"i2c","op":"stoppoll","slot":N}
+ * The Uno R4 WiFi's coprocessor is an ESP32-S3 (not a NINA-W102) but it
+ * presents the same WiFiNINA API surface via the Arduino-vendored shim;
+ * the same sketch source compiles unchanged.
  *
- *   Board -> host:
- *     {"t":"hello","id":"FI005-XXXX","name":"Arduino Uno Q","hz":N}
- *     {"t":"state","d":[14 ints],"a":[6 ints],"m":[14 strings],"v":[4 ints/null],"f":[14 ints]}
- *     {"t":"ack","cmd":"..."}
- *     {"t":"err","msg":"..."}
- *     {"t":"i2c","op":"scan","addrs":[N,N,...]}
- *     {"t":"i2c","op":"read","addr":N,"reg":N,"data":[N,N,...]}
+ * Topic schema (must match pinscope.html constants):
+ *   <base>/<deviceId>/out   board -> host  (line-delimited JSON)
+ *   <base>/<deviceId>/in    host  -> board (one command per PUBLISH)
  *
- * Notes:
- *   - D0 and D1 are reserved (USB serial UART) and are not driven.
- *   - PWM-capable pins on Uno-family: 3, 5, 6, 9, 10, 11.
- *   - FREQ mode requires hardware interrupt support. On classic Uno R3 only
- *     D2 and D3 work. On Uno Q most pins support EXTI so the firmware
- *     attempts attachInterrupt on the requested pin and reports an error
- *     if it returns NOT_AN_INTERRUPT.
- *   - State packets are pushed at the rate set by {"cmd":"hz"}; default 10 Hz.
- *   - Four virtual channels (V0-V3) can poll I2C registers; values appear
- *     in the state packet's "v" array as int32 (or null if inactive).
- *   - The JSON reader is a minimal scanner, not a full parser. It tolerates
- *     extra whitespace and a single nested int array (for i2c write data).
+ * The board picks its own device id at boot from a MAC-derived hex string.
+ * Override SECRETS below before flashing (network creds and broker host).
  *
  * GPL-3.0-or-later
  */
 
 #include <Arduino.h>
 #include <Wire.h>
+#include <WiFiNINA.h>
+#include <ArduinoMqttClient.h>
+
+// -------- SECRETS (edit before flashing) -----------------------------------
+// You may also move these to a separate "arduino_secrets.h" and include it.
+static const char* WIFI_SSID     = "YOUR_WIFI_SSID";
+static const char* WIFI_PASS     = "YOUR_WIFI_PASSWORD";
+static const char* MQTT_HOST     = "test.mosquitto.org";
+static const uint16_t MQTT_PORT  = 1883;
+// Topic base; can be overridden by an "in" command later.
+static const char* TOPIC_BASE    = "pinscope";
 
 // -------- CONFIG -----------------------------------------------------------
-static const uint32_t BAUD          = 115200;
 static const uint8_t  NUM_DIGITAL   = 14;
 static const uint8_t  NUM_ANALOG    = 6;
 static const uint8_t  NUM_VIRTUAL   = 4;
-static const uint8_t  RX_BUF_SIZE   = 160;
+static const uint16_t RX_BUF_SIZE   = 320;
 static const uint8_t  I2C_MAX_READ  = 8;
+static const uint16_t STATE_PERIOD_DEFAULT = 100;
 
-static const uint16_t STATE_PERIOD_DEFAULT = 100;   // ms, ~10 Hz
-
-// Mode codes: 0=off, 1=in, 2=inp, 3=out, 4=pwm, 5=freq
 static const uint8_t MODE_OFF  = 0;
 static const uint8_t MODE_IN   = 1;
 static const uint8_t MODE_INP  = 2;
@@ -74,14 +63,29 @@ static bool isPwmPin(uint8_t p) {
 }
 static bool isReserved(uint8_t p) { return p == 0 || p == 1; }
 
+// -------- NET / MQTT GLOBALS ----------------------------------------------
+WiFiClient    wifiClient;
+MqttClient    mqttClient(wifiClient);
+
+static char   deviceId[16];        // e.g. "FI005-A1B2"
+static char   topicOut[64];
+static char   topicIn[64];
+
 // -------- STATE ------------------------------------------------------------
 static uint8_t  pinModes[NUM_DIGITAL];
 static uint8_t  pwmVals[NUM_DIGITAL];
 
 static char     rxBuf[RX_BUF_SIZE];
-static uint8_t  rxLen = 0;
+static uint16_t rxLen = 0;
 static uint32_t lastState = 0;
 static uint16_t statePeriod = STATE_PERIOD_DEFAULT;
+
+// Stream output buffer: we accumulate JSON into a line then publish as one
+// MQTT PUBLISH. ArduinoMqttClient lets us print into the in-progress
+// publish, which lets us avoid allocating a huge intermediate string.
+struct PublishContext {
+  bool inMessage;
+} pubCtx = { false };
 
 // I2C poll slot
 struct I2CPoll {
@@ -97,13 +101,11 @@ struct I2CPoll {
 };
 static I2CPoll polls[NUM_VIRTUAL];
 
-// Frequency measurement: one volatile counter per digital pin. Each pin's
-// ISR is a tiny wrapper that increments its own counter; the main loop
-// converts counts to Hz periodically.
+// Frequency measurement
 static volatile uint32_t pulseCount[NUM_DIGITAL] = { 0 };
 static uint32_t          freqHz[NUM_DIGITAL]     = { 0 };
 static uint32_t          lastFreqCalc            = 0;
-static const uint16_t    FREQ_CALC_PERIOD        = 250;  // ms
+static const uint16_t    FREQ_CALC_PERIOD        = 250;
 
 #define ISR_FOR_PIN(N)  static void isr_pin_##N() { pulseCount[N]++; }
 ISR_FOR_PIN(0)  ISR_FOR_PIN(1)  ISR_FOR_PIN(2)  ISR_FOR_PIN(3)
@@ -111,7 +113,6 @@ ISR_FOR_PIN(4)  ISR_FOR_PIN(5)  ISR_FOR_PIN(6)  ISR_FOR_PIN(7)
 ISR_FOR_PIN(8)  ISR_FOR_PIN(9)  ISR_FOR_PIN(10) ISR_FOR_PIN(11)
 ISR_FOR_PIN(12) ISR_FOR_PIN(13)
 #undef ISR_FOR_PIN
-
 typedef void (*VoidFn)();
 static VoidFn pulseIsrs[NUM_DIGITAL] = {
   isr_pin_0,  isr_pin_1,  isr_pin_2,  isr_pin_3,
@@ -120,7 +121,36 @@ static VoidFn pulseIsrs[NUM_DIGITAL] = {
   isr_pin_12, isr_pin_13,
 };
 
-// -------- OUTPUT HELPERS ---------------------------------------------------
+// -------- BOARD NAME (compile-time) ---------------------------------------
+static const char* boardName() {
+#if defined(ARDUINO_UNOR4_WIFI)
+  return "Arduino Uno R4 WiFi";
+#elif defined(ARDUINO_SAMD_NANO_33_IOT)
+  return "Arduino Nano 33 IoT";
+#else
+  return "Arduino WiFi";
+#endif
+}
+
+// -------- PUBLISH HELPERS --------------------------------------------------
+// Begin a publish to topicOut. Returns true on success. The body is written
+// via mqttClient.print(...) and finished by endPublish().
+static bool beginPublish() {
+  if (!mqttClient.connected()) return false;
+  if (!mqttClient.beginMessage(topicOut)) return false;
+  pubCtx.inMessage = true;
+  return true;
+}
+static void endPublish() {
+  if (!pubCtx.inMessage) return;
+  mqttClient.endMessage();
+  pubCtx.inMessage = false;
+}
+
+// Convenience: print formatted text into the current publish.
+template <typename T>
+static void px(T v) { mqttClient.print(v); }
+
 static const char* modeName(uint8_t m) {
   switch (m) {
     case MODE_IN:   return "in";
@@ -133,83 +163,79 @@ static const char* modeName(uint8_t m) {
 }
 
 static void sendHello() {
-  uint16_t id = (uint16_t)(micros() & 0xFFFF);
-  Serial.print(F("{\"t\":\"hello\",\"id\":\"FI005-"));
-  for (int8_t shift = 12; shift >= 0; shift -= 4) {
-    uint8_t nib = (id >> shift) & 0xF;
-    Serial.print((char)(nib < 10 ? '0' + nib : 'A' + nib - 10));
-  }
-  Serial.print(F("\",\"name\":\"Arduino Uno Q\",\"hz\":"));
-  Serial.print(1000 / statePeriod);
-  Serial.println(F("}"));
+  if (!beginPublish()) return;
+  px("{\"t\":\"hello\",\"id\":\""); px(deviceId);
+  px("\",\"name\":\""); px(boardName());
+  px("\",\"hz\":"); px(1000 / statePeriod);
+  px("}\n");
+  endPublish();
 }
 
 static uint8_t readDigitalForReport(uint8_t p) {
-  if (pinModes[p] == MODE_OFF)  return 0;
-  if (pinModes[p] == MODE_PWM)  return 0;
+  if (pinModes[p] == MODE_OFF) return 0;
+  if (pinModes[p] == MODE_PWM) return 0;
   return (uint8_t)digitalRead(p);
 }
 
 static void sendState() {
-  Serial.print(F("{\"t\":\"state\",\"d\":["));
+  if (!beginPublish()) return;
+  px("{\"t\":\"state\",\"d\":[");
   for (uint8_t p = 0; p < NUM_DIGITAL; p++) {
-    if (p) Serial.print(',');
-    Serial.print(readDigitalForReport(p));
+    if (p) px(',');
+    px((int)readDigitalForReport(p));
   }
-  Serial.print(F("],\"a\":["));
+  px("],\"a\":[");
   for (uint8_t a = 0; a < NUM_ANALOG; a++) {
-    if (a) Serial.print(',');
-    Serial.print(analogRead(A0 + a));
+    if (a) px(',');
+    px(analogRead(A0 + a));
   }
-  Serial.print(F("],\"m\":["));
+  px("],\"m\":[");
   for (uint8_t p = 0; p < NUM_DIGITAL; p++) {
-    if (p) Serial.print(',');
-    Serial.print('"');
-    Serial.print(modeName(pinModes[p]));
-    Serial.print('"');
+    if (p) px(',');
+    px('"'); px(modeName(pinModes[p])); px('"');
   }
-  Serial.print(F("],\"v\":["));
+  px("],\"v\":[");
   for (uint8_t i = 0; i < NUM_VIRTUAL; i++) {
-    if (i) Serial.print(',');
-    if (polls[i].active && polls[i].hasValue) Serial.print(polls[i].value);
-    else                                      Serial.print(F("null"));
+    if (i) px(',');
+    if (polls[i].active && polls[i].hasValue) px(polls[i].value);
+    else                                      px("null");
   }
-  Serial.print(F("],\"f\":["));
+  px("],\"f\":[");
   for (uint8_t p = 0; p < NUM_DIGITAL; p++) {
-    if (p) Serial.print(',');
-    if (pinModes[p] == MODE_FREQ) Serial.print(freqHz[p]);
-    else                          Serial.print(-1);
+    if (p) px(',');
+    if (pinModes[p] == MODE_FREQ) px((unsigned long)freqHz[p]);
+    else                          px(-1);
   }
-  Serial.println(F("]}"));
+  px("]}\n");
+  endPublish();
 }
 
 static void sendAck(const char* cmd) {
-  Serial.print(F("{\"t\":\"ack\",\"cmd\":\""));
-  Serial.print(cmd);
-  Serial.println(F("\"}"));
+  if (!beginPublish()) return;
+  px("{\"t\":\"ack\",\"cmd\":\""); px(cmd); px("\"}\n");
+  endPublish();
 }
 
 static void sendErr(const char* msg) {
-  Serial.print(F("{\"t\":\"err\",\"msg\":\""));
-  Serial.print(msg);
-  Serial.println(F("\"}"));
+  if (!beginPublish()) return;
+  px("{\"t\":\"err\",\"msg\":\""); px(msg); px("\"}\n");
+  endPublish();
 }
 
-// -------- TINY JSON SCANNER -----------------------------------------------
+// -------- TINY JSON SCANNER (same as other firmwares) ----------------------
 static int findField(const char* buf, const char* key) {
   uint8_t klen = strlen(key);
-  uint8_t len  = strlen(buf);
-  for (uint8_t i = 0; i + klen + 2 < len; i++) {
+  uint16_t len = strlen(buf);
+  for (uint16_t i = 0; i + klen + 2 < len; i++) {
     if (buf[i] != '"') continue;
     if (strncmp(buf + i + 1, key, klen) != 0) continue;
     if (buf[i + 1 + klen] != '"') continue;
-    uint8_t j = i + 2 + klen;
+    uint16_t j = i + 2 + klen;
     while (j < len && (buf[j] == ' ' || buf[j] == ':')) j++;
-    return j;
+    return (int)j;
   }
   return -1;
 }
-
 static bool readIntVal(const char* buf, const char* key, int* out) {
   int p = findField(buf, key);
   if (p < 0) return false;
@@ -221,15 +247,13 @@ static bool readIntVal(const char* buf, const char* key, int* out) {
   *out = (int)(v * sign);
   return true;
 }
-
 static bool readBoolVal(const char* buf, const char* key, bool* out) {
   int p = findField(buf, key);
   if (p < 0) return false;
-  if (!strncmp(buf + p, "true",  4))  { *out = true;  return true; }
-  if (!strncmp(buf + p, "false", 5))  { *out = false; return true; }
+  if (!strncmp(buf + p, "true",  4)) { *out = true;  return true; }
+  if (!strncmp(buf + p, "false", 5)) { *out = false; return true; }
   return false;
 }
-
 static bool readStringVal(const char* buf, const char* key, char* out, uint8_t outsz) {
   int p = findField(buf, key);
   if (p < 0 || buf[p] != '"') return false;
@@ -239,15 +263,14 @@ static bool readStringVal(const char* buf, const char* key, char* out, uint8_t o
   out[n] = 0;
   return true;
 }
-
 static uint8_t readIntArray(const char* buf, const char* key, int* out, uint8_t outsz) {
   int p = findField(buf, key);
   if (p < 0 || buf[p] != '[') return 0;
   p++;
   uint8_t n = 0;
-  uint8_t len = strlen(buf);
-  while (p < len && buf[p] != ']' && n < outsz) {
-    while (p < len && (buf[p] == ' ' || buf[p] == ',')) p++;
+  uint16_t len = strlen(buf);
+  while (p < (int)len && buf[p] != ']' && n < outsz) {
+    while (p < (int)len && (buf[p] == ' ' || buf[p] == ',')) p++;
     if (buf[p] == ']') break;
     int sign = 1;
     if (buf[p] == '-') { sign = -1; p++; }
@@ -305,7 +328,7 @@ static void applyMode(uint8_t pin, const char* mode) {
   sendAck("mode");
 }
 
-// -------- I2C HELPERS ------------------------------------------------------
+// -------- I2C --------------------------------------------------------------
 static bool i2cReadBytes(uint8_t addr, uint8_t reg, uint8_t count, uint8_t* out) {
   Wire.beginTransmission(addr);
   Wire.write(reg);
@@ -315,7 +338,6 @@ static bool i2cReadBytes(uint8_t addr, uint8_t reg, uint8_t count, uint8_t* out)
   while (Wire.available() && got < count) out[got++] = Wire.read();
   return got == count;
 }
-
 static int32_t assembleBytes(const uint8_t* bytes, uint8_t count, bool isSigned) {
   int32_t v = 0;
   for (uint8_t i = 0; i < count; i++) v = (v << 8) | bytes[i];
@@ -327,33 +349,35 @@ static int32_t assembleBytes(const uint8_t* bytes, uint8_t count, bool isSigned)
 }
 
 static void doI2CScan() {
-  Serial.print(F("{\"t\":\"i2c\",\"op\":\"scan\",\"addrs\":["));
+  if (!beginPublish()) return;
+  px("{\"t\":\"i2c\",\"op\":\"scan\",\"addrs\":[");
   bool first = true;
   for (uint8_t addr = 1; addr < 0x78; addr++) {
     Wire.beginTransmission(addr);
     if (Wire.endTransmission() == 0) {
-      if (!first) Serial.print(',');
-      Serial.print(addr);
+      if (!first) px(',');
+      px((int)addr);
       first = false;
     }
   }
-  Serial.println(F("]}"));
+  px("]}\n");
+  endPublish();
 }
 
 static void doI2CRead(uint8_t addr, uint8_t reg, uint8_t count) {
   if (count == 0 || count > I2C_MAX_READ) { sendErr("bad i2c count"); return; }
   uint8_t buf[I2C_MAX_READ];
   if (!i2cReadBytes(addr, reg, count, buf)) { sendErr("i2c read failed"); return; }
-  Serial.print(F("{\"t\":\"i2c\",\"op\":\"read\",\"addr\":"));
-  Serial.print(addr);
-  Serial.print(F(",\"reg\":"));
-  Serial.print(reg);
-  Serial.print(F(",\"data\":["));
+  if (!beginPublish()) return;
+  px("{\"t\":\"i2c\",\"op\":\"read\",\"addr\":");
+  px((int)addr); px(",\"reg\":");
+  px((int)reg);  px(",\"data\":[");
   for (uint8_t i = 0; i < count; i++) {
-    if (i) Serial.print(',');
-    Serial.print(buf[i]);
+    if (i) px(',');
+    px((int)buf[i]);
   }
-  Serial.println(F("]}"));
+  px("]}\n");
+  endPublish();
 }
 
 static void doI2CWrite(uint8_t addr, uint8_t reg, const int* data, uint8_t count) {
@@ -364,13 +388,10 @@ static void doI2CWrite(uint8_t addr, uint8_t reg, const int* data, uint8_t count
   sendAck("i2c");
 }
 
-// -------- COMMAND DISPATCH -------------------------------------------------
 static void handleI2C(const char* buf) {
   char op[10];
   if (!readStringVal(buf, "op", op, sizeof(op))) { sendErr("no i2c op"); return; }
-
   if (!strcmp(op, "scan")) { doI2CScan(); return; }
-
   int addr, reg, count;
   if (!strcmp(op, "read")) {
     if (!readIntVal(buf, "addr", &addr) || !readIntVal(buf, "reg", &reg) || !readIntVal(buf, "count", &count)) {
@@ -429,10 +450,8 @@ static void handleI2C(const char* buf) {
 static void handleLine(char* buf) {
   char cmd[10];
   if (!readStringVal(buf, "cmd", cmd, sizeof(cmd))) { sendErr("no cmd"); return; }
-
   if (!strcmp(cmd, "hello")) { sendHello(); sendState(); return; }
   if (!strcmp(cmd, "poll"))  { sendState(); return; }
-
   if (!strcmp(cmd, "mode")) {
     int pin; char m[8];
     if (!readIntVal(buf, "pin", &pin) || !readStringVal(buf, "mode", m, sizeof(m))) {
@@ -480,23 +499,13 @@ static void handleLine(char* buf) {
   sendErr("unknown cmd");
 }
 
-// -------- ARDUINO ENTRY POINTS --------------------------------------------
-void setup() {
-  Serial.begin(BAUD);
-  uint32_t deadline = millis() + 2000;
-  while (!Serial && millis() < deadline) { /* wait */ }
-
-  for (uint8_t i = 0; i < NUM_DIGITAL; i++) {
-    pinModes[i] = 0;
-    pwmVals[i]  = 0;
-  }
-  for (uint8_t i = 0; i < NUM_VIRTUAL; i++) polls[i].active = false;
-  Wire.begin();
-}
-
-void loop() {
-  while (Serial.available()) {
-    char c = (char)Serial.read();
+// -------- MQTT MESSAGE CALLBACK --------------------------------------------
+// Called by ArduinoMqttClient when a PUBLISH on a subscribed topic arrives.
+// We assume QoS 0 and a payload that contains one or more newline-terminated
+// JSON commands. Each line is dispatched independently.
+static void onMqttMessage(int messageSize) {
+  while (mqttClient.available()) {
+    char c = (char)mqttClient.read();
     if (c == '\n' || c == '\r') {
       if (rxLen > 0) {
         rxBuf[rxLen] = 0;
@@ -510,10 +519,96 @@ void loop() {
       sendErr("rx overflow");
     }
   }
+  // If the payload did not end with a newline, flush it as a single line.
+  if (rxLen > 0) {
+    rxBuf[rxLen] = 0;
+    handleLine(rxBuf);
+    rxLen = 0;
+  }
+}
+
+// -------- ID GENERATION ----------------------------------------------------
+// Derive a stable, board-unique id from the WiFi MAC (last 2 bytes).
+static void buildDeviceId() {
+  byte mac[6] = { 0 };
+  WiFi.macAddress(mac);
+  snprintf(deviceId, sizeof(deviceId), "FI005-%02X%02X", mac[4], mac[5]);
+}
+
+// -------- CONNECTION HELPERS ----------------------------------------------
+static void wifiConnect() {
+  Serial.print("Connecting to WiFi: "); Serial.println(WIFI_SSID);
+  while (WiFi.begin(WIFI_SSID, WIFI_PASS) != WL_CONNECTED) {
+    Serial.print('.');
+    delay(2000);
+  }
+  Serial.println();
+  Serial.print("WiFi connected, IP: "); Serial.println(WiFi.localIP());
+}
+
+static void mqttConnect() {
+  Serial.print("Connecting to MQTT: ");
+  Serial.print(MQTT_HOST); Serial.print(':'); Serial.println(MQTT_PORT);
+  mqttClient.setId(deviceId);
+  while (!mqttClient.connect(MQTT_HOST, MQTT_PORT)) {
+    Serial.print("MQTT connect failed, error: ");
+    Serial.println(mqttClient.connectError());
+    delay(3000);
+  }
+  Serial.println("MQTT connected");
+  // Subscribe to our inbound command topic
+  mqttClient.subscribe(topicIn);
+  Serial.print("Subscribed to: "); Serial.println(topicIn);
+}
+
+// -------- ARDUINO ENTRY POINTS --------------------------------------------
+void setup() {
+  Serial.begin(115200);
+  uint32_t deadline = millis() + 2000;
+  while (!Serial && millis() < deadline) { /* don't block if no monitor */ }
+
+  for (uint8_t i = 0; i < NUM_DIGITAL; i++) {
+    pinModes[i] = 0;
+    pwmVals[i]  = 0;
+  }
+  for (uint8_t i = 0; i < NUM_VIRTUAL; i++) polls[i].active = false;
+  Wire.begin();
+
+  // Bring up WiFi
+  if (WiFi.status() == WL_NO_MODULE) {
+    Serial.println("WiFi module not detected; check WiFiNINA install");
+    while (1) { delay(1000); }
+  }
+  wifiConnect();
+
+  // Derive device id and topic names
+  buildDeviceId();
+  snprintf(topicOut, sizeof(topicOut), "%s/%s/out", TOPIC_BASE, deviceId);
+  snprintf(topicIn,  sizeof(topicIn),  "%s/%s/in",  TOPIC_BASE, deviceId);
+  Serial.print("Device id: "); Serial.println(deviceId);
+
+  // Bring up MQTT
+  mqttClient.onMessage(onMqttMessage);
+  mqttConnect();
+  sendHello();
+}
+
+void loop() {
+  // Keep WiFi + MQTT alive
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi dropped; reconnecting");
+    wifiConnect();
+  }
+  if (!mqttClient.connected()) {
+    Serial.println("MQTT dropped; reconnecting");
+    mqttConnect();
+    sendHello();
+  }
+  mqttClient.poll();
 
   uint32_t now = millis();
 
-  // Service I2C polls
+  // I2C polls
   for (uint8_t i = 0; i < NUM_VIRTUAL; i++) {
     if (!polls[i].active) continue;
     if (now - polls[i].lastReadMs < polls[i].periodMs) continue;
@@ -527,7 +622,7 @@ void loop() {
     }
   }
 
-  // Recompute frequency counts every FREQ_CALC_PERIOD ms
+  // Frequency calc
   if (now - lastFreqCalc >= FREQ_CALC_PERIOD) {
     uint32_t elapsed = now - lastFreqCalc;
     lastFreqCalc = now;

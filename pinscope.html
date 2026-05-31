@@ -259,6 +259,170 @@
   }
   .arow .val{font-size:11px;text-align:right;color:var(--amber-dim);letter-spacing:.06em}
 
+  /* === STRIP CHART ====================================================== */
+  .chart-wrap{display:flex;flex-direction:column;gap:10px}
+  .chart-ctrls{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+  .chart-ctrls .winbtn,
+  .chart-ctrls .miniact{
+    padding:4px 9px;
+    font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+    background:var(--panel-3);color:var(--amber-dim);
+    border:1px solid var(--line-bright);border-radius:2px;cursor:pointer;
+    transition:color .12s, border-color .12s, background .12s;
+  }
+  .chart-ctrls .winbtn:hover,
+  .chart-ctrls .miniact:hover{color:var(--amber);border-color:var(--amber-dim)}
+  .chart-ctrls .winbtn.on,
+  .chart-ctrls .miniact.on{
+    background:rgba(212,160,23,.14);color:var(--amber-bright);border-color:var(--amber-dim);
+  }
+  .chart-ctrls .spacer{flex:1;min-width:6px}
+  .chart-canvas{
+    display:block;width:100%;height:200px;
+    background:#0a0a09;
+    border:1px solid var(--line);border-radius:2px;
+  }
+  .trace-picker{display:flex;flex-direction:column;gap:5px}
+  .trace-row{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+  .trace-row .rowlab{
+    font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);
+    width:54px;min-width:54px;
+  }
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:3px 7px 3px 4px;
+    background:var(--panel-3);border:1px solid var(--line-bright);
+    border-left:3px solid var(--line);
+    border-radius:2px;
+    font-size:10px;letter-spacing:.06em;color:var(--muted);
+    cursor:pointer;user-select:none;
+    transition:color .12s, border-color .12s, background .12s;
+  }
+  .chip.dis{opacity:.32;cursor:not-allowed}
+  .chip:not(.dis):hover{color:var(--amber-dim)}
+  .chip.on{color:var(--amber-bright);background:rgba(212,160,23,.05)}
+  .chip .chip-lbl{font-family:var(--font-mono);letter-spacing:.04em}
+  .chip .val{
+    color:inherit;font-family:var(--font-mono);
+    min-width:36px;text-align:right;font-size:9.5px;
+    color:var(--amber-dim);
+  }
+  .chip.on .val{color:var(--amber-bright)}
+
+  /* === RESOLUTION TOGGLE ================================================ */
+  .adc-range{
+    font-family:var(--font-mono);font-size:9px;letter-spacing:.18em;
+    color:var(--amber-dim);text-transform:none;
+  }
+  .res-toggle{
+    display:inline-flex;align-items:center;gap:4px;
+  }
+  .res-toggle .res-lab{font-size:8.5px;letter-spacing:.28em;color:var(--muted)}
+  .res-btn{
+    padding:1px 6px;
+    font-family:var(--font-mono);font-size:10px;font-weight:500;
+    background:var(--panel-3);color:var(--muted);
+    border:1px solid var(--line-bright);border-radius:2px;cursor:pointer;
+  }
+  .res-btn:hover{color:var(--amber-dim);border-color:var(--amber-dim)}
+  .res-btn.on{background:rgba(212,160,23,.14);color:var(--amber-bright);border-color:var(--amber-dim)}
+
+  /* === ANALYSIS TABS ==================================================== */
+  .tabs{
+    display:flex;gap:1px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:14px;
+  }
+  .tab{
+    padding:8px 16px;margin-bottom:-1px;
+    background:transparent;color:var(--muted);
+    border:none;border-bottom:2px solid transparent;
+    font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;
+    cursor:pointer;
+    transition:color .12s, border-color .12s;
+  }
+  .tab:hover{color:var(--amber-dim)}
+  .tab.on{color:var(--amber-bright);border-bottom-color:var(--amber-dim)}
+  .tab-body{display:block}
+  .tab-body.hidden{display:none}
+
+  /* === FFT / SCATTER VIEWS =============================================== */
+  .view-ctrls{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;
+    font-size:10px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;
+  }
+  .view-ctrls select{
+    font-size:10px;letter-spacing:.12em;
+    padding:4px 7px;
+  }
+  .view-ctrls label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .view-ctrls input[type=checkbox]{accent-color:var(--amber);cursor:pointer}
+  .view-note{
+    font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted-dim);
+    margin-top:8px;
+  }
+
+  /* === ALERTS ============================================================ */
+  .alert-form{
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;
+    padding:10px 12px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:2px;
+  }
+  .alert-form .lab{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+  .alert-form select,
+  .alert-form input[type=number]{
+    font-family:var(--font-mono);font-size:11px;
+    padding:4px 7px;background:var(--panel-3);border:1px solid var(--line-bright);
+    color:var(--amber);border-radius:2px;outline:none;width:auto;
+  }
+  .alert-form input[type=number]{width:80px}
+  .alert-form input[type=number]:focus,
+  .alert-form select:focus{border-color:var(--amber-dim)}
+  .alerts-list{display:flex;flex-direction:column;gap:5px}
+  .alert-item{
+    display:grid;
+    grid-template-columns:auto 1fr auto auto;
+    align-items:center;gap:10px;
+    padding:8px 12px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:2px;
+    transition:border-color .2s, background .2s;
+  }
+  .alert-item.fire{
+    border-color:var(--bad);background:rgba(201,85,77,.08);
+    animation:pulse .5s ease-out;
+  }
+  @keyframes pulse{
+    0%  {background:rgba(201,85,77,.3)}
+    100%{background:rgba(201,85,77,.08)}
+  }
+  .alert-item.off{opacity:.45}
+  .alert-led{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--muted-dim);
+    box-shadow:inset 0 0 2px rgba(0,0,0,.5);
+  }
+  .alert-item.on .alert-led{background:var(--good);box-shadow:0 0 6px rgba(107,163,104,.5)}
+  .alert-item.fire .alert-led{background:var(--bad);box-shadow:0 0 8px rgba(201,85,77,.7)}
+  .alert-desc{
+    font-family:var(--font-mono);font-size:11.5px;letter-spacing:.04em;color:var(--amber);
+  }
+  .alert-desc .op{color:var(--amber-bright);margin:0 4px}
+  .alert-info{
+    font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  }
+  .alert-icon-btn{
+    width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--panel-3);border:1px solid var(--line-bright);border-radius:2px;
+    color:var(--muted);font-size:13px;cursor:pointer;
+  }
+  .alert-icon-btn:hover{color:var(--amber);border-color:var(--amber-dim)}
+  .alert-icon-btn.on{color:var(--amber-bright);border-color:var(--amber-dim);background:rgba(212,160,23,.1)}
+  .alerts-empty{
+    padding:14px;text-align:center;
+    font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted-dim);
+    background:var(--panel-2);border:1px dashed var(--line-bright);border-radius:2px;
+  }
+
   /* === LOG ============================================================== */
   .log-wrap{padding:12px 18px 16px}
   .log-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -301,6 +465,165 @@
   .modal .hint{font-size:10.5px;color:var(--muted);line-height:1.6;margin-bottom:14px}
   .modal .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
 
+  /* === CALIBRATION ====================================================== */
+  .cal-clickable{cursor:pointer;border-bottom:1px dotted var(--amber-dim);transition:color .12s ease,border-color .12s ease}
+  .cal-clickable:hover{color:var(--amber-bright);border-bottom-color:var(--amber-bright)}
+  .cal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .cal-grid > div{display:flex;flex-direction:column}
+
+  /* === STATS PANEL ====================================================== */
+  .stats-panel{
+    margin-top:10px;
+    background:#0a0a09;border:1px solid var(--line);border-radius:2px;
+    padding:8px 12px;font-size:10.5px;
+  }
+  .stats-row{
+    display:grid;
+    grid-template-columns:minmax(120px,1.4fr) repeat(7,1fr);
+    gap:8px;align-items:center;padding:3px 0;color:var(--muted);
+  }
+  .stats-row.stats-head{
+    color:var(--amber-dim);letter-spacing:.18em;text-transform:uppercase;font-size:9px;
+    border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:4px;
+  }
+  .stats-row.stats-head > span{font-weight:normal}
+  .stats-name{display:flex;align-items:center;gap:8px;color:var(--amber-dim);letter-spacing:.06em}
+  .stats-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .stats-empty{padding:8px;color:var(--muted-dim);font-style:italic;text-align:center}
+
+  /* === I2C / QWIIC ====================================================== */
+  .i2c-wrap{display:flex;flex-direction:column;gap:12px}
+  .i2c-head{display:flex;align-items:center;gap:14px}
+  .i2c-status{font-size:10px;letter-spacing:.16em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .i2c-grid{
+    display:grid;grid-template-columns:32px repeat(16,1fr);gap:2px;
+    background:#0a0a09;padding:6px;border:1px solid var(--line);border-radius:2px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+  }
+  .i2c-corner{}
+  .i2c-colhdr,.i2c-rowhdr{
+    text-align:center;color:var(--amber-dim);letter-spacing:.08em;padding:2px 0;
+  }
+  .i2c-rowhdr{text-align:right;padding-right:6px}
+  .i2c-cell{
+    text-align:center;color:var(--muted-dim);padding:3px 0;cursor:pointer;
+    border:1px solid transparent;border-radius:2px;background:#161513;
+    transition:background .1s ease,border-color .1s ease;
+  }
+  .i2c-cell:hover{border-color:var(--amber-dim)}
+  .i2c-cell.present{color:var(--good);background:#162016;border-color:#2a5028}
+  .i2c-cell.selected{background:var(--amber-dim);color:#0a0a09;border-color:var(--amber-bright)}
+  .i2c-tools{
+    background:#0a0a09;border:1px solid var(--line);padding:10px 12px;
+    display:flex;flex-direction:column;gap:8px;border-radius:2px;
+  }
+  .i2c-toolhead{font-family:'JetBrains Mono',monospace;color:var(--amber-bright);
+    letter-spacing:.12em;font-size:13px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .i2c-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10.5px}
+  .i2c-toolrow .lab{color:var(--amber-dim);letter-spacing:.18em;text-transform:uppercase;font-size:9.5px}
+  .i2c-toolrow input,.i2c-toolrow select{
+    background:#161513;border:1px solid var(--line);color:var(--text);
+    padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;border-radius:2px;
+  }
+  .i2c-toolrow input[type="number"]{width:60px}
+  .i2c-toolrow input[type="text"]{width:130px}
+  .i2c-toolrow label{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:10px;letter-spacing:.12em}
+  .i2c-readout{
+    background:#161513;border:1px solid var(--line);padding:8px 10px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber);
+    border-radius:2px;min-height:14px;
+  }
+  .i2c-slots-head{
+    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber-dim);
+    padding-top:4px;border-top:1px solid var(--line);padding-top:8px;
+  }
+  .i2c-slots{display:flex;flex-direction:column;gap:4px}
+  .i2c-slot{
+    display:grid;grid-template-columns:40px 1fr auto auto;gap:10px;align-items:center;
+    padding:6px 10px;background:#161513;border:1px solid var(--line);border-radius:2px;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  }
+  .i2c-slot.active{border-color:var(--amber-dim)}
+  .slot-id{color:var(--amber);letter-spacing:.12em}
+  .slot-desc{color:var(--muted);font-size:10px}
+  .slot-desc.dim{color:var(--muted-dim);font-style:italic}
+  .slot-value{color:var(--amber-bright);text-align:right}
+
+  /* === HZ SELECTOR ====================================================== */
+  .hz-sel{
+    background:var(--panel-2);border:1px solid var(--line-bright);
+    color:var(--amber);padding:4px 8px;border-radius:2px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;
+    cursor:pointer;
+  }
+  .hz-sel:hover{border-color:var(--amber-dim)}
+
+  /* === GRID LAYOUT ====================================================== */
+  /* When grid mode is on AND there are 2+ cards, lay them out two-up.
+     The pin grid inside each card is already responsive, so the cards
+     shrink gracefully. Below 1400 px we drop back to a single column. */
+  #main.grid{display:grid;grid-template-columns:1fr;gap:20px}
+  @media (min-width: 1400px) {
+    #main.grid{grid-template-columns:repeat(2, 1fr)}
+  }
+
+  /* === RAW COMMAND ROW ================================================== */
+  .raw-row{display:flex;gap:8px;margin-top:6px;align-items:center}
+  .raw-input{
+    flex:1;background:#0a0a09;border:1px solid var(--line);color:var(--text);
+    padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;border-radius:2px;
+  }
+  .raw-input:focus{outline:none;border-color:var(--amber-dim);background:#161513}
+
+  /* === KEYBOARD HELP ==================================================== */
+  .kbd-row{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:11px}
+  .kbd-row kbd{
+    background:#0a0a09;border:1px solid var(--line-bright);color:var(--amber);
+    padding:2px 7px;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    min-width:24px;text-align:center;box-shadow:inset 0 -2px 0 rgba(0,0,0,.5);
+  }
+  .kbd-row span{color:var(--text);letter-spacing:.04em}
+
+  /* === REPLAY PILL VARIANT ============================================== */
+  .pill.replay{background:rgba(150,90,200,.12);border-color:rgba(150,90,200,.4);color:#c9a0e8}
+  .pill.replay .dot{background:#c9a0e8;box-shadow:0 0 6px rgba(201,160,232,.7)}
+
+  /* === RGB LED PANEL ==================================================== */
+  .rgb-wrap{display:flex;flex-direction:column;gap:8px}
+  .rgb-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .rgb-row .lab{color:var(--amber-dim);letter-spacing:.18em;text-transform:uppercase;font-size:9.5px}
+  .rgb-row select{
+    background:#161513;border:1px solid var(--line);color:var(--text);
+    padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;border-radius:2px;
+  }
+  .rgb-row input[type="color"]{
+    width:42px;height:28px;padding:0;border:1px solid var(--line);background:transparent;
+    cursor:pointer;border-radius:2px;
+  }
+  .rgb-swatch{
+    width:32px;height:28px;border:1px solid var(--line-bright);border-radius:2px;
+    box-shadow:inset 0 0 8px rgba(0,0,0,.5);
+  }
+  .rgb-hint{font-size:10px;color:var(--muted-dim);font-style:italic;letter-spacing:.08em}
+
+  /* === MATH EXPRESSION PANEL ============================================ */
+  .math-wrap{
+    background:#0a0a09;border:1px solid var(--line);padding:10px 12px;
+    border-radius:2px;display:flex;flex-direction:column;gap:6px;
+  }
+  .math-head{
+    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber-dim);
+    padding-bottom:4px;border-bottom:1px solid var(--line);
+  }
+  .math-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .math-row .lab{color:var(--amber-dim);letter-spacing:.18em;text-transform:uppercase;font-size:9.5px}
+  .math-row select,.math-row input[type="text"]{
+    background:#161513;border:1px solid var(--line);color:var(--text);
+    padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;border-radius:2px;
+  }
+  .math-row input[type="text"]{flex:1;min-width:240px}
+  .math-hint{font-size:9.5px;color:var(--muted-dim);font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+
   /* === FOOTER NAMEPLATE ================================================= */
   .credit{
     display:flex;align-items:center;justify-content:space-between;
@@ -341,7 +664,13 @@
   <span class="label">Connect</span>
   <button class="btn primary" id="btn-serial"><span class="glyph">⌁</span>SERIAL</button>
   <button class="btn primary" id="btn-wifi"><span class="glyph">⟿</span>WIFI</button>
+  <button class="btn primary" id="btn-mqtt"><span class="glyph">⌬</span>MQTT</button>
+  <button class="btn primary" id="btn-ble"><span class="glyph">∿</span>BLE</button>
+  <button class="btn" id="btn-replay" title="Replay a previously captured session"><span class="glyph">▷</span>REPLAY</button>
+  <input type="file" id="replay-file" accept=".json,application/json" style="display:none">
   <div class="spacer"></div>
+  <button class="btn" id="btn-layout" title="Toggle grid layout for multiple devices">STACK</button>
+  <button class="btn" id="btn-help" title="Keyboard shortcuts (? )">?</button>
   <span class="counter">Units: <b id="device-count">0</b></span>
 </nav>
 
@@ -371,6 +700,57 @@
     <div class="foot">
       <button class="btn" id="ws-cancel">CANCEL</button>
       <button class="btn primary" id="ws-go">CONNECT</button>
+    </div>
+  </div>
+</div>
+
+<!-- MQTT connect modal -->
+<div class="modal" id="mqtt-modal">
+  <div class="box">
+    <h2>MQTT CONNECT</h2>
+    <div class="hint">
+      Enter the broker's WebSocket URL. Public test brokers: <code>ws://broker.hivemq.com:8000/mqtt</code>,
+      <code>ws://test.mosquitto.org:8080</code>. The browser subscribes to <code>&lt;base&gt;/+/out</code>
+      and publishes commands to <code>&lt;base&gt;/&lt;deviceId&gt;/in</code>.
+    </div>
+    <div class="row">
+      <label>Broker URL</label>
+      <input type="text" id="mqtt-url" placeholder="ws://broker.hivemq.com:8000/mqtt" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="row">
+      <label>Topic base</label>
+      <input type="text" id="mqtt-base" value="pinscope" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="row">
+      <label>Device filter (optional)</label>
+      <input type="text" id="mqtt-filter" placeholder="leave blank for first board to talk" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="foot">
+      <button class="btn" id="mqtt-cancel">CANCEL</button>
+      <button class="btn primary" id="mqtt-go">CONNECT</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help / keyboard shortcuts modal -->
+<div class="modal" id="help-modal">
+  <div class="box">
+    <h2>KEYBOARD SHORTCUTS</h2>
+    <div class="hint" id="help-body">
+      <div class="kbd-row"><kbd>?</kbd> <span>toggle this help</span></div>
+      <div class="kbd-row"><kbd>Space</kbd> <span>pause / resume the active strip chart</span></div>
+      <div class="kbd-row"><kbd>C</kbd> <span>clear the wire log on the active device</span></div>
+      <div class="kbd-row"><kbd>G</kbd> <span>toggle stack / grid layout</span></div>
+      <div class="kbd-row"><kbd>S</kbd> <span>connect via SERIAL</span></div>
+      <div class="kbd-row"><kbd>W</kbd> <span>connect via WIFI</span></div>
+      <div class="kbd-row"><kbd>M</kbd> <span>connect via MQTT</span></div>
+      <div class="kbd-row"><kbd>B</kbd> <span>connect via BLE (Web Bluetooth)</span></div>
+      <div class="kbd-row"><kbd>R</kbd> <span>open a capture file (REPLAY)</span></div>
+      <div class="kbd-row"><kbd>1</kbd>..<kbd>4</kbd> <span>switch tabs (Strip / FFT / Spectro / Scatter) on the active device</span></div>
+      <div class="kbd-row"><kbd>Esc</kbd> <span>close any open modal</span></div>
+    </div>
+    <div class="foot">
+      <button class="btn primary" id="help-close">DISMISS</button>
     </div>
   </div>
 </div>
@@ -420,10 +800,18 @@
 /* === CONSTANTS ============================================================ */
 const DIGITAL_COUNT = 14;
 const ANALOG_COUNT  = 6;
-const PWM_PINS      = new Set([3, 5, 6, 9, 10, 11]);
-const RESERVED_PINS = new Set([0, 1]); // RX/TX on USB-serial path
-const ADC_MAX       = 1023;            // matches reference sketch
-const MODE_CYCLE    = ['off', 'in', 'inp', 'out', 'pwm'];
+const VIRTUAL_COUNT = 4;          // I2C-polled / derived channels
+const NUM_I2C_POLLS = VIRTUAL_COUNT;
+const PWM_PINS       = new Set([3, 5, 6, 9, 10, 11]);
+const RESERVED_PINS  = new Set([0, 1]); // RX/TX on USB-serial path
+const ADC_DEFAULT    = 1023;            // default UI resolution; toggleable to 4095
+// Pins that support attachInterrupt on classic Uno R3. On Uno Q the firmware
+// allows any pin (it checks NOT_AN_INTERRUPT at apply time), but the UI is
+// conservative and only offers FREQ on the cross-board safe pins by default.
+const INTERRUPT_PINS = new Set([2, 3]);
+const DEFAULT_HZ     = 10;
+const HZ_OPTIONS     = [5, 10, 20, 30, 50];
+const MODE_CYCLE    = ['off', 'in', 'inp', 'out', 'pwm', 'freq'];
 
 /* === HELPERS ============================================================== */
 const $  = (sel, root = document) => root.querySelector(sel);
@@ -579,21 +967,468 @@ class WiFiTransport extends Transport {
   }
 }
 
+/* === MQTT 3.1.1 OVER WEBSOCKET ===========================================
+   Minimal native MQTT client. We use QoS 0 throughout; this is telemetry,
+   not a transaction system. Implementation covers exactly what PinScope
+   needs: CONNECT/CONNACK, SUBSCRIBE/SUBACK, PUBLISH (both directions),
+   PINGREQ/PINGRESP, DISCONNECT. No QoS 1/2, no retained-publish on send,
+   no will, no auth. About 200 lines including codec helpers. Topic
+   convention: `<base>/<deviceId>/out` for board-to-host messages and
+   `<base>/<deviceId>/in` for host-to-board commands. */
+
+const MQTT = {
+  encVarInt(len) {
+    const out = [];
+    do {
+      let b = len & 0x7F;
+      len >>>= 7;
+      if (len > 0) b |= 0x80;
+      out.push(b);
+    } while (len > 0);
+    return out;
+  },
+  decVarInt(buf, offset) {
+    let mult = 1, value = 0, pos = offset, byte;
+    do {
+      if (pos >= buf.length) return null;
+      byte = buf[pos++];
+      value += (byte & 0x7F) * mult;
+      mult *= 128;
+      if (mult > 128 * 128 * 128 * 128) return null;
+    } while ((byte & 0x80) !== 0);
+    return { value, bytes: pos - offset };
+  },
+  encString(s) {
+    const enc = new TextEncoder().encode(s);
+    const out = new Uint8Array(2 + enc.length);
+    out[0] = (enc.length >> 8) & 0xFF;
+    out[1] = enc.length & 0xFF;
+    out.set(enc, 2);
+    return out;
+  },
+  decString(buf, offset) {
+    if (offset + 2 > buf.length) return null;
+    const len = (buf[offset] << 8) | buf[offset + 1];
+    if (offset + 2 + len > buf.length) return null;
+    return {
+      str:   new TextDecoder().decode(buf.slice(offset + 2, offset + 2 + len)),
+      bytes: 2 + len,
+    };
+  },
+  buildConnect(clientId, keepalive) {
+    const proto = this.encString('MQTT');
+    const cid   = this.encString(clientId);
+    const varHdr = proto.length + 1 + 1 + 2;       // proto + level + flags + keepalive
+    const remaining = varHdr + cid.length;
+    const remLen = this.encVarInt(remaining);
+    const buf = new Uint8Array(1 + remLen.length + remaining);
+    let o = 0;
+    buf[o++] = 0x10;                                // CONNECT type
+    for (const b of remLen) buf[o++] = b;
+    buf.set(proto, o); o += proto.length;
+    buf[o++] = 0x04;                                // MQTT 3.1.1
+    buf[o++] = 0x02;                                // clean session flag
+    buf[o++] = (keepalive >> 8) & 0xFF;
+    buf[o++] = keepalive & 0xFF;
+    buf.set(cid, o);
+    return buf;
+  },
+  buildSubscribe(packetId, topic) {
+    const t = this.encString(topic);
+    const remaining = 2 + t.length + 1;             // pkt id + topic + qos byte
+    const remLen = this.encVarInt(remaining);
+    const buf = new Uint8Array(1 + remLen.length + remaining);
+    let o = 0;
+    buf[o++] = 0x82;                                // SUBSCRIBE, flags 0010
+    for (const b of remLen) buf[o++] = b;
+    buf[o++] = (packetId >> 8) & 0xFF;
+    buf[o++] = packetId & 0xFF;
+    buf.set(t, o); o += t.length;
+    buf[o++] = 0x00;                                // QoS 0
+    return buf;
+  },
+  buildPublish(topic, payload) {
+    const t = this.encString(topic);
+    const p = typeof payload === 'string' ? new TextEncoder().encode(payload) : payload;
+    const remaining = t.length + p.length;          // no packet id at QoS 0
+    const remLen = this.encVarInt(remaining);
+    const buf = new Uint8Array(1 + remLen.length + remaining);
+    let o = 0;
+    buf[o++] = 0x30;                                // PUBLISH, QoS 0, no retain
+    for (const b of remLen) buf[o++] = b;
+    buf.set(t, o); o += t.length;
+    buf.set(p, o);
+    return buf;
+  },
+  PINGREQ:    new Uint8Array([0xC0, 0x00]),
+  DISCONNECT: new Uint8Array([0xE0, 0x00]),
+};
+
+class MQTTTransport extends Transport {
+  constructor(brokerUrl, opts) {
+    opts = opts || {};
+    const label = `mqtt · ${brokerUrl}` + (opts.deviceFilter ? ` · ${opts.deviceFilter}` : '');
+    super(label);
+    this.kind         = 'mqtt';
+    this.brokerUrl    = brokerUrl;
+    this.topicBase    = (opts.topicBase || 'pinscope').replace(/\/+$/, '');
+    this.deviceFilter = opts.deviceFilter || null;
+    this.clientId     = 'pinscope-' + Math.random().toString(36).slice(2, 10);
+    this.keepalive    = 60;
+    this.ws           = null;
+    this.connected    = false;
+    this.deviceId     = null;
+    this.packetId     = 1;
+    this.pingTimer    = null;
+    this.rxBuf        = new Uint8Array(0);
+  }
+
+  async connect() {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      this._resolve = () => { if (!settled) { settled = true; resolve(); } };
+      this._reject  = (e) => { if (!settled) { settled = true; reject(e); } };
+      try { this.ws = new WebSocket(this.brokerUrl, 'mqtt'); }
+      catch (e) { this._reject(e); return; }
+      this.ws.binaryType = 'arraybuffer';
+      this.ws.onopen    = () => this._send(MQTT.buildConnect(this.clientId, this.keepalive));
+      this.ws.onmessage = (ev) => this._rx(new Uint8Array(ev.data));
+      this.ws.onerror   = ()    => { this.emit('error', new Error('MQTT socket error')); this._reject(new Error('MQTT broker connection failed')); };
+      this.ws.onclose   = ()    => {
+        this.connected = false;
+        if (this.pingTimer) clearInterval(this.pingTimer);
+        this.emit('close');
+        this._reject(new Error('MQTT broker disconnected before CONNACK'));
+      };
+    });
+  }
+
+  _rx(chunk) {
+    const next = new Uint8Array(this.rxBuf.length + chunk.length);
+    next.set(this.rxBuf, 0);
+    next.set(chunk, this.rxBuf.length);
+    this.rxBuf = next;
+
+    while (this.rxBuf.length >= 2) {
+      const remInfo = MQTT.decVarInt(this.rxBuf, 1);
+      if (!remInfo) break;
+      const total = 1 + remInfo.bytes + remInfo.value;
+      if (this.rxBuf.length < total) break;
+      const packet  = this.rxBuf.slice(0, total);
+      this.rxBuf    = this.rxBuf.slice(total);
+      const type    = packet[0] >> 4;
+      const payOff  = 1 + remInfo.bytes;
+      if      (type === 2)  this._onConnack(packet, payOff);
+      else if (type === 3)  this._onPublish(packet, payOff);
+      else if (type === 9)  { /* SUBACK: success implied if we got it */ }
+      else if (type === 13) { /* PINGRESP: keepalive heartbeat */ }
+    }
+  }
+
+  _onConnack(p, off) {
+    const code = p[off + 1];
+    if (code !== 0) {
+      const reasons = {1:'unsupported protocol version', 2:'identifier rejected',
+                       3:'server unavailable', 4:'bad username/password', 5:'not authorized'};
+      this._reject(new Error('MQTT CONNECT refused: ' + (reasons[code] || 'code ' + code)));
+      return;
+    }
+    this.connected = true;
+    // Subscribe to the device output topic. If a specific device is named
+    // we subscribe narrowly; otherwise we use a single-level wildcard.
+    const filter = this.deviceFilter || '+';
+    this._send(MQTT.buildSubscribe(this.packetId++, `${this.topicBase}/${filter}/out`));
+    // Keepalive
+    this.pingTimer = setInterval(() => {
+      if (this.connected) this._send(MQTT.PINGREQ);
+    }, (this.keepalive * 1000) / 2);
+    this.emit('open');
+    this._resolve();
+  }
+
+  _onPublish(p, off) {
+    const topic = MQTT.decString(p, off);
+    if (!topic) return;
+    let pos = off + topic.bytes;
+    // QoS 0 published messages have no packet id; remaining bytes are payload.
+    // The fixed header's QoS field would be (p[0] & 0x06) >> 1; we only sub'd QoS 0.
+    const payload = new TextDecoder().decode(p.slice(pos));
+    // Topic shape: <base>/<deviceId>/out
+    const parts = topic.str.split('/');
+    if (parts.length !== 3 || parts[0] !== this.topicBase || parts[2] !== 'out') return;
+    const did = parts[1];
+    if (this.deviceFilter && did !== this.deviceFilter) return;
+    if (!this.deviceId) this.deviceId = did;
+    if (did !== this.deviceId) return;          // ignore other boards once locked
+    // Payload is line-delimited JSON
+    for (const line of payload.split('\n')) {
+      const s = line.trim();
+      if (!s) continue;
+      try { this.emit('message', JSON.parse(s)); }
+      catch { this.emit('error', new Error('malformed JSON in MQTT payload')); }
+    }
+  }
+
+  async send(obj) {
+    if (!this.connected) return;
+    // If we haven't seen the board's hello yet, publish to a discovery topic
+    // so a bridge that knows the device ID can route accordingly. If a
+    // filter is set, we can publish directly to that device's `in` topic.
+    const target = this.deviceId || this.deviceFilter;
+    if (!target) return;                        // nobody to talk to yet
+    this._send(MQTT.buildPublish(`${this.topicBase}/${target}/in`, JSON.stringify(obj) + '\n'));
+  }
+
+  _send(buf) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(buf);
+    }
+  }
+
+  async disconnect() {
+    this.connected = false;
+    if (this.pingTimer) { clearInterval(this.pingTimer); this.pingTimer = null; }
+    try {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(MQTT.DISCONNECT);
+        this.ws.close();
+      }
+    } catch {}
+  }
+}
+
+/* === BLE TRANSPORT (Web Bluetooth) =======================================
+   Targets boards that speak the PinScope BLE service over ArduinoBLE:
+   Arduino Uno R4 WiFi (NINA W102, ESP32-based BLE), Arduino Nano 33 IoT
+   (same NINA), and the Arduino Uno Q (STM32U585 native BLE on the MCU
+   side). Firmware-side schema lives in pinscope_ble.ino. The wire shape
+   is identical to Serial/WiFi: line-delimited JSON in both directions.
+   Chunking is done at 200 bytes per characteristic write/notify to stay
+   safely under any default ATT MTU. Web Bluetooth is Chromium-only and
+   requires a user-gesture device picker on the first connect. */
+const BLE_SERVICE_UUID = '7e2bf001-9d27-4e96-9c9f-1f4b8a0c5e6d';
+const BLE_NOTIFY_UUID  = '7e2bf002-9d27-4e96-9c9f-1f4b8a0c5e6d';
+const BLE_WRITE_UUID   = '7e2bf003-9d27-4e96-9c9f-1f4b8a0c5e6d';
+const BLE_CHUNK        = 200;
+
+class BLETransport extends Transport {
+  constructor() {
+    super('ble');
+    this.kind     = 'ble';
+    this.device   = null;
+    this.server   = null;
+    this.svc      = null;
+    this.txChar   = null;   // notify (board -> host)
+    this.rxChar   = null;   // write  (host  -> board)
+    this.lineBuf  = '';
+    this._onValue = null;
+    this._onGattDisc = null;
+  }
+
+  async connect() {
+    if (!navigator.bluetooth) {
+      throw new Error('Web Bluetooth not supported. Use Chrome, Edge, Brave, Opera, or Arc.');
+    }
+    // Picker dialog
+    this.device = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [BLE_SERVICE_UUID] }],
+      optionalServices: [BLE_SERVICE_UUID],
+    });
+    if (!this.device.gatt) throw new Error('No GATT server on selected device');
+
+    this._onGattDisc = () => {
+      this.connected = false;
+      this.emit('close');
+    };
+    this.device.addEventListener('gattserverdisconnected', this._onGattDisc);
+
+    this.server = await this.device.gatt.connect();
+    this.svc    = await this.server.getPrimaryService(BLE_SERVICE_UUID);
+    this.txChar = await this.svc.getCharacteristic(BLE_NOTIFY_UUID);
+    this.rxChar = await this.svc.getCharacteristic(BLE_WRITE_UUID);
+
+    this._onValue = (e) => {
+      const v = e.target.value;
+      // BluetoothRemoteGATTCharacteristic.value is a DataView
+      const bytes = new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+      this.lineBuf += new TextDecoder().decode(bytes);
+      let nl;
+      while ((nl = this.lineBuf.indexOf('\n')) >= 0) {
+        const line = this.lineBuf.slice(0, nl).trim();
+        this.lineBuf = this.lineBuf.slice(nl + 1);
+        if (!line) continue;
+        try { this.emit('message', JSON.parse(line)); }
+        catch { this.emit('error', new Error('malformed JSON from BLE')); }
+      }
+    };
+    this.txChar.addEventListener('characteristicvaluechanged', this._onValue);
+    await this.txChar.startNotifications();
+
+    this.connected = true;
+    this.label = 'ble · ' + (this.device.name || this.device.id || 'unnamed');
+    this.emit('open');
+  }
+
+  async send(obj) {
+    if (!this.rxChar || !this.connected) return;
+    const data = new TextEncoder().encode(JSON.stringify(obj) + '\n');
+    for (let i = 0; i < data.length; i += BLE_CHUNK) {
+      const chunk = data.slice(i, i + BLE_CHUNK);
+      // Prefer write-without-response if the characteristic supports it;
+      // it's lower latency and standard ArduinoBLE characteristics expose both.
+      try { await this.rxChar.writeValueWithoutResponse(chunk); }
+      catch { await this.rxChar.writeValue(chunk); }
+    }
+  }
+
+  async disconnect() {
+    try {
+      if (this.txChar && this._onValue) {
+        this.txChar.removeEventListener('characteristicvaluechanged', this._onValue);
+        try { await this.txChar.stopNotifications(); } catch {}
+      }
+      if (this.server && this.server.connected) this.server.disconnect();
+      if (this.device && this._onGattDisc) {
+        this.device.removeEventListener('gattserverdisconnected', this._onGattDisc);
+      }
+    } catch {}
+    this.connected = false;
+  }
+}
+
+/* === REPLAY TRANSPORT =====================================================
+   Plays back a previously captured PinScope session as if it were a live
+   board. The capture format is a JSON file with {meta, samples}; samples
+   are an array of state-shape records with monotonic timestamps. The
+   transport pumps them out at original cadence (or a user playback speed)
+   and responds to hello/poll commands with synthetic packets. */
+class ReplayTransport extends Transport {
+  constructor(capture, fileName) {
+    super('replay · ' + (fileName || 'capture'));
+    this.kind     = 'replay';
+    this.capture  = capture;
+    this.idx      = 0;
+    this.speed    = 1.0;
+    this.paused   = false;
+    this.timerId  = null;
+    this.startWall = 0;  // wall-clock ms at playback start
+    this.startCap  = 0;  // first sample timestamp
+  }
+
+  async connect() {
+    if (!this.capture || !Array.isArray(this.capture.samples) || this.capture.samples.length === 0) {
+      throw new Error('capture has no samples');
+    }
+    this.connected = true;
+    this.emit('open');
+    // Send hello with captured device id
+    setTimeout(() => {
+      this.emit('message', {
+        t: 'hello',
+        id: this.capture.deviceId || 'FI005-REPLAY',
+        name: (this.capture.deviceName || 'Arduino Uno Q') + ' [replay]',
+        hz:   this.capture.hz || 10,
+      });
+      // Immediately replay calibrations/alerts/etc back through the device?
+      // No, those live in session JSON, not capture. Start pumping samples.
+      this._startPump();
+    }, 0);
+  }
+
+  _startPump() {
+    this.startWall = performance.now();
+    this.startCap  = this.capture.samples[0].t;
+    this._tick();
+  }
+
+  _tick() {
+    if (this.paused || !this.connected) return;
+    if (this.idx >= this.capture.samples.length) {
+      // Loop back to start so the visualization stays alive
+      this.idx = 0;
+      this.startWall = performance.now();
+      this.startCap  = this.capture.samples[0].t;
+    }
+    const s = this.capture.samples[this.idx];
+    const targetWall = this.startWall + (s.t - this.startCap) / this.speed;
+    const now = performance.now();
+    const wait = Math.max(0, targetWall - now);
+    this.timerId = setTimeout(() => {
+      // Emit a state message shaped exactly like the live wire protocol.
+      this.emit('message', {
+        t: 'state',
+        d: s.d.slice(),
+        a: s.a.slice(),
+        m: this.capture.modes || Array(DIGITAL_COUNT).fill('off'),
+        v: (s.v || Array(VIRTUAL_COUNT).fill(null)).slice(),
+        f: (s.f || Array(DIGITAL_COUNT).fill(-1)).slice(),
+      });
+      this.idx++;
+      this._tick();
+    }, wait);
+  }
+
+  async send(obj) {
+    // Replay accepts but ignores most commands; respond to hello/poll only
+    if (obj.cmd === 'hello') {
+      setTimeout(() => this.emit('message', {
+        t: 'hello',
+        id: this.capture.deviceId || 'FI005-REPLAY',
+        name: (this.capture.deviceName || 'Arduino Uno Q') + ' [replay]',
+        hz:   this.capture.hz || 10,
+      }), 0);
+    } else if (obj.cmd === 'poll') {
+      const s = this.capture.samples[Math.max(0, this.idx - 1)];
+      if (s) setTimeout(() => this.emit('message', {
+        t: 'state', d: s.d.slice(), a: s.a.slice(),
+        m: this.capture.modes || Array(DIGITAL_COUNT).fill('off'),
+        v: (s.v || Array(VIRTUAL_COUNT).fill(null)).slice(),
+        f: (s.f || Array(DIGITAL_COUNT).fill(-1)).slice(),
+      }), 0);
+    }
+    // mode/set/pwm/hz/i2c are silently dropped: ack would lie about hardware
+  }
+
+  setSpeed(x)  { this.speed = x; }
+  pause()      { this.paused = true;  clearTimeout(this.timerId); }
+  resume()     { if (!this.paused) return; this.paused = false; this.startWall = performance.now(); this.startCap = this.capture.samples[this.idx]?.t || 0; this._tick(); }
+  seek(idx)    { this.idx = Math.max(0, Math.min(this.capture.samples.length - 1, idx | 0)); this.startWall = performance.now(); this.startCap = this.capture.samples[this.idx].t; }
+
+  async disconnect() {
+    this.connected = false;
+    this.paused    = true;
+    clearTimeout(this.timerId);
+    this.emit('close');
+  }
+}
+
 /* === DEVICE =============================================================== */
 class Device extends EventTarget {
   constructor(transport) {
     super();
-    this.transport = transport;
-    this.id        = '----';
-    this.name      = 'Arduino Uno Q';
-    this.modes     = Array(DIGITAL_COUNT).fill('off');
-    this.digital   = Array(DIGITAL_COUNT).fill(0);
-    this.analog    = Array(ANALOG_COUNT).fill(0);
-    this.pwm       = Array(DIGITAL_COUNT).fill(0);  // cached PWM duty for UI
-    this.lastError = null;
-    this.lastSeen  = 0;
-    this.txCount   = 0;
-    this.rxCount   = 0;
+    this.transport       = transport;
+    this.id              = '----';
+    this.name            = 'Arduino Uno Q';
+    this.modes           = Array(DIGITAL_COUNT).fill('off');
+    this.digital         = Array(DIGITAL_COUNT).fill(0);
+    this.analog          = Array(ANALOG_COUNT).fill(0);
+    this.frequency       = Array(DIGITAL_COUNT).fill(-1);   // Hz from FREQ-mode pins
+    this.virtual         = Array(VIRTUAL_COUNT).fill(null);
+    this.pwm             = Array(DIGITAL_COUNT).fill(0);
+    this.lastError       = null;
+    this.lastSeen        = 0;
+    this.txCount         = 0;
+    this.rxCount         = 0;
+    this.adcMax          = ADC_DEFAULT;
+    this.calibrations    = {};
+    this.i2cConfigs      = Array(NUM_I2C_POLLS).fill(null);
+    this.i2cScan         = null;
+    this.alias           = '';
+    this.hz              = DEFAULT_HZ;
+    // Math expressions: per virtual slot, { expr: '...', fn: compiled }
+    this.mathExpressions = Array(VIRTUAL_COUNT).fill(null);
+    // RGB LED config (browser-only convenience; persists in session)
+    this.rgb             = { r: 9, g: 10, b: 11, color: '#000000' };
 
     transport.addEventListener('message', (e) => this._handle(e.detail));
     transport.addEventListener('close',   ()  => this.emit('disconnect'));
@@ -616,12 +1451,28 @@ class Device extends EventTarget {
     if (msg.t === 'hello') {
       if (msg.id)   this.id   = msg.id;
       if (msg.name) this.name = msg.name;
+      if (typeof msg.hz === 'number') this.hz = msg.hz;
       this.emit('identified');
     } else if (msg.t === 'state') {
-      if (Array.isArray(msg.d)) this.digital = msg.d.slice(0, DIGITAL_COUNT);
-      if (Array.isArray(msg.a)) this.analog  = msg.a.slice(0, ANALOG_COUNT);
-      if (Array.isArray(msg.m)) this.modes   = msg.m.slice(0, DIGITAL_COUNT);
+      if (Array.isArray(msg.d)) this.digital   = msg.d.slice(0, DIGITAL_COUNT);
+      if (Array.isArray(msg.a)) this.analog    = msg.a.slice(0, ANALOG_COUNT);
+      if (Array.isArray(msg.m)) this.modes     = msg.m.slice(0, DIGITAL_COUNT);
+      if (Array.isArray(msg.f)) this.frequency = msg.f.slice(0, DIGITAL_COUNT);
+      if (Array.isArray(msg.v)) this.virtual   = msg.v.slice(0, VIRTUAL_COUNT).map(v => v == null ? null : v);
+      // Apply math expressions: override virtual slots configured as math.
+      for (let i = 0; i < VIRTUAL_COUNT; i++) {
+        const m = this.mathExpressions[i];
+        if (m && m.fn) {
+          try { this.virtual[i] = m.fn(this.analog, this.digital, this.virtual, this.frequency); }
+          catch (e) { this.virtual[i] = null; }
+        }
+      }
       this.emit('state');
+    } else if (msg.t === 'i2c') {
+      if (msg.op === 'scan') {
+        this.i2cScan = Array.isArray(msg.addrs) ? msg.addrs.slice() : [];
+      }
+      this.emit('i2c', msg);
     } else if (msg.t === 'err') {
       toast(`${this.id}: ${msg.msg}`, 'err');
     }
@@ -637,10 +1488,2014 @@ class Device extends EventTarget {
   setMode(pin, mode)    { return this.send({ cmd: 'mode', pin, mode }); }
   setDigital(pin, val)  { return this.send({ cmd: 'set',  pin, val: val ? 1 : 0 }); }
   setPWM(pin, val)      { this.pwm[pin] = val | 0; return this.send({ cmd: 'pwm', pin, val: Math.max(0, Math.min(255, val | 0)) }); }
+  setHz(hz)             { this.hz = Math.max(1, Math.min(50, hz | 0)); return this.send({ cmd: 'hz', val: this.hz }); }
   poll()                { return this.send({ cmd: 'poll' }); }
+  i2cScanReq()          { return this.send({ cmd: 'i2c', op: 'scan' }); }
+  i2cRead(addr, reg, count)        { return this.send({ cmd: 'i2c', op: 'read',  addr, reg, count }); }
+  i2cWrite(addr, reg, data)        { return this.send({ cmd: 'i2c', op: 'write', addr, reg, data }); }
+  i2cPoll(slot, addr, reg, count, hz, signed) {
+    this.i2cConfigs[slot]      = { addr, reg, count, hz, signed: !!signed };
+    this.mathExpressions[slot] = null;  // math and i2c are mutually exclusive
+    this.emit('vchange', { slot });
+    return this.send({ cmd: 'i2c', op: 'poll', slot, addr, reg, count, hz, signed: !!signed });
+  }
+  i2cStopPoll(slot) {
+    this.i2cConfigs[slot] = null;
+    this.virtual[slot]    = null;
+    this.emit('vchange', { slot });
+    return this.send({ cmd: 'i2c', op: 'stoppoll', slot });
+  }
+  // Math expression: compile and assign. Throws on parse/compile failure.
+  setMathExpr(slot, expr) {
+    const fn = compileExpr(expr);                       // throws on bad expr
+    this.mathExpressions[slot] = { expr, fn };
+    // Math overrides any I2C poll on the same slot
+    if (this.i2cConfigs[slot]) this.i2cStopPoll(slot);
+    this.emit('vchange', { slot });
+  }
+  clearMathExpr(slot) {
+    this.mathExpressions[slot] = null;
+    if (!this.i2cConfigs[slot]) this.virtual[slot] = null;
+    this.emit('vchange', { slot });
+  }
   disconnect()          { return this.transport.disconnect(); }
 
+  /* Calibration helpers ---------------------------------------------------- */
+  getCal(pin)   { return this.calibrations[pin] || null; }
+  setCal(pin, cal) {
+    if (cal) this.calibrations[pin] = cal;
+    else delete this.calibrations[pin];
+    this.emit('calchange', { pin });
+  }
+  rawFor(pin) {
+    const idx = parseInt(pin.slice(1), 10);
+    if (pin[0] === 'a') return this.analog[idx];
+    if (pin[0] === 'd') return this.digital[idx];
+    if (pin[0] === 'v') return this.virtual[idx];
+    if (pin[0] === 'f') return this.frequency[idx];
+    return 0;
+  }
+  maxFor(pin) {
+    if (pin[0] === 'a') return this.adcMax;
+    if (pin[0] === 'd') return 1;
+    if (pin[0] === 'v') {
+      const cfg = this.i2cConfigs[parseInt(pin.slice(1), 10)];
+      return cfg ? ((1 << (8 * Math.max(1, cfg.count))) - 1) : 65535;
+    }
+    if (pin[0] === 'f') return 1000;  // 1 kHz default scale for frequency
+    return 1;
+  }
+
   emit(name, detail) { this.dispatchEvent(new CustomEvent(name, { detail })); }
+}
+
+/* === RECORDER ============================================================= */
+/* Listens to a Device's 'state' events and keeps a timestamped sample buffer. */
+class Recorder {
+  constructor(device, capacity = 9000) {        // 15 min @ 10 Hz
+    this.device   = device;
+    this.capacity = capacity;
+    this.samples  = [];                          // {t, d:[14], a:[6]}
+    this.paused   = false;
+    device.addEventListener('state', () => this.record());
+  }
+  record() {
+    if (this.paused) return;
+    this.samples.push({
+      t: Date.now(),
+      d: this.device.digital.slice(),
+      a: this.device.analog.slice(),
+      v: this.device.virtual.slice(),
+      f: this.device.frequency.slice(),
+    });
+    // Amortized O(1) trim: grow to 2x, then slice back to capacity
+    if (this.samples.length > this.capacity * 2) {
+      this.samples = this.samples.slice(-this.capacity);
+    }
+  }
+  clear() { this.samples = []; }
+  latest() { return this.samples[this.samples.length - 1]; }
+  windowed(ms) {
+    const cutoff = Date.now() - ms;
+    let lo = 0, hi = this.samples.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (this.samples[mid].t < cutoff) lo = mid + 1;
+      else hi = mid;
+    }
+    return this.samples.slice(Math.max(0, lo - 1));  // include 1 prior for line continuity
+  }
+}
+
+/* === STRIP CHART (view) =================================================== */
+const TRACE_COLORS = [
+  '#f5b724', // amber
+  '#5b9b9b', // teal
+  '#d4844c', // copper
+  '#7ba37b', // sage
+  '#c9554d', // crimson
+  '#b8a878', // bone
+  '#9a6b8a', // plum
+  '#6b8a9b', // sky
+  '#6b8a4a', // moss
+  '#e09080', // coral
+];
+function traceColor(key) {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) | 0;
+  return TRACE_COLORS[Math.abs(h) % TRACE_COLORS.length];
+}
+
+const WINDOW_OPTIONS = [
+  ['15s',  15000],
+  ['1m',   60000],
+  ['5m',  300000],
+  ['15m', 900000],
+];
+
+class StripChart {
+  constructor(recorder, alertManager) {
+    this.recorder     = recorder;
+    this.alertManager = alertManager || null;
+    this.device       = recorder.device;
+    this.windowMs     = 60000;
+    this.active       = new Set();   // 'a0'..'a5', 'd0'..'d13', 'v0'..'v3'
+    this.chips        = {};
+    this.alive        = true;
+    this.showStats    = false;
+    this.lastStatsT   = 0;
+    this.build();
+    this.device.addEventListener('calchange', () => this.refreshChipLabels());
+    this.loop();
+  }
+
+  build() {
+    // Top control row: window selector + spacer + actions
+    this.winButtons = {};
+    const ctrls = el('div', { class: 'chart-ctrls' });
+    for (const [lab, ms] of WINDOW_OPTIONS) {
+      const b = el('button', { class: 'winbtn' + (ms === this.windowMs ? ' on' : '') }, lab);
+      b.addEventListener('click', () => {
+        this.windowMs = ms;
+        for (const k in this.winButtons) this.winButtons[k].classList.toggle('on', this.winButtons[k] === b);
+      });
+      this.winButtons[lab] = b;
+      ctrls.append(b);
+    }
+    ctrls.append(el('span', { class: 'spacer' }));
+
+    this.btnStats = el('button', { class: 'miniact' }, 'STATS');
+    this.btnStats.addEventListener('click', () => {
+      this.showStats = !this.showStats;
+      this.btnStats.classList.toggle('on', this.showStats);
+      this.statsPanel.style.display = this.showStats ? '' : 'none';
+      if (this.showStats) this.renderStats();
+    });
+
+    this.btnPause = el('button', { class: 'miniact' }, 'PAUSE');
+    this.btnPause.addEventListener('click', () => this.togglePause());
+    const btnClear  = el('button', { class: 'miniact' }, 'CLEAR');
+    btnClear.addEventListener('click', () => this.recorder.clear());
+    const btnCSV    = el('button', { class: 'miniact' }, 'CSV');
+    btnCSV.addEventListener('click', () => exportRecorderCSV(this.recorder));
+    const btnCap    = el('button', { class: 'miniact', title: 'Save the current recorder buffer as a replayable capture file' }, 'CAPTURE');
+    btnCap.addEventListener('click', () => exportCapture(this.recorder));
+    const btnPNG    = el('button', { class: 'miniact' }, 'PNG');
+    btnPNG.addEventListener('click', () => this.snapshot());
+    ctrls.append(this.btnStats, this.btnPause, btnClear, btnCSV, btnCap, btnPNG);
+
+    // Canvas
+    this.canvas = el('canvas', { class: 'chart-canvas' });
+
+    // Trace picker chips (analog / digital / virtual rows)
+    const mkChip = (key, label, reserved = false) => {
+      const val = el('span', { class: 'val' }, '----');
+      const lbl = el('span', { class: 'chip-lbl' }, label);
+      const chip = el('span', { class: 'chip' + (reserved ? ' dis' : '') }, lbl, val);
+      chip.style.borderLeftColor = traceColor(key);
+      if (!reserved) chip.addEventListener('click', () => this.toggle(key));
+      this.chips[key] = { chip, val, lbl, reserved };
+      return chip;
+    };
+    const aRow = el('div', { class: 'trace-row' }, el('span', { class: 'rowlab' }, 'analog'));
+    for (let i = 0; i < ANALOG_COUNT; i++) aRow.append(mkChip('a' + i, 'A' + i));
+    const dRow = el('div', { class: 'trace-row' }, el('span', { class: 'rowlab' }, 'digital'));
+    for (let i = 0; i < DIGITAL_COUNT; i++) dRow.append(mkChip('d' + i, 'D' + i, RESERVED_PINS.has(i)));
+    const vRow = el('div', { class: 'trace-row' }, el('span', { class: 'rowlab' }, 'virtual'));
+    for (let i = 0; i < VIRTUAL_COUNT; i++) vRow.append(mkChip('v' + i, 'V' + i));
+    const picker = el('div', { class: 'trace-picker' }, aRow, dRow, vRow);
+
+    // Stats panel (below picker, hidden by default)
+    this.statsPanel = el('div', { class: 'stats-panel' });
+    this.statsPanel.style.display = 'none';
+
+    this.root = el('div', { class: 'chart-wrap' }, ctrls, this.canvas, picker, this.statsPanel);
+    this.refreshChipLabels();
+  }
+
+  refreshChipLabels() {
+    for (const [key, entry] of Object.entries(this.chips)) {
+      if (entry.reserved) continue;
+      const cal = this.device.getCal(key);
+      const base = key.toUpperCase();
+      entry.lbl.textContent = cal && cal.label ? `${base}·${cal.label}` : base;
+    }
+  }
+
+  toggle(key) {
+    const entry = this.chips[key];
+    if (!entry || entry.reserved) return;
+    if (this.active.has(key)) { this.active.delete(key); entry.chip.classList.remove('on'); }
+    else                      { this.active.add(key);    entry.chip.classList.add('on');    }
+    if (this.showStats) this.renderStats();
+  }
+
+  loop() {
+    if (!this.alive) return;
+    this.draw();
+    // Throttle stats render to ~2 Hz
+    if (this.showStats && performance.now() - this.lastStatsT > 500) {
+      this.lastStatsT = performance.now();
+      this.renderStats();
+    }
+    this.raf = requestAnimationFrame(() => this.loop());
+  }
+
+  draw() {
+    const c = this.canvas;
+    if (!c.isConnected) return;
+    const ctx = c.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = c.clientWidth, cssH = c.clientHeight;
+    if (!cssW || !cssH) return;
+    const W = Math.floor(cssW * dpr), H = Math.floor(cssH * dpr);
+    if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+    ctx.clearRect(0, 0, W, H);
+
+    const padL = 38 * dpr, padR = 12 * dpr, padT = 8 * dpr, padB = 18 * dpr;
+    const x0 = padL, y0 = padT;
+    const w  = W - padL - padR, h = H - padT - padB;
+
+    // Grid
+    ctx.strokeStyle = '#1a1816';
+    ctx.lineWidth   = 1 * dpr;
+    ctx.beginPath();
+    for (let i = 0; i <= 4; i++) {
+      const y = y0 + (h * i / 4); ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y);
+      const x = x0 + (w * i / 4); ctx.moveTo(x, y0); ctx.lineTo(x, y0 + h);
+    }
+    ctx.stroke();
+
+    // Y axis labels: % of full scale (each trace normalizes to its own max)
+    ctx.fillStyle    = '#4a4133';
+    ctx.font         = (9 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+    ctx.textAlign    = 'right';
+    ctx.textBaseline = 'middle';
+    const pctLabels = ['100%', '75%', '50%', '25%', '0%'];
+    for (let i = 0; i <= 4; i++) {
+      ctx.fillText(pctLabels[i], x0 - 4 * dpr, y0 + (h * i / 4));
+    }
+
+    // X axis labels (time)
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    const winSec = this.windowMs / 1000;
+    for (let i = 0; i <= 4; i++) {
+      const sec = Math.round(winSec * (4 - i) / 4);
+      ctx.fillText(sec === 0 ? 'now' : ('-' + sec + 's'), x0 + (w * i / 4), y0 + h + 4 * dpr);
+    }
+
+    ctx.strokeStyle = '#2a2826';
+    ctx.strokeRect(x0, y0, w, h);
+
+    // Update chip readouts (calibrated)
+    const last = this.recorder.latest();
+    if (last) {
+      for (let i = 0; i < ANALOG_COUNT; i++) {
+        const key = 'a' + i;
+        const cal = this.device.getCal(key);
+        this.chips[key].val.textContent = cal ? cal.format(last.a[i]) : String(last.a[i]);
+      }
+      for (let i = 0; i < DIGITAL_COUNT; i++) {
+        const key = 'd' + i;
+        const entry = this.chips[key];
+        if (entry.reserved) continue;
+        entry.val.textContent = last.d[i] ? 'HI' : 'LO';
+      }
+      for (let i = 0; i < VIRTUAL_COUNT; i++) {
+        const key = 'v' + i;
+        const v   = last.v ? last.v[i] : null;
+        const cal = this.device.getCal(key);
+        this.chips[key].val.textContent =
+          v == null ? '----' : (cal ? cal.format(v) : String(v));
+      }
+    }
+
+    if (this.active.size === 0) {
+      ctx.fillStyle    = '#4a4133';
+      ctx.font         = (10 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('click pins below to plot', x0 + w / 2, y0 + h / 2);
+      return;
+    }
+
+    const samples = this.recorder.windowed(this.windowMs);
+    if (samples.length < 2) return;
+
+    const cutoff = Date.now() - this.windowMs;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+
+    for (const key of this.active) {
+      const isDigital = key[0] === 'd';
+      const idx       = parseInt(key.slice(1), 10);
+      const max       = this.device.maxFor(key);
+      const getRaw    = key[0] === 'a' ? (s) => s.a[idx]
+                      : key[0] === 'd' ? (s) => s.d[idx]
+                      :                  (s) => (s.v ? s.v[idx] : null);
+
+      ctx.beginPath();
+      ctx.strokeStyle = traceColor(key);
+      ctx.lineWidth   = 1.5 * dpr;
+      let started = false, prevY = 0;
+      for (const s of samples) {
+        const raw = getRaw(s);
+        if (raw == null) { started = false; continue; }  // gaps for inactive virtual slots
+        const x = x0 + ((s.t - cutoff) / this.windowMs) * w;
+        const norm = Math.max(0, Math.min(1, raw / max));
+        const y = y0 + h - norm * h;
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else if (isDigital) { ctx.lineTo(x, prevY); ctx.lineTo(x, y); }
+        else                { ctx.lineTo(x, y); }
+        prevY = y;
+      }
+      ctx.stroke();
+    }
+
+    // Threshold lines for analog / virtual above/below alerts
+    if (this.alertManager) {
+      ctx.setLineDash([4 * dpr, 3 * dpr]);
+      ctx.lineWidth = 1 * dpr;
+      for (const alert of this.alertManager.alerts) {
+        if (!alert.enabled) continue;
+        if (alert.condition !== 'above' && alert.condition !== 'below') continue;
+        if (!this.active.has(alert.pin)) continue;
+        const max = this.device.maxFor(alert.pin);
+        ctx.strokeStyle = traceColor(alert.pin);
+        ctx.globalAlpha = 0.55;
+        const y = y0 + h - (alert.value / max) * h;
+        ctx.beginPath();
+        ctx.moveTo(x0, y);
+        ctx.lineTo(x0 + w, y);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+
+  renderStats() {
+    this.statsPanel.innerHTML = '';
+    if (this.active.size === 0) {
+      this.statsPanel.append(el('div', { class: 'stats-empty' }, 'no active traces'));
+      return;
+    }
+    const samples = this.recorder.windowed(this.windowMs);
+    const head = el('div', { class: 'stats-row stats-head' },
+      el('span', {}, 'trace'),
+      el('span', {}, 'min'),
+      el('span', {}, 'max'),
+      el('span', {}, 'mean'),
+      el('span', {}, 'rms'),
+      el('span', {}, 'p-p'),
+      el('span', {}, 'σ'),
+      el('span', {}, 'n'),
+    );
+    this.statsPanel.append(head);
+
+    for (const key of this.active) {
+      const idx = parseInt(key.slice(1), 10);
+      const getRaw = key[0] === 'a' ? (s) => s.a[idx]
+                   : key[0] === 'd' ? (s) => s.d[idx]
+                   :                  (s) => (s.v ? s.v[idx] : null);
+      const stats = computeStats(samples, getRaw);
+      const cal   = this.device.getCal(key);
+      const fmt   = (v) => {
+        if (v == null) return '·';
+        if (cal) return cal.format(v);
+        if (key[0] === 'd') return v.toFixed(2);
+        return v.toFixed(1);
+      };
+      const dot = el('span', { class: 'stats-dot' });
+      dot.style.background = traceColor(key);
+      const label = cal && cal.label ? `${key.toUpperCase()}·${cal.label}` : key.toUpperCase();
+      const row = el('div', { class: 'stats-row' },
+        el('span', { class: 'stats-name' }, dot, label),
+        el('span', {}, stats ? fmt(stats.min)  : '·'),
+        el('span', {}, stats ? fmt(stats.max)  : '·'),
+        el('span', {}, stats ? fmt(stats.mean) : '·'),
+        el('span', {}, stats ? fmt(stats.rms)  : '·'),
+        el('span', {}, stats ? fmt(stats.pp)   : '·'),
+        el('span', {}, stats ? fmt(stats.std)  : '·'),
+        el('span', {}, stats ? String(stats.n) : '0'),
+      );
+      this.statsPanel.append(row);
+    }
+  }
+
+  snapshot() {
+    snapshotCanvas(this.canvas, [
+      `Strip Chart · ${this.device.id}${this.device.alias ? ' · ' + this.device.alias : ''}`,
+      `traces: ${Array.from(this.active).join(', ') || '(none)'} · window ${this.windowMs/1000}s · ${new Date().toLocaleString()}`,
+    ], `pinscope_strip_${this.device.id}`);
+  }
+
+  togglePause() {
+    this.recorder.paused = !this.recorder.paused;
+    this.btnPause.textContent = this.recorder.paused ? 'RESUME' : 'PAUSE';
+    this.btnPause.classList.toggle('on', this.recorder.paused);
+  }
+
+  destroy() {
+    this.alive = false;
+    if (this.raf) cancelAnimationFrame(this.raf);
+  }
+}
+
+/* === CSV EXPORT =========================================================== */
+function exportRecorderCSV(recorder) {
+  const samples = recorder.samples;
+  if (!samples.length) { toast('No samples to export', 'err'); return; }
+  const device = recorder.device;
+  const headers = ['timestamp_ms', 'iso8601'];
+  // Digital raw
+  for (let i = 0; i < DIGITAL_COUNT; i++) headers.push('D' + i);
+  // Analog raw + calibrated
+  for (let i = 0; i < ANALOG_COUNT;  i++) {
+    headers.push('A' + i + '_raw');
+    const cal = device.getCal('a' + i);
+    if (cal) {
+      const colName = (cal.label || 'A' + i) + (cal.unit ? '_' + cal.unit : '');
+      headers.push(colName.replace(/[,\s]/g, '_'));
+    }
+  }
+  // Virtual raw + calibrated
+  for (let i = 0; i < VIRTUAL_COUNT; i++) {
+    headers.push('V' + i + '_raw');
+    const cal = device.getCal('v' + i);
+    if (cal) {
+      const colName = (cal.label || 'V' + i) + (cal.unit ? '_' + cal.unit : '');
+      headers.push(colName.replace(/[,\s]/g, '_'));
+    }
+  }
+  const lines = [headers.join(',')];
+  for (const s of samples) {
+    const row = [s.t, new Date(s.t).toISOString()];
+    for (let i = 0; i < DIGITAL_COUNT; i++) row.push(s.d[i]);
+    for (let i = 0; i < ANALOG_COUNT; i++) {
+      row.push(s.a[i]);
+      const cal = device.getCal('a' + i);
+      if (cal) {
+        const v = cal.apply(s.a[i]);
+        row.push(v == null ? '' : v.toFixed(cal.decimals));
+      }
+    }
+    for (let i = 0; i < VIRTUAL_COUNT; i++) {
+      const v = s.v ? s.v[i] : null;
+      row.push(v == null ? '' : v);
+      const cal = device.getCal('v' + i);
+      if (cal) {
+        const cv = (v == null) ? null : cal.apply(v);
+        row.push(cv == null ? '' : cv.toFixed(cal.decimals));
+      }
+    }
+    lines.push(row.join(','));
+  }
+  const csv  = lines.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const a = el('a', { href: url, download: `pinscope_${recorder.device.id}_${stamp}.csv` });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(`Exported ${samples.length} samples`);
+}
+
+/* === CAPTURE EXPORT (for replay) ========================================= */
+/* Saves the recorder buffer in PinScope's capture format. This is the raw
+   wire shape, not the calibrated CSV. The ReplayTransport can load this
+   back and pump it through the same Device pipeline as if live. */
+function exportCapture(recorder) {
+  const samples = recorder.samples;
+  if (!samples.length) { toast('No samples to capture', 'err'); return; }
+  const d = recorder.device;
+  const data = {
+    tool:       'pinscope',
+    kind:       'capture',
+    version:    '1.0',
+    deviceId:   d.id,
+    deviceName: d.name,
+    hz:         d.hz,
+    savedAt:    new Date().toISOString(),
+    modes:      d.modes.slice(),
+    samples:    samples.map(s => ({
+      t: s.t,
+      d: s.d, a: s.a,
+      v: s.v ? s.v.map(x => x == null ? null : x) : null,
+      f: s.f ? s.f.slice() : null,
+    })),
+  };
+  const blob  = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  const url   = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const a     = el('a', { href: url, download: `pinscope_capture_${d.id}_${stamp}.json` });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(`Captured ${samples.length} samples`);
+}
+
+/* === CANVAS VIEW (base for FFT and Scatter) ============================== */
+class CanvasView {
+  constructor() {
+    this.alive  = true;
+    this.canvas = el('canvas', { class: 'chart-canvas' });
+  }
+  setup() {
+    const c = this.canvas;
+    if (!c.isConnected || c.offsetParent === null) return null;
+    const ctx  = c.getContext('2d');
+    const dpr  = window.devicePixelRatio || 1;
+    const cssW = c.clientWidth, cssH = c.clientHeight;
+    if (!cssW || !cssH) return null;
+    const W = Math.floor(cssW * dpr), H = Math.floor(cssH * dpr);
+    if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+    ctx.clearRect(0, 0, W, H);
+    return { ctx, W, H, dpr };
+  }
+  loop() {
+    if (!this.alive) return;
+    try { this.draw(); } catch (e) { console.error(e); }
+    this.raf = requestAnimationFrame(() => this.loop());
+  }
+  destroy() {
+    this.alive = false;
+    if (this.raf) cancelAnimationFrame(this.raf);
+  }
+}
+
+/* === FFT (Cooley-Tukey radix-2) =========================================== */
+function fftInPlace(re, im) {
+  const N = re.length;
+  // Bit-reversal permutation
+  for (let i = 1, j = 0; i < N; i++) {
+    let bit = N >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      let t = re[i]; re[i] = re[j]; re[j] = t;
+      t = im[i]; im[i] = im[j]; im[j] = t;
+    }
+  }
+  // Butterflies
+  for (let len = 2; len <= N; len <<= 1) {
+    const ang = -2 * Math.PI / len;
+    const wRe = Math.cos(ang), wIm = Math.sin(ang);
+    for (let i = 0; i < N; i += len) {
+      let cRe = 1, cIm = 0;
+      for (let k = 0; k < (len >> 1); k++) {
+        const aRe = re[i + k], aIm = im[i + k];
+        const bRe = re[i + k + (len >> 1)] * cRe - im[i + k + (len >> 1)] * cIm;
+        const bIm = re[i + k + (len >> 1)] * cIm + im[i + k + (len >> 1)] * cRe;
+        re[i + k]              = aRe + bRe;
+        im[i + k]              = aIm + bIm;
+        re[i + k + (len >> 1)] = aRe - bRe;
+        im[i + k + (len >> 1)] = aIm - bIm;
+        const nRe = cRe * wRe - cIm * wIm;
+        const nIm = cRe * wIm + cIm * wRe;
+        cRe = nRe; cIm = nIm;
+      }
+    }
+  }
+}
+
+/* Resample irregular samples onto a uniform grid via linear interpolation. */
+function resampleUniform(samples, getVal, t0, t1, N) {
+  const out = new Float64Array(N);
+  if (samples.length === 0) return out;
+  const dt = (t1 - t0) / (N - 1);
+  let j = 0;
+  for (let i = 0; i < N; i++) {
+    const t = t0 + i * dt;
+    while (j + 1 < samples.length && samples[j + 1].t <= t) j++;
+    const s0 = samples[j];
+    const s1 = samples[Math.min(j + 1, samples.length - 1)];
+    if (s0 === s1 || s1.t === s0.t) { out[i] = getVal(s0); continue; }
+    const a = (t - s0.t) / (s1.t - s0.t);
+    out[i] = getVal(s0) * (1 - a) + getVal(s1) * a;
+  }
+  return out;
+}
+
+class FFTView extends CanvasView {
+  constructor(recorder) {
+    super();
+    this.recorder = recorder;
+    this.pin      = 'a0';
+    this.windowMs = 30000;
+    this.useWindow = true;   // Hann window
+    this.build();
+    this.loop();
+  }
+
+  build() {
+    const pinSel = el('select');
+    for (let i = 0; i < ANALOG_COUNT;  i++) pinSel.append(el('option', { value: 'a' + i }, 'A' + i));
+    for (let i = 0; i < VIRTUAL_COUNT; i++) pinSel.append(el('option', { value: 'v' + i }, 'V' + i));
+    pinSel.value = this.pin;
+    pinSel.addEventListener('change', () => { this.pin = pinSel.value; });
+
+    const winSel = el('select');
+    for (const [lab, ms] of WINDOW_OPTIONS) {
+      const opt = el('option', { value: String(ms) }, lab);
+      if (ms === this.windowMs) opt.selected = true;
+      winSel.append(opt);
+    }
+    winSel.addEventListener('change', () => { this.windowMs = +winSel.value; });
+
+    const winChk = el('input', { type: 'checkbox' });
+    winChk.checked = this.useWindow;
+    winChk.addEventListener('change', () => { this.useWindow = winChk.checked; });
+
+    const pngBtn = el('button', { class: 'miniact' }, 'PNG');
+    pngBtn.addEventListener('click', () => {
+      snapshotCanvas(this.canvas, [
+        `FFT · ${this.recorder.device.id} · pin ${this.pin.toUpperCase()}`,
+        `window ${this.windowMs/1000}s${this.useWindow ? ' · hann' : ''} · ${new Date().toLocaleString()}`,
+      ], `pinscope_fft_${this.recorder.device.id}`);
+    });
+
+    const ctrls = el('div', { class: 'view-ctrls' },
+      el('span', {}, 'pin'), pinSel,
+      el('span', {}, 'window'), winSel,
+      el('label', {}, winChk, 'hann'),
+      el('span', { class: 'spacer' }), pngBtn,
+    );
+    this.note = el('div', { class: 'view-note' }, '');
+    this.root = el('div', { class: 'chart-wrap' }, ctrls, this.canvas, this.note);
+  }
+
+  draw() {
+    const s = this.setup();
+    if (!s) return;
+    const { ctx, W, H, dpr } = s;
+    const padL = 38 * dpr, padR = 12 * dpr, padT = 8 * dpr, padB = 18 * dpr;
+    const x0 = padL, y0 = padT;
+    const w  = W - padL - padR, h = H - padT - padB;
+
+    // Grid + frame
+    ctx.strokeStyle = '#1a1816';
+    ctx.lineWidth   = 1 * dpr;
+    ctx.beginPath();
+    for (let i = 0; i <= 4; i++) {
+      const y = y0 + (h * i / 4); ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y);
+      const x = x0 + (w * i / 4); ctx.moveTo(x, y0); ctx.lineTo(x, y0 + h);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = '#2a2826';
+    ctx.strokeRect(x0, y0, w, h);
+
+    // Gather samples in window
+    const idx = parseInt(this.pin.slice(1), 10);
+    const isVirtual = this.pin[0] === 'v';
+    const getRaw = isVirtual ? (samp) => (samp.v ? samp.v[idx] : null) : (samp) => samp.a[idx];
+    const pinMax = this.recorder.device.maxFor(this.pin);
+    const all = this.recorder.windowed(this.windowMs).filter(samp => {
+      const v = getRaw(samp);
+      return v != null && Number.isFinite(v);
+    });
+    if (all.length < 8) {
+      ctx.fillStyle    = '#4a4133';
+      ctx.font         = (10 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('collecting samples...', x0 + w / 2, y0 + h / 2);
+      this.note.textContent = '';
+      return;
+    }
+
+    // Determine sample rate from observed timestamps
+    const tFirst = all[0].t, tLast = all[all.length - 1].t;
+    const span   = (tLast - tFirst) / 1000;          // s
+    const obsHz  = (all.length - 1) / Math.max(span, 0.001);
+
+    // Resample to next power of 2 at the observed rate
+    let N = 1;
+    while (N * 2 <= all.length) N <<= 1;
+    if (N < 16) {
+      this.note.textContent = 'need more samples';
+      return;
+    }
+    const re = Array.from(resampleUniform(all, getRaw, tFirst, tLast, N));
+    const im = new Array(N).fill(0);
+
+    // Detrend (remove mean) so DC bin doesn't dominate
+    let mean = 0;
+    for (let i = 0; i < N; i++) mean += re[i];
+    mean /= N;
+    for (let i = 0; i < N; i++) re[i] -= mean;
+
+    // Window (Hann) to reduce spectral leakage
+    if (this.useWindow) {
+      for (let i = 0; i < N; i++) {
+        const wfn = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (N - 1));
+        re[i] *= wfn;
+      }
+    }
+
+    fftInPlace(re, im);
+
+    // Magnitude spectrum: bins 0..N/2 correspond to 0..Fs/2
+    const bins = N >> 1;
+    const fs   = obsHz;
+    const mags = new Array(bins);
+    let maxMag = 1e-9;
+    for (let k = 1; k < bins; k++) {  // skip DC
+      const m = Math.sqrt(re[k] * re[k] + im[k] * im[k]);
+      mags[k] = m;
+      if (m > maxMag) maxMag = m;
+    }
+    mags[0] = 0;
+
+    // Draw bars (clipped)
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+    ctx.fillStyle = traceColor(this.pin);
+    for (let k = 1; k < bins; k++) {
+      const x = x0 + ((k - 1) / (bins - 1)) * w;
+      const bw = w / (bins - 1);
+      const mag = mags[k] / maxMag;
+      const bh = mag * h;
+      ctx.fillRect(x, y0 + h - bh, Math.max(1 * dpr, bw - 1 * dpr), bh);
+    }
+    ctx.restore();
+
+    // Y axis (relative magnitude)
+    ctx.fillStyle    = '#4a4133';
+    ctx.font         = (9 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+    ctx.textAlign    = 'right';
+    ctx.textBaseline = 'middle';
+    const yLabels = ['1.0', '0.75', '0.5', '0.25', '0'];
+    for (let i = 0; i <= 4; i++) {
+      ctx.fillText(yLabels[i], x0 - 4 * dpr, y0 + (h * i / 4));
+    }
+
+    // X axis (frequency)
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    const nyquist = fs / 2;
+    for (let i = 0; i <= 4; i++) {
+      const f = nyquist * (i / 4);
+      ctx.fillText(f.toFixed(2) + ' Hz', x0 + (w * i / 4), y0 + h + 4 * dpr);
+    }
+
+    // Find peak frequency for note
+    let peakK = 1, peakM = 0;
+    for (let k = 1; k < bins; k++) if (mags[k] > peakM) { peakM = mags[k]; peakK = k; }
+    const peakHz = (peakK / N) * fs;
+    const cal = this.recorder.device.getCal(this.pin);
+    const meanStr = cal ? cal.format(mean) : `${mean.toFixed(1)}/${pinMax}`;
+    this.note.textContent =
+      `Fs ${fs.toFixed(1)} Hz · Nyquist ${nyquist.toFixed(2)} Hz · N=${N} · peak ${peakHz.toFixed(2)} Hz`
+      + (mean ? ` · mean ${meanStr}` : '');
+  }
+}
+
+/* === SPECTROGRAM ========================================================== */
+/* Waterfall FFT: compute an FFT slice on a moving sub-window (default 1 s)
+   at a fixed cadence (default 4 Hz) and shift the column history to draw a
+   2D time-vs-frequency intensity map. Reuses fftInPlace + resampleUniform
+   from the FFT view. */
+class SpectrogramView extends CanvasView {
+  constructor(recorder) {
+    super();
+    this.recorder    = recorder;
+    this.pin         = 'a0';
+    this.sliceMs     = 1000;          // per-slice analysis window
+    this.cadenceMs   = 250;           // how often a new column is added (4 Hz)
+    this.historyMs   = 60000;         // total time on the X axis
+    this.useWindow   = true;
+    this.columns     = [];            // ring buffer of { t, mags: Float32Array }
+    this.lastSliceT  = 0;
+    this.build();
+    this.loop();
+  }
+
+  build() {
+    const pinSel = el('select');
+    for (let i = 0; i < ANALOG_COUNT;  i++) pinSel.append(el('option', { value: 'a' + i }, 'A' + i));
+    for (let i = 0; i < VIRTUAL_COUNT; i++) pinSel.append(el('option', { value: 'v' + i }, 'V' + i));
+    pinSel.value = this.pin;
+    pinSel.addEventListener('change', () => { this.pin = pinSel.value; this.columns = []; });
+
+    const histSel = el('select');
+    for (const ms of [30000, 60000, 120000, 300000]) {
+      histSel.append(el('option', { value: String(ms) }, (ms / 1000) + 's'));
+    }
+    histSel.value = String(this.historyMs);
+    histSel.addEventListener('change', () => { this.historyMs = +histSel.value; });
+
+    const winChk = el('input', { type: 'checkbox' });
+    winChk.checked = this.useWindow;
+    winChk.addEventListener('change', () => { this.useWindow = winChk.checked; });
+
+    const pngBtn = el('button', { class: 'miniact' }, 'PNG');
+    pngBtn.addEventListener('click', () => {
+      snapshotCanvas(this.canvas, [
+        `Spectrogram · ${this.recorder.device.id} · pin ${this.pin.toUpperCase()}`,
+        `history ${this.historyMs/1000}s · slice ${this.sliceMs/1000}s${this.useWindow ? ' · hann' : ''} · ${new Date().toLocaleString()}`,
+      ], `pinscope_spectro_${this.recorder.device.id}`);
+    });
+
+    const ctrls = el('div', { class: 'view-ctrls' },
+      el('span', {}, 'pin'), pinSel,
+      el('span', {}, 'history'), histSel,
+      el('label', {}, winChk, 'hann'),
+      el('span', { class: 'spacer' }), pngBtn,
+    );
+    this.note = el('div', { class: 'view-note' }, '');
+    this.root = el('div', { class: 'chart-wrap' }, ctrls, this.canvas, this.note);
+  }
+
+  computeColumn(now) {
+    // Pull the last sliceMs samples for the active pin
+    const idx       = parseInt(this.pin.slice(1), 10);
+    const isVirtual = this.pin[0] === 'v';
+    const getRaw    = isVirtual ? (samp) => (samp.v ? samp.v[idx] : null) : (samp) => samp.a[idx];
+    const all = this.recorder.windowed(this.sliceMs).filter(samp => {
+      const v = getRaw(samp);
+      return v != null && Number.isFinite(v);
+    });
+    if (all.length < 16) return null;
+
+    let N = 1;
+    while (N * 2 <= all.length) N <<= 1;
+    if (N < 16) return null;
+
+    const tFirst = all[0].t, tLast = all[all.length - 1].t;
+    const re = Array.from(resampleUniform(all, getRaw, tFirst, tLast, N));
+    const im = new Array(N).fill(0);
+    let mean = 0;
+    for (let i = 0; i < N; i++) mean += re[i];
+    mean /= N;
+    for (let i = 0; i < N; i++) re[i] -= mean;
+    if (this.useWindow) {
+      for (let i = 0; i < N; i++) {
+        const wfn = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (N - 1));
+        re[i] *= wfn;
+      }
+    }
+    fftInPlace(re, im);
+    const bins = N >> 1;
+    const span = (tLast - tFirst) / 1000;
+    const obsHz = (all.length - 1) / Math.max(span, 0.001);
+    const mags = new Float32Array(bins);
+    for (let k = 1; k < bins; k++) {
+      mags[k] = Math.sqrt(re[k] * re[k] + im[k] * im[k]);
+    }
+    return { t: now, mags, fs: obsHz, nyquist: obsHz / 2 };
+  }
+
+  draw() {
+    const s = this.setup();
+    if (!s) return;
+    const { ctx, W, H, dpr } = s;
+    const padL = 38 * dpr, padR = 12 * dpr, padT = 8 * dpr, padB = 18 * dpr;
+    const x0 = padL, y0 = padT;
+    const w  = W - padL - padR, h = H - padT - padB;
+
+    // Add a new column at the cadence
+    const now = Date.now();
+    if (now - this.lastSliceT >= this.cadenceMs) {
+      this.lastSliceT = now;
+      const col = this.computeColumn(now);
+      if (col) this.columns.push(col);
+    }
+    // Drop expired columns
+    const cutoff = now - this.historyMs;
+    while (this.columns.length && this.columns[0].t < cutoff) this.columns.shift();
+
+    // Grid + axis labels
+    ctx.strokeStyle = '#1a1816';
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    for (let i = 0; i <= 4; i++) {
+      const y = y0 + (h * i / 4); ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y);
+      const x = x0 + (w * i / 4); ctx.moveTo(x, y0); ctx.lineTo(x, y0 + h);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = '#2a2826';
+    ctx.strokeRect(x0, y0, w, h);
+
+    // Y axis labels: frequency from 0..Nyquist
+    const nyquist = this.columns.length ? this.columns[this.columns.length - 1].nyquist : 0;
+    ctx.fillStyle    = '#4a4133';
+    ctx.font         = (9 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+    ctx.textAlign    = 'right';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 4; i++) {
+      const f = nyquist * (4 - i) / 4;
+      ctx.fillText(f.toFixed(2) + ' Hz', x0 - 4 * dpr, y0 + (h * i / 4));
+    }
+    // X axis labels (time)
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    const histSec = this.historyMs / 1000;
+    for (let i = 0; i <= 4; i++) {
+      const sec = Math.round(histSec * (4 - i) / 4);
+      ctx.fillText(sec === 0 ? 'now' : ('-' + sec + 's'), x0 + (w * i / 4), y0 + h + 4 * dpr);
+    }
+
+    if (this.columns.length === 0) {
+      ctx.fillStyle    = '#4a4133';
+      ctx.font         = (10 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('collecting samples...', x0 + w / 2, y0 + h / 2);
+      this.note.textContent = '';
+      return;
+    }
+
+    // Find global max for normalization (over visible columns)
+    let maxMag = 1e-9;
+    for (const col of this.columns) {
+      for (let k = 0; k < col.mags.length; k++) {
+        if (col.mags[k] > maxMag) maxMag = col.mags[k];
+      }
+    }
+
+    // Draw columns: each maps a time slice to a vertical strip
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+    const colWidth = (this.cadenceMs / this.historyMs) * w;
+    for (const col of this.columns) {
+      const xOffset = ((col.t - cutoff) / this.historyMs) * w;
+      const bins    = col.mags.length;
+      for (let k = 1; k < bins; k++) {
+        const intensity = Math.min(1, col.mags[k] / maxMag);
+        if (intensity < 0.02) continue;
+        // Map bin -> y (top = high freq, bottom = low freq) for natural reading
+        const fy0 = y0 + h - ((k    ) / (bins - 1)) * h;
+        const fy1 = y0 + h - ((k - 1) / (bins - 1)) * h;
+        // Amber gradient
+        const r = Math.round(212 * intensity);
+        const g = Math.round(160 * intensity);
+        const bl= Math.round(23  * intensity);
+        ctx.fillStyle = `rgb(${r},${g},${bl})`;
+        ctx.fillRect(x0 + xOffset - colWidth, fy0, colWidth + 1 * dpr, fy1 - fy0 + 1 * dpr);
+      }
+    }
+    ctx.restore();
+
+    const lastCol = this.columns[this.columns.length - 1];
+    this.note.textContent =
+      `columns ${this.columns.length} · slice ${this.sliceMs/1000}s · cadence ${this.cadenceMs}ms · Fs ${lastCol.fs.toFixed(1)} Hz · Nyquist ${lastCol.nyquist.toFixed(2)} Hz`;
+  }
+}
+
+/* === XY SCATTER =========================================================== */
+class ScatterView extends CanvasView {
+  constructor(recorder) {
+    super();
+    this.recorder = recorder;
+    this.xPin     = 'a0';
+    this.yPin     = 'a1';
+    this.windowMs = 60000;
+    this.connect  = true;
+    this.build();
+    this.loop();
+  }
+
+  build() {
+    const mkSel = (def, onChange) => {
+      const sel = el('select');
+      for (let i = 0; i < ANALOG_COUNT; i++) sel.append(el('option', { value: 'a' + i }, 'A' + i));
+      for (let i = 0; i < DIGITAL_COUNT; i++) {
+        if (RESERVED_PINS.has(i)) continue;
+        sel.append(el('option', { value: 'd' + i }, 'D' + i));
+      }
+      for (let i = 0; i < VIRTUAL_COUNT; i++) sel.append(el('option', { value: 'v' + i }, 'V' + i));
+      sel.value = def;
+      sel.addEventListener('change', () => onChange(sel.value));
+      return sel;
+    };
+    const xSel = mkSel(this.xPin, (v) => { this.xPin = v; });
+    const ySel = mkSel(this.yPin, (v) => { this.yPin = v; });
+    const winSel = el('select');
+    for (const [lab, ms] of WINDOW_OPTIONS) {
+      const opt = el('option', { value: String(ms) }, lab);
+      if (ms === this.windowMs) opt.selected = true;
+      winSel.append(opt);
+    }
+    winSel.addEventListener('change', () => { this.windowMs = +winSel.value; });
+    const conChk = el('input', { type: 'checkbox' });
+    conChk.checked = this.connect;
+    conChk.addEventListener('change', () => { this.connect = conChk.checked; });
+
+    const pngBtn = el('button', { class: 'miniact' }, 'PNG');
+    pngBtn.addEventListener('click', () => {
+      snapshotCanvas(this.canvas, [
+        `XY Scatter · ${this.recorder.device.id} · X=${this.xPin.toUpperCase()} · Y=${this.yPin.toUpperCase()}`,
+        `window ${this.windowMs/1000}s · ${new Date().toLocaleString()}`,
+      ], `pinscope_scatter_${this.recorder.device.id}`);
+    });
+
+    const ctrls = el('div', { class: 'view-ctrls' },
+      el('span', {}, 'x'), xSel,
+      el('span', {}, 'y'), ySel,
+      el('span', {}, 'window'), winSel,
+      el('label', {}, conChk, 'connect'),
+      el('span', { class: 'spacer' }), pngBtn,
+    );
+    this.note = el('div', { class: 'view-note' }, '');
+    this.root = el('div', { class: 'chart-wrap' }, ctrls, this.canvas, this.note);
+  }
+
+  pinVal(s, pin) {
+    const idx = parseInt(pin.slice(1), 10);
+    if (pin[0] === 'a') return s.a[idx];
+    if (pin[0] === 'd') return s.d[idx];
+    if (pin[0] === 'v') return s.v ? s.v[idx] : null;
+    return null;
+  }
+  pinMax(pin)   { return this.recorder.device.maxFor(pin); }
+  pinLabel(pin) {
+    const cal = this.recorder.device.getCal(pin);
+    if (cal && cal.label) return pin.toUpperCase() + '·' + cal.label;
+    return pin.toUpperCase();
+  }
+
+  draw() {
+    const s = this.setup();
+    if (!s) return;
+    const { ctx, W, H, dpr } = s;
+    const padL = 38 * dpr, padR = 12 * dpr, padT = 8 * dpr, padB = 22 * dpr;
+    const x0 = padL, y0 = padT;
+    const w  = W - padL - padR, h = H - padT - padB;
+
+    // Grid + frame
+    ctx.strokeStyle = '#1a1816';
+    ctx.lineWidth   = 1 * dpr;
+    ctx.beginPath();
+    for (let i = 0; i <= 4; i++) {
+      const y = y0 + (h * i / 4); ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y);
+      const x = x0 + (w * i / 4); ctx.moveTo(x, y0); ctx.lineTo(x, y0 + h);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = '#2a2826';
+    ctx.strokeRect(x0, y0, w, h);
+
+    const xMax = this.pinMax(this.xPin), yMax = this.pinMax(this.yPin);
+
+    // Axis labels
+    ctx.fillStyle    = '#4a4133';
+    ctx.font         = (9 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+    ctx.textAlign    = 'right';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 4; i++) {
+      const v = Math.round(yMax * (4 - i) / 4);
+      ctx.fillText(String(v), x0 - 4 * dpr, y0 + (h * i / 4));
+    }
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    for (let i = 0; i <= 4; i++) {
+      const v = Math.round(xMax * i / 4);
+      ctx.fillText(String(v), x0 + (w * i / 4), y0 + h + 4 * dpr);
+    }
+    // Axis names
+    ctx.fillStyle = '#8a6914';
+    ctx.font = (9 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(this.pinLabel(this.xPin), x0 + w - 4 * dpr, y0 + h - 4 * dpr);
+    ctx.save();
+    ctx.translate(x0 + 4 * dpr, y0 + 4 * dpr);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(this.pinLabel(this.yPin), 0, 0);
+    ctx.restore();
+
+    const samples = this.recorder.windowed(this.windowMs);
+    if (samples.length < 2) {
+      ctx.fillStyle    = '#4a4133';
+      ctx.font         = (10 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('collecting samples...', x0 + w / 2, y0 + h / 2);
+      this.note.textContent = '';
+      return;
+    }
+
+    // Plot points/path with age-based alpha (newer = brighter)
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+    const baseColor = traceColor(this.xPin + this.yPin);
+    const N = samples.length;
+    if (this.connect) {
+      ctx.strokeStyle = baseColor;
+      ctx.lineWidth   = 1 * dpr;
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) {
+        const xv = Math.max(0, Math.min(xMax, this.pinVal(samples[i], this.xPin)));
+        const yv = Math.max(0, Math.min(yMax, this.pinVal(samples[i], this.yPin)));
+        const px = x0 + (xv / xMax) * w;
+        const py = y0 + h - (yv / yMax) * h;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.globalAlpha = 0.55;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    // Dots, newer brighter
+    for (let i = 0; i < N; i++) {
+      const xv = Math.max(0, Math.min(xMax, this.pinVal(samples[i], this.xPin)));
+      const yv = Math.max(0, Math.min(yMax, this.pinVal(samples[i], this.yPin)));
+      const px = x0 + (xv / xMax) * w;
+      const py = y0 + h - (yv / yMax) * h;
+      const age = i / Math.max(1, N - 1);   // 0=oldest, 1=newest
+      ctx.fillStyle   = baseColor;
+      ctx.globalAlpha = 0.15 + age * 0.85;
+      ctx.beginPath();
+      ctx.arc(px, py, 2 * dpr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    this.note.textContent = `${N} samples · ${(this.windowMs/1000).toFixed(0)}s window`;
+  }
+}
+
+/* === ALERTS =============================================================== */
+class Alert {
+  constructor({ pin, condition, value, sound }) {
+    this.id        = ++Alert.next;
+    this.pin       = pin;          // 'a0'..'a5', 'd0'..'d13'
+    this.condition = condition;    // 'above', 'below', 'rising', 'falling'
+    this.value     = value;
+    this.enabled   = true;
+    this.sound     = !!sound;
+    this.triggers  = 0;
+    this.lastFire  = 0;
+  }
+  describe() {
+    const opMap = { above: '>', below: '<', rising: '↑', falling: '↓' };
+    const isAnalog = this.pin[0] === 'a';
+    if (this.condition === 'rising' || this.condition === 'falling') {
+      return this.pin.toUpperCase() + ' ' + opMap[this.condition];
+    }
+    return this.pin.toUpperCase() + ' ' + opMap[this.condition] + ' ' + this.value;
+  }
+  evaluate(curr, prev) {
+    if (!this.enabled || !prev) return false;
+    const isDigital = this.pin[0] === 'd';
+    const idx = parseInt(this.pin.slice(1), 10);
+    const readFrom = (sample) => {
+      if (this.pin[0] === 'a') return sample.a ? sample.a[idx] : null;
+      if (this.pin[0] === 'd') return sample.d ? sample.d[idx] : null;
+      if (this.pin[0] === 'v') return sample.v ? sample.v[idx] : null;
+      return null;
+    };
+    const v  = readFrom(curr);
+    const pv = readFrom(prev);
+    if (v == null || pv == null) return false;
+    switch (this.condition) {
+      case 'above':   return pv <= this.value && v >  this.value;
+      case 'below':   return pv >= this.value && v <  this.value;
+      case 'rising':  return pv === 0 && v === 1;
+      case 'falling': return pv === 1 && v === 0;
+    }
+    return false;
+  }
+}
+Alert.next = 0;
+
+function beep(freq = 880, durMs = 120) {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const c   = new Ctx();
+    const osc = c.createOscillator();
+    const g   = c.createGain();
+    osc.type  = 'sine';
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.18, c.currentTime + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + durMs / 1000);
+    osc.connect(g); g.connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + durMs / 1000 + 0.02);
+    setTimeout(() => c.close(), durMs + 200);
+  } catch {}
+}
+
+class AlertManager extends EventTarget {
+  constructor(device) {
+    super();
+    this.device  = device;
+    this.alerts  = [];
+    this.prev    = null;
+    device.addEventListener('state', () => this.check());
+  }
+  add(opts) {
+    const alert = new Alert(opts);
+    this.alerts.push(alert);
+    this.dispatchEvent(new CustomEvent('change'));
+    return alert;
+  }
+  remove(id) {
+    this.alerts = this.alerts.filter(a => a.id !== id);
+    this.dispatchEvent(new CustomEvent('change'));
+  }
+  check() {
+    const curr = {
+      d: this.device.digital.slice(),
+      a: this.device.analog.slice(),
+      v: this.device.virtual.slice(),
+    };
+    if (this.prev) {
+      for (const alert of this.alerts) {
+        if (alert.evaluate(curr, this.prev)) {
+          alert.triggers++;
+          alert.lastFire = Date.now();
+          this.dispatchEvent(new CustomEvent('fire', { detail: alert }));
+          if (alert.sound) beep();
+          toast(`${this.device.id} · ${alert.describe()}`, 'err');
+        }
+      }
+    }
+    this.prev = curr;
+  }
+}
+
+/* === ALERTS PANEL (view) =================================================== */
+class AlertsPanel {
+  constructor(manager) {
+    this.manager = manager;
+    this.build();
+    manager.addEventListener('change', () => this.render());
+    manager.addEventListener('fire',   (e) => this.flash(e.detail.id));
+    this.render();
+  }
+
+  build() {
+    // Add-form: pin select, condition select, value input, add button
+    this.pinSel = el('select');
+    for (let i = 0; i < ANALOG_COUNT; i++)  this.pinSel.append(el('option', { value: 'a' + i }, 'A' + i));
+    for (let i = 0; i < DIGITAL_COUNT; i++) {
+      if (RESERVED_PINS.has(i)) continue;
+      this.pinSel.append(el('option', { value: 'd' + i }, 'D' + i));
+    }
+    for (let i = 0; i < VIRTUAL_COUNT; i++) this.pinSel.append(el('option', { value: 'v' + i }, 'V' + i));
+    this.condSel = el('select');
+    this.valInp  = el('input', { type: 'number', min: '0', placeholder: 'value' });
+    const addBtn = el('button', { class: 'btn primary' }, 'ADD');
+
+    const refreshConds = () => {
+      const isDigital = this.pinSel.value[0] === 'd';
+      this.condSel.innerHTML = '';
+      if (isDigital) {
+        this.condSel.append(el('option', { value: 'rising'  }, 'rising'));
+        this.condSel.append(el('option', { value: 'falling' }, 'falling'));
+        this.valInp.style.display = 'none';
+      } else {
+        this.condSel.append(el('option', { value: 'above' }, 'above'));
+        this.condSel.append(el('option', { value: 'below' }, 'below'));
+        this.valInp.style.display = '';
+        this.valInp.max = String(this.manager.device.maxFor(this.pinSel.value));
+      }
+    };
+    this.refreshConds = refreshConds;
+    refreshConds();
+    this.pinSel.addEventListener('change', refreshConds);
+
+    addBtn.addEventListener('click', () => {
+      const pin  = this.pinSel.value;
+      const cond = this.condSel.value;
+      const isDigital = pin[0] === 'd';
+      let value = 0;
+      if (!isDigital) {
+        value = parseFloat(this.valInp.value);
+        if (!Number.isFinite(value)) { toast('Enter a numeric threshold', 'err'); return; }
+        const maxV = this.manager.device.maxFor(pin);
+        if (value < 0 || value > maxV) {
+          toast(`Threshold must be 0-${maxV}`, 'err');
+          return;
+        }
+      }
+      this.manager.add({ pin, condition: cond, value });
+      this.valInp.value = '';
+    });
+
+    this.form = el('div', { class: 'alert-form' },
+      el('span', { class: 'lab' }, 'pin'),    this.pinSel,
+      el('span', { class: 'lab' }, 'when'),   this.condSel,
+      el('span', { class: 'lab' }, 'value'),  this.valInp,
+      addBtn,
+    );
+
+    this.list = el('div', { class: 'alerts-list' });
+    this.root = el('div', {}, this.form, this.list);
+  }
+
+  refreshAdcMax() {
+    this.refreshConds();
+  }
+
+  flash(id) {
+    const item = this.list.querySelector(`[data-alert="${id}"]`);
+    if (!item) return;
+    item.classList.add('fire');
+    setTimeout(() => item.classList.remove('fire'), 500);
+    // Re-render to update count/last-fire text
+    this.render();
+  }
+
+  render() {
+    this.list.innerHTML = '';
+    if (this.manager.alerts.length === 0) {
+      this.list.append(el('div', { class: 'alerts-empty' }, 'no alerts configured'));
+      return;
+    }
+    for (const a of this.manager.alerts) {
+      const led = el('span', { class: 'alert-led' });
+      const desc = el('span', { class: 'alert-desc' }, a.describe());
+      const info = a.triggers === 0
+        ? 'no fires yet'
+        : a.triggers + '× · last ' + new Date(a.lastFire).toLocaleTimeString();
+      const infoEl = el('span', { class: 'alert-info' }, info);
+      const toggleBtn = el('button', { class: 'alert-icon-btn' + (a.enabled ? ' on' : '') }, a.enabled ? '●' : '○');
+      toggleBtn.addEventListener('click', () => {
+        a.enabled = !a.enabled;
+        this.render();
+      });
+      const soundBtn = el('button', { class: 'alert-icon-btn' + (a.sound ? ' on' : '') }, '♪');
+      soundBtn.addEventListener('click', () => {
+        a.sound = !a.sound;
+        this.render();
+      });
+      const removeBtn = el('button', { class: 'alert-icon-btn' }, '×');
+      removeBtn.addEventListener('click', () => this.manager.remove(a.id));
+
+      const item = el('div',
+        { class: 'alert-item' + (a.enabled ? ' on' : ' off'), 'data-alert': String(a.id) },
+        led, desc, infoEl,
+        el('span', { style: 'display:flex;gap:5px' }, toggleBtn, soundBtn, removeBtn),
+      );
+      this.list.append(item);
+    }
+  }
+}
+
+/* === EXPRESSION COMPILER ================================================== */
+/* Safely compiles a math expression like "a0 - a1" or "sqrt(a0*a0 + a1*a1)"
+   into a function (a, d, v, f) => number. Allows pin references a0..a5,
+   d0..d13, v0..v3, f0..f13, the four arithmetic operators, parens, percent,
+   numbers, and a fixed set of Math functions. Anything else throws. */
+const EXPR_MATH_FNS = ['abs','sqrt','min','max','pow','sin','cos','tan','log','log10','exp','floor','ceil','round','atan2','sign'];
+function compileExpr(expr) {
+  if (typeof expr !== 'string') throw new Error('expression must be a string');
+  const trimmed = expr.trim();
+  if (!trimmed) throw new Error('empty expression');
+  // Whitelist characters
+  if (!/^[\w+\-*/()%.,\s]+$/.test(trimmed)) throw new Error('invalid characters in expression');
+  // Block dangerous identifiers
+  const blocklist = /\b(while|for|do|function|return|var|let|const|class|new|this|window|document|globalThis|eval|alert|Function|setTimeout|setInterval|import|export|require|process|console)\b/i;
+  if (blocklist.test(trimmed)) throw new Error('disallowed keyword');
+  // Replace pin references a0/d2/v1/f3 with array accesses; case-insensitive.
+  const withPins = trimmed.replace(/\b(a|d|v|f)(\d+)\b/gi, (_, type, idx) => {
+    const t = type.toLowerCase();
+    return `(${t}[${idx}] ?? 0)`;
+  });
+  // Allow named Math functions
+  const allowFnsRe = new RegExp('\\b(' + EXPR_MATH_FNS.join('|') + ')\\b', 'g');
+  const withMath = withPins.replace(allowFnsRe, 'Math.$1');
+  // Any remaining bare identifier is rejected. Strip Math.* and the four
+  // parameter names (a, d, v, f) first, since those are intentional.
+  const residual = withMath.replace(/Math\.\w+/g, '').replace(/\b[advf]\b/g, '');
+  if (/\b[A-Za-z_]\w*\b/.test(residual)) {
+    throw new Error('unknown identifier in expression');
+  }
+  let fn;
+  try { fn = new Function('a', 'd', 'v', 'f', `'use strict'; return ${withMath};`); }
+  catch (e) { throw new Error('syntax error: ' + e.message); }
+  // Smoke-test with dummy inputs
+  try {
+    const r = fn(new Array(ANALOG_COUNT).fill(0), new Array(DIGITAL_COUNT).fill(0),
+                 new Array(VIRTUAL_COUNT).fill(0), new Array(DIGITAL_COUNT).fill(0));
+    if (!Number.isFinite(r) && r !== 0) throw new Error('expression returned non-finite');
+  } catch (e) { throw new Error('runtime error: ' + e.message); }
+  return fn;
+}
+
+/* === CALIBRATION ========================================================== */
+/* Linear calibration y = m*raw + b, plus label, unit, precision.
+   Calibrations are attached to a Device under a pin key ('a0', 'v1'). */
+class Calibration {
+  constructor({ label = '', m = 1, b = 0, unit = '', decimals = 2 } = {}) {
+    this.label    = label;
+    this.m        = +m || 0;
+    this.b        = +b || 0;
+    this.unit     = unit;
+    this.decimals = Math.max(0, Math.min(6, decimals | 0));
+  }
+  isIdentity() { return this.m === 1 && this.b === 0 && !this.unit && !this.label; }
+  apply(raw)   {
+    if (raw == null || !Number.isFinite(raw)) return null;
+    return raw * this.m + this.b;
+  }
+  format(raw) {
+    const v = this.apply(raw);
+    if (v == null) return '----';
+    return v.toFixed(this.decimals) + (this.unit ? ' ' + this.unit : '');
+  }
+  toJSON() { return { label: this.label, m: this.m, b: this.b, unit: this.unit, decimals: this.decimals }; }
+}
+
+/* Default identity for pins with no explicit calibration */
+const IDENTITY_CAL = new Calibration();
+
+/* Resolve a pin display value: returns { raw, str } */
+function readPin(device, pin) {
+  const raw = device.rawFor(pin);
+  const cal = device.getCal(pin);
+  if (cal) return { raw, str: cal.format(raw), label: cal.label };
+  // Default formatting per pin type
+  if (raw == null) return { raw: null, str: '----', label: '' };
+  if (pin[0] === 'd') return { raw, str: raw ? 'HI' : 'LO', label: '' };
+  return { raw, str: String(raw), label: '' };
+}
+
+/* === CALIBRATION MODAL (singleton) ======================================== */
+const CalModal = (() => {
+  let modal = null, ctx = null;
+  function build() {
+    const labInp = el('input', { type: 'text', maxlength: '32' });
+    const mInp   = el('input', { type: 'number', step: 'any' });
+    const bInp   = el('input', { type: 'number', step: 'any' });
+    const uInp   = el('input', { type: 'text',   maxlength: '12' });
+    const dSel   = el('select');
+    for (let i = 0; i <= 6; i++) dSel.append(el('option', { value: String(i) }, String(i)));
+    const preview = el('span', {});
+
+    const cancelBtn = el('button', { class: 'btn' },         'CANCEL');
+    const resetBtn  = el('button', { class: 'btn danger' },  'RESET');
+    const okBtn     = el('button', { class: 'btn primary' }, 'SAVE');
+
+    const box = el('div', { class: 'box' },
+      el('h2', {}, 'CALIBRATION'),
+      el('div', { class: 'hint' }, 'Linear conversion y = m·raw + b applied to the raw reading.'),
+      el('div', { class: 'row' }, el('label', {}, 'LABEL'),    labInp),
+      el('div', { class: 'cal-grid' },
+        el('div', {}, el('label', {}, 'SCALE m'),  mInp),
+        el('div', {}, el('label', {}, 'OFFSET b'), bInp),
+      ),
+      el('div', { class: 'cal-grid' },
+        el('div', {}, el('label', {}, 'UNIT'),    uInp),
+        el('div', {}, el('label', {}, 'DECIMALS'), dSel),
+      ),
+      el('div', { class: 'hint' }, 'Preview: ', preview),
+      el('div', { class: 'foot' }, resetBtn, cancelBtn, okBtn),
+    );
+    modal = el('div', { class: 'modal' }, box);
+    document.body.append(modal);
+
+    const refreshPreview = () => {
+      if (!ctx) return;
+      const m = parseFloat(mInp.value) || 0;
+      const b = parseFloat(bInp.value) || 0;
+      const raw = ctx.device.rawFor(ctx.pin);
+      const cal = new Calibration({ m, b, unit: uInp.value, decimals: +dSel.value });
+      preview.textContent = `raw ${raw} → ${cal.format(raw)}`;
+    };
+    [labInp, mInp, bInp, uInp, dSel].forEach(e => e.addEventListener('input', refreshPreview));
+
+    cancelBtn.addEventListener('click', () => modal.classList.remove('show'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+    resetBtn.addEventListener('click', () => {
+      if (!ctx) return;
+      ctx.device.setCal(ctx.pin, null);
+      modal.classList.remove('show');
+    });
+    okBtn.addEventListener('click', () => {
+      if (!ctx) return;
+      const cal = new Calibration({
+        label:    labInp.value.trim(),
+        m:        parseFloat(mInp.value) || 1,
+        b:        parseFloat(bInp.value) || 0,
+        unit:     uInp.value.trim(),
+        decimals: +dSel.value,
+      });
+      ctx.device.setCal(ctx.pin, cal);
+      modal.classList.remove('show');
+    });
+
+    return { labInp, mInp, bInp, uInp, dSel, refreshPreview };
+  }
+  function open(device, pin) {
+    const ui = modal ? CalModal._ui : (CalModal._ui = build());
+    ctx = { device, pin };
+    modal.querySelector('h2').textContent = 'CALIBRATION · ' + pin.toUpperCase();
+    const cur = device.getCal(pin);
+    ui.labInp.value = cur?.label ?? '';
+    ui.mInp.value   = String(cur?.m ?? 1);
+    ui.bInp.value   = String(cur?.b ?? 0);
+    ui.uInp.value   = cur?.unit ?? '';
+    ui.dSel.value   = String(cur?.decimals ?? 2);
+    ui.refreshPreview();
+    modal.classList.add('show');
+  }
+  return { open };
+})();
+
+/* === STATISTICS =========================================================== */
+function computeStats(samples, getVal) {
+  if (samples.length === 0) return null;
+  let min = Infinity, max = -Infinity, sum = 0, sumSq = 0, n = 0;
+  for (const s of samples) {
+    const v = getVal(s);
+    if (v == null || !Number.isFinite(v)) continue;
+    if (v < min) min = v;
+    if (v > max) max = v;
+    sum   += v;
+    sumSq += v * v;
+    n++;
+  }
+  if (n === 0) return null;
+  const mean = sum / n;
+  const variance = Math.max(0, (sumSq / n) - (mean * mean));
+  const std = Math.sqrt(variance);
+  const rms = Math.sqrt(sumSq / n);
+  return { min, max, mean, std, rms, pp: max - min, n };
+}
+
+/* === PNG SNAPSHOT ========================================================= */
+function snapshotCanvas(srcCanvas, captionLines, filenameStem) {
+  const dpr = window.devicePixelRatio || 1;
+  const captionH = 22 * dpr * Math.max(1, captionLines.length);
+  const off  = document.createElement('canvas');
+  off.width  = srcCanvas.width;
+  off.height = srcCanvas.height + captionH;
+  const ctx  = off.getContext('2d');
+  // Background
+  ctx.fillStyle = '#0a0a09';
+  ctx.fillRect(0, 0, off.width, off.height);
+  // The source canvas
+  ctx.drawImage(srcCanvas, 0, 0);
+  // Caption strip
+  ctx.fillStyle = '#161513';
+  ctx.fillRect(0, srcCanvas.height, off.width, captionH);
+  ctx.strokeStyle = '#2a2826';
+  ctx.lineWidth = 1 * dpr;
+  ctx.beginPath();
+  ctx.moveTo(0, srcCanvas.height + 0.5 * dpr);
+  ctx.lineTo(off.width, srcCanvas.height + 0.5 * dpr);
+  ctx.stroke();
+  // Caption text
+  ctx.fillStyle    = '#d4a017';
+  ctx.font         = (10 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+  ctx.textAlign    = 'left';
+  ctx.textBaseline = 'middle';
+  captionLines.forEach((line, i) => {
+    ctx.fillText(line, 12 * dpr, srcCanvas.height + (i + 0.5) * 22 * dpr);
+  });
+  // Right-justified PinScope mark
+  ctx.fillStyle = '#8a6914';
+  ctx.textAlign = 'right';
+  ctx.fillText('PINSCOPE · FIELD INSTRUMENT 005',
+    off.width - 12 * dpr, srcCanvas.height + (captionLines.length - 0.5) * 22 * dpr);
+
+  off.toBlob((blob) => {
+    if (!blob) { toast('Snapshot failed', 'err'); return; }
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const a = el('a', { href: url, download: `${filenameStem}_${stamp}.png` });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('Snapshot saved');
+  }, 'image/png');
+}
+
+/* === I2C PANEL ============================================================ */
+class I2CPanel {
+  constructor(device) {
+    this.device = device;
+    this.build();
+    device.addEventListener('i2c', (e) => this.onI2C(e.detail));
+    device.addEventListener('state', () => this.refreshSlots());
+  }
+
+  build() {
+    // Header row: SCAN button + status
+    this.scanBtn = el('button', { class: 'btn primary' }, 'SCAN BUS');
+    this.scanBtn.addEventListener('click', () => {
+      this.scanBtn.disabled = true;
+      this.scanBtn.textContent = 'SCANNING...';
+      this.device.i2cScanReq();
+      setTimeout(() => {
+        this.scanBtn.disabled = false;
+        this.scanBtn.textContent = 'SCAN BUS';
+      }, 1500);
+    });
+    this.scanStatus = el('span', { class: 'i2c-status' }, 'never scanned');
+    const headRow = el('div', { class: 'i2c-head' }, this.scanBtn, this.scanStatus);
+
+    // Address grid (8 rows × 16 cols = 128 cells)
+    this.grid     = el('div', { class: 'i2c-grid' });
+    this.gridCells = {};
+    // Top-left corner
+    this.grid.append(el('span', { class: 'i2c-corner' }, ''));
+    for (let c = 0; c < 16; c++) {
+      this.grid.append(el('span', { class: 'i2c-colhdr' }, c.toString(16).toUpperCase()));
+    }
+    for (let r = 0; r < 8; r++) {
+      this.grid.append(el('span', { class: 'i2c-rowhdr' }, r.toString(16).toUpperCase() + '0'));
+      for (let c = 0; c < 16; c++) {
+        const addr = r * 16 + c;
+        const cell = el('span', { class: 'i2c-cell', 'data-addr': addr }, '·');
+        cell.addEventListener('click', () => this.selectAddr(addr));
+        this.gridCells[addr] = cell;
+        this.grid.append(cell);
+      }
+    }
+
+    // Selected-address tools
+    this.selectedAddr = null;
+    this.addrLabel = el('span', { class: 'i2c-sel-addr' }, 'no address selected');
+    this.regInp    = el('input', { type: 'text', placeholder: '0x00', maxlength: '4' });
+    this.cntSel    = el('select');
+    [1, 2, 4].forEach(n => this.cntSel.append(el('option', { value: String(n) }, n + ' byte' + (n > 1 ? 's' : ''))));
+    this.cntSel.value = '2';
+    this.signedChk = el('input', { type: 'checkbox' });
+    const readBtn  = el('button', { class: 'btn' }, 'READ');
+    readBtn.addEventListener('click', () => this.doRead());
+    this.writeInp  = el('input', { type: 'text', placeholder: '0xAA,0xBB', maxlength: '64' });
+    const writeBtn = el('button', { class: 'btn' }, 'WRITE');
+    writeBtn.addEventListener('click', () => this.doWrite());
+    const slotSel  = el('select');
+    for (let i = 0; i < NUM_I2C_POLLS; i++) slotSel.append(el('option', { value: String(i) }, 'V' + i));
+    this.slotSel   = slotSel;
+    this.hzInp     = el('input', { type: 'number', min: '1', max: '50', value: '5' });
+    const pollBtn  = el('button', { class: 'btn primary' }, 'POLL TO SLOT');
+    pollBtn.addEventListener('click', () => this.doPoll());
+
+    this.tools = el('div', { class: 'i2c-tools' },
+      el('div', { class: 'i2c-toolhead' }, this.addrLabel),
+      el('div', { class: 'i2c-toolrow' },
+        el('span', { class: 'lab' }, 'reg'),  this.regInp,
+        el('span', { class: 'lab' }, 'bytes'), this.cntSel,
+        el('label', {}, this.signedChk, 'signed'),
+        readBtn,
+      ),
+      el('div', { class: 'i2c-toolrow' },
+        el('span', { class: 'lab' }, 'data'), this.writeInp,
+        writeBtn,
+      ),
+      el('div', { class: 'i2c-toolrow' },
+        el('span', { class: 'lab' }, 'slot'), slotSel,
+        el('span', { class: 'lab' }, 'hz'),   this.hzInp,
+        pollBtn,
+      ),
+      el('div', { class: 'i2c-readout' }, '·'),
+    );
+    this.readout = this.tools.querySelector('.i2c-readout');
+
+    // Active polls list
+    this.slotsList = el('div', { class: 'i2c-slots' });
+
+    // Math expression panel for cross-pin virtual channels
+    this.mathSlotSel = el('select');
+    for (let i = 0; i < VIRTUAL_COUNT; i++) this.mathSlotSel.append(el('option', { value: String(i) }, 'V' + i));
+    this.mathExprInp = el('input', { type: 'text', placeholder: 'e.g. a0 - a1   or   sqrt(a0*a0 + a1*a1)' });
+    const mathSetBtn   = el('button', { class: 'btn primary' }, 'ASSIGN');
+    mathSetBtn.addEventListener('click', () => this.doSetMath());
+    this.mathHint = el('span', { class: 'math-hint' }, 'refs: a0-a5 · d0-d13 · v0-v3 · f0-f13 · fns: abs sqrt min max pow sin cos tan log exp');
+    const mathPanel = el('div', { class: 'math-wrap' },
+      el('div', { class: 'math-head' }, 'CROSS-PIN MATH · derive a virtual slot from other pins'),
+      el('div', { class: 'math-row' },
+        el('span', { class: 'lab' }, 'slot'), this.mathSlotSel,
+        el('span', { class: 'lab' }, 'expr'), this.mathExprInp,
+        mathSetBtn,
+      ),
+      this.mathHint,
+    );
+
+    this.root = el('div', { class: 'i2c-wrap' },
+      headRow,
+      this.grid,
+      this.tools,
+      mathPanel,
+      el('div', { class: 'i2c-slots-head' }, 'POLL SLOTS · feeds V0-V3 into the recorder'),
+      this.slotsList,
+    );
+    this.tools.style.display = 'none';
+    // Listen for slot config changes from anywhere (including session restore)
+    this.device.addEventListener('vchange', () => this.refreshSlots());
+    this.refreshSlots();
+  }
+
+  doSetMath() {
+    const slot = parseInt(this.mathSlotSel.value, 10);
+    const expr = this.mathExprInp.value.trim();
+    if (!expr) { toast('Enter an expression', 'err'); return; }
+    try {
+      this.device.setMathExpr(slot, expr);
+      toast(`V${slot} = ${expr}`);
+      this.mathExprInp.value = '';
+    } catch (e) {
+      toast('Bad expression: ' + e.message, 'err');
+    }
+  }
+
+  selectAddr(addr) {
+    this.selectedAddr = addr;
+    this.tools.style.display = '';
+    this.addrLabel.textContent = '0x' + addr.toString(16).toUpperCase().padStart(2, '0');
+    for (const c of Object.values(this.gridCells)) c.classList.remove('selected');
+    this.gridCells[addr].classList.add('selected');
+  }
+
+  parseHexInt(s) {
+    s = (s || '').trim();
+    if (!s) return null;
+    if (s.startsWith('0x') || s.startsWith('0X')) return parseInt(s.slice(2), 16);
+    if (/^[0-9]+$/.test(s)) return parseInt(s, 10);
+    return parseInt(s, 16);
+  }
+
+  doRead() {
+    if (this.selectedAddr == null) return;
+    const reg = this.parseHexInt(this.regInp.value);
+    const cnt = parseInt(this.cntSel.value, 10);
+    if (reg == null || isNaN(reg)) { toast('Enter register address (e.g. 0x00)', 'err'); return; }
+    this.device.i2cRead(this.selectedAddr, reg, cnt);
+  }
+  doWrite() {
+    if (this.selectedAddr == null) return;
+    const reg = this.parseHexInt(this.regInp.value);
+    if (reg == null || isNaN(reg)) { toast('Enter register address', 'err'); return; }
+    const bytes = this.writeInp.value.split(',').map(s => this.parseHexInt(s)).filter(n => n != null && !isNaN(n));
+    if (bytes.length === 0) { toast('Enter bytes to write (comma-separated)', 'err'); return; }
+    this.device.i2cWrite(this.selectedAddr, reg, bytes);
+  }
+  doPoll() {
+    if (this.selectedAddr == null) return;
+    const reg = this.parseHexInt(this.regInp.value);
+    const cnt = parseInt(this.cntSel.value, 10);
+    const hz  = Math.max(1, Math.min(50, parseInt(this.hzInp.value, 10) || 5));
+    const slot = parseInt(this.slotSel.value, 10);
+    const signed = this.signedChk.checked;
+    if (reg == null || isNaN(reg)) { toast('Enter register address', 'err'); return; }
+    this.device.i2cPoll(slot, this.selectedAddr, reg, cnt, hz, signed);
+    setTimeout(() => this.refreshSlots(), 100);
+  }
+
+  onI2C(msg) {
+    if (msg.op === 'scan') {
+      const addrs = msg.addrs || [];
+      this.scanStatus.textContent = addrs.length === 0
+        ? 'no devices found'
+        : `${addrs.length} device${addrs.length === 1 ? '' : 's'} · ${addrs.map(a => '0x' + a.toString(16).toUpperCase().padStart(2,'0')).join(' ')}`;
+      for (const cell of Object.values(this.gridCells)) {
+        cell.classList.remove('present');
+        cell.textContent = '·';
+      }
+      for (const addr of addrs) {
+        if (this.gridCells[addr]) {
+          this.gridCells[addr].classList.add('present');
+          this.gridCells[addr].textContent = '●';
+        }
+      }
+    } else if (msg.op === 'read') {
+      const bytes = msg.data || [];
+      const hex   = bytes.map(b => '0x' + b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      let assembled = 0;
+      for (const b of bytes) assembled = (assembled << 8) | (b & 0xFF);
+      if (this.signedChk.checked && bytes.length > 0) {
+        const bits = bytes.length * 8;
+        if (assembled & (1 << (bits - 1))) assembled -= (1 << bits);
+      }
+      this.readout.textContent = bytes.length ? `${hex} = ${assembled}` : '(no data)';
+    } else if (msg.op === 'ack') {
+      this.readout.textContent = 'ACK';
+    } else if (msg.op === 'err') {
+      this.readout.textContent = 'ERR: ' + (msg.msg || 'I2C error');
+    }
+  }
+
+  refreshSlots() {
+    this.slotsList.innerHTML = '';
+    let anyActive = false;
+    for (let i = 0; i < NUM_I2C_POLLS; i++) {
+      const cfg  = this.device.i2cConfigs[i];
+      const math = this.device.mathExpressions[i];
+      const val  = this.device.virtual[i];
+      const row  = el('div', { class: 'i2c-slot' + ((cfg || math) ? ' active' : '') });
+      const label = el('span', { class: 'slot-id' }, 'V' + i);
+      if (cfg) {
+        anyActive = true;
+        const desc = el('span', { class: 'slot-desc' },
+          `I2C · 0x${cfg.addr.toString(16).toUpperCase().padStart(2, '0')} · reg 0x${cfg.reg.toString(16).toUpperCase().padStart(2, '0')} · ${cfg.count}B · ${cfg.hz} Hz` + (cfg.signed ? ' · signed' : ''));
+        const value = el('span', { class: 'slot-value' }, val == null ? '----' : String(val));
+        const stop  = el('button', { class: 'btn danger' }, 'STOP');
+        stop.addEventListener('click', () => {
+          this.device.i2cStopPoll(i);
+          this.refreshSlots();
+        });
+        row.append(label, desc, value, stop);
+      } else if (math) {
+        anyActive = true;
+        const desc = el('span', { class: 'slot-desc' }, 'MATH · ' + math.expr);
+        const value = el('span', { class: 'slot-value' }, val == null ? '----' : (typeof val === 'number' ? val.toFixed(2) : String(val)));
+        const stop  = el('button', { class: 'btn danger' }, 'CLEAR');
+        stop.addEventListener('click', () => {
+          this.device.clearMathExpr(i);
+          this.refreshSlots();
+        });
+        row.append(label, desc, value, stop);
+      } else {
+        const desc = el('span', { class: 'slot-desc dim' }, 'unused');
+        row.append(label, desc);
+      }
+      this.slotsList.append(row);
+    }
+    if (!anyActive && this.slotsList.children.length === 0) {
+      this.slotsList.append(el('div', { class: 'alerts-empty' }, 'no virtual channels configured'));
+    }
+  }
+}
+
+/* === SESSION MANAGER ====================================================== */
+/* Saves and restores device configuration: alias, calibrations, alerts,
+   active traces, ADC res, I2C polls. Auto-saves to localStorage; export/import
+   as JSON files for transferring between machines. */
+class SessionManager {
+  constructor(card) {
+    this.card    = card;          // DeviceCard
+    this.device  = card.device;
+    this.key     = 'pinscope:session:' + this.device.id;
+    this.saving  = false;
+    this.dirtyTimer = null;
+    this.wire();
+  }
+
+  wire() {
+    // Listen for changes that should trigger autosave
+    this.device.addEventListener('calchange', () => this.scheduleSave());
+    this.device.addEventListener('vchange',   () => this.scheduleSave());
+    this.card.alertManager.addEventListener('change', () => this.scheduleSave());
+  }
+
+  scheduleSave() {
+    clearTimeout(this.dirtyTimer);
+    this.dirtyTimer = setTimeout(() => this.save(), 400);
+  }
+
+  snapshot() {
+    const d = this.device;
+    return {
+      version:       '1.1',
+      tool:          'pinscope',
+      deviceId:      d.id,
+      deviceName:    d.name,
+      alias:         d.alias,
+      savedAt:       new Date().toISOString(),
+      adcMax:        d.adcMax,
+      hz:            d.hz,
+      calibrations:  Object.fromEntries(
+        Object.entries(d.calibrations).map(([k, v]) => [k, v.toJSON()])
+      ),
+      alerts:        this.card.alertManager.alerts.map(a => ({
+        pin: a.pin, condition: a.condition, value: a.value,
+        enabled: a.enabled, sound: a.sound,
+      })),
+      tracesActive:  Array.from(this.card.chart.active),
+      i2cConfigs:    d.i2cConfigs.map((c, i) => c ? ({ slot: i, ...c }) : null).filter(Boolean),
+      mathExprs:     d.mathExpressions.map((m, i) => m ? ({ slot: i, expr: m.expr }) : null).filter(Boolean),
+      rgb:           d.rgb,
+    };
+  }
+
+  save() {
+    try {
+      localStorage.setItem(this.key, JSON.stringify(this.snapshot()));
+    } catch (e) {
+      console.warn('Session autosave failed', e);
+    }
+  }
+
+  loadFrom(data) {
+    if (!data || data.tool !== 'pinscope') { toast('Not a PinScope session file', 'err'); return; }
+    const d = this.device;
+    if (data.alias)  d.alias  = data.alias;
+    if (data.adcMax) d.adcMax = data.adcMax;
+    if (data.calibrations) {
+      for (const [pin, cal] of Object.entries(data.calibrations)) {
+        d.setCal(pin, new Calibration(cal));
+      }
+    }
+    if (Array.isArray(data.alerts)) {
+      // Clear current alerts then load
+      this.card.alertManager.alerts = [];
+      this.card.alertManager.dispatchEvent(new CustomEvent('change'));
+      for (const a of data.alerts) {
+        const al = this.card.alertManager.add({ pin: a.pin, condition: a.condition, value: a.value, sound: a.sound });
+        al.enabled = a.enabled !== false;
+      }
+      this.card.alertsPanel.render();
+    }
+    if (Array.isArray(data.tracesActive)) {
+      this.card.chart.active.clear();
+      for (const k of data.tracesActive) {
+        const entry = this.card.chart.chips[k];
+        if (entry && !entry.reserved) {
+          this.card.chart.active.add(k);
+          entry.chip.classList.add('on');
+        }
+      }
+    }
+    if (Array.isArray(data.i2cConfigs)) {
+      for (const cfg of data.i2cConfigs) {
+        if (typeof cfg.slot !== 'number') continue;
+        d.i2cPoll(cfg.slot, cfg.addr, cfg.reg, cfg.count, cfg.hz, cfg.signed);
+      }
+    }
+    if (Array.isArray(data.mathExprs)) {
+      for (const m of data.mathExprs) {
+        if (typeof m.slot !== 'number' || typeof m.expr !== 'string') continue;
+        try { d.setMathExpr(m.slot, m.expr); }
+        catch (e) { console.warn('Failed to restore math expr for V' + m.slot + ':', e); }
+      }
+    }
+    if (data.rgb && typeof data.rgb === 'object') {
+      d.rgb = { r: data.rgb.r, g: data.rgb.g, b: data.rgb.b, color: data.rgb.color || '#000000' };
+    }
+    if (typeof data.hz === 'number') {
+      d.hz = data.hz;
+      // Send to firmware once connected (only if differs from current setting)
+      try { d.send({ cmd: 'hz', val: data.hz }); } catch {}
+    }
+    this.card.refreshHead();
+    this.card.refreshState();
+    this.card.refreshHz();
+    if (this.card.i2cPanel) this.card.i2cPanel.refreshSlots();
+    toast('Session restored');
+  }
+
+  tryAutoRestore() {
+    try {
+      const raw = localStorage.getItem(this.key);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      this.loadFrom(data);
+    } catch (e) {
+      console.warn('Session autorestore failed', e);
+    }
+  }
+
+  exportFile() {
+    const data = this.snapshot();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const a = el('a', { href: url, download: `pinscope_session_${this.device.id}_${stamp}.json` });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async importFile() {
+    const input = el('input', { type: 'file', accept: 'application/json,.json' });
+    input.style.display = 'none';
+    document.body.append(input);
+    return new Promise((resolve) => {
+      input.addEventListener('change', async () => {
+        const file = input.files?.[0];
+        input.remove();
+        if (!file) { resolve(); return; }
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          this.loadFrom(data);
+        } catch (e) {
+          toast('Failed to parse session file: ' + e.message, 'err');
+        }
+        resolve();
+      });
+      input.click();
+    });
+  }
 }
 
 /* === DEVICE MANAGER ======================================================= */
@@ -677,14 +3532,25 @@ class DeviceCard {
     // Head
     this.elName  = el('span', { class: 'name' }, this.device.name);
     this.elId    = el('span', { class: 'id' }, this.device.id + ' · ' + this.device.transport.label);
-    this.elPill  = el('span', { class: 'pill ok' }, el('span', { class: 'dot' }), 'live');
+    const isReplay = this.device.transport.kind === 'replay';
+    this.elPill  = el('span', { class: 'pill ' + (isReplay ? 'replay' : 'ok') }, el('span', { class: 'dot' }), isReplay ? 'replay' : 'live');
     this.elStats = el('span', { class: 'pill' }, el('span', { class: 'dot' }), 'tx 0 · rx 0');
+    // Sample-rate selector (sends {"cmd":"hz","val":N} to firmware)
+    this.hzSel   = el('select', { class: 'hz-sel', title: 'State push rate (firmware Hz)' });
+    for (const hz of HZ_OPTIONS) this.hzSel.append(el('option', { value: String(hz) }, hz + ' Hz'));
+    this.hzSel.value = String(this.device.hz);
+    this.hzSel.addEventListener('change', () => {
+      this.device.setHz(parseInt(this.hzSel.value, 10));
+      if (this.session) this.session.scheduleSave();
+    });
+    this.btnSessExport = el('button', { class: 'btn', title: 'Export session (alerts, calibrations, traces, I2C) as JSON' }, 'EXPORT');
+    this.btnSessImport = el('button', { class: 'btn', title: 'Import a previously saved session JSON' }, 'IMPORT');
     this.elDisc  = el('button', { class: 'btn danger' }, 'DISCONNECT');
 
     const head = el('div', { class: 'head' },
       el('div', { class: 'ident' }, this.elName, this.elId),
-      el('div', { class: 'meta' }, this.elPill, this.elStats),
-      el('div', { class: 'actions' }, this.elDisc),
+      el('div', { class: 'meta' }, this.elPill, this.elStats, this.hzSel),
+      el('div', { class: 'actions' }, this.btnSessExport, this.btnSessImport, this.elDisc),
     );
 
     // Digital section
@@ -700,40 +3566,219 @@ class DeviceCard {
       grid,
     );
 
-    // Analog section
+    // Analog section with ADC resolution toggle + clickable label-to-calibrate
     this.aNodes = [];
     const arows = el('div', { class: 'analog' });
     for (let a = 0; a < ANALOG_COUNT; a++) {
       const bar = el('i', {});
       bar.style.width = '0%';
-      const val = el('span', { class: 'val' }, '0');
-      const row = el('div', { class: 'arow' },
-        el('span', { class: 'lab' }, 'A' + a),
-        el('span', { class: 'bar' }, bar),
-        val,
-      );
-      this.aNodes.push({ bar, val });
+      const val   = el('span', { class: 'val' }, '0');
+      const lab   = el('span', { class: 'lab cal-clickable', title: 'Click to calibrate' }, 'A' + a);
+      lab.addEventListener('click', () => CalModal.open(this.device, 'a' + a));
+      const row = el('div', { class: 'arow' }, lab, el('span', { class: 'bar' }, bar), val);
+      this.aNodes.push({ bar, val, lab });
       arows.append(row);
     }
+    this.elAdcRange = el('span', { class: 'adc-range' }, '0-' + this.device.adcMax);
+    const adc10 = el('button', { class: 'res-btn' + (this.device.adcMax === 1023 ? ' on' : '') }, '10');
+    const adc12 = el('button', { class: 'res-btn' + (this.device.adcMax === 4095 ? ' on' : '') }, '12');
+    const setRes = (max) => {
+      this.device.adcMax = max;
+      adc10.classList.toggle('on', max === 1023);
+      adc12.classList.toggle('on', max === 4095);
+      this.elAdcRange.textContent = '0-' + max;
+      this.refreshState();
+      if (this.alertsPanel) this.alertsPanel.refreshAdcMax();
+      if (this.session)     this.session.scheduleSave();
+    };
+    adc10.addEventListener('click', () => setRes(1023));
+    adc12.addEventListener('click', () => setRes(4095));
+    const resToggle = el('span', { class: 'res-toggle' },
+      el('span', { class: 'res-lab' }, 'ADC'), adc10, adc12, el('span', { class: 'res-lab' }, 'BIT'),
+    );
     const anaSection = el('section', { class: 'section' },
-      el('h3', {}, 'Analog Inputs · A0-A5 · 10-bit (0-' + ADC_MAX + ')', el('span', { class: 'line' })),
+      el('h3', {},
+        'Analog Inputs · A0-A5 · ', this.elAdcRange, ' · ',
+        resToggle,
+        el('span', { class: 'line' }),
+      ),
       arows,
     );
 
-    // Log section
+    // ===== Live Analysis section (Strip Chart / FFT / XY Scatter tabs) =====
+    this.recorder     = new Recorder(this.device);
+    this.alertManager = new AlertManager(this.device);
+    this.chart        = new StripChart(this.recorder, this.alertManager);
+    this.fft          = new FFTView(this.recorder);
+    this.spectro      = new SpectrogramView(this.recorder);
+    this.scatter      = new ScatterView(this.recorder);
+
+    const tabDefs = [
+      { key: 'strip',   label: 'Strip Chart', view: this.chart },
+      { key: 'fft',     label: 'FFT',         view: this.fft },
+      { key: 'spectro', label: 'Spectrogram', view: this.spectro },
+      { key: 'scatter', label: 'XY Scatter',  view: this.scatter },
+    ];
+    const tabsBar  = el('div', { class: 'tabs' });
+    const tabBodies = [];
+    tabDefs.forEach((t, i) => {
+      const btn  = el('button', { class: 'tab' + (i === 0 ? ' on' : '') }, t.label);
+      const body = el('div', { class: 'tab-body' + (i === 0 ? '' : ' hidden') }, t.view.root);
+      btn.addEventListener('click', () => {
+        tabsBar.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        tabBodies.forEach(b => b.classList.add('hidden'));
+        body.classList.remove('hidden');
+      });
+      tabsBar.append(btn);
+      tabBodies.push(body);
+    });
+    const analysisSection = el('section', { class: 'section' },
+      el('h3', {}, 'Live Analysis', el('span', { class: 'line' })),
+      tabsBar,
+      ...tabBodies,
+    );
+
+    // ===== I2C / Qwiic section =====
+    this.i2cPanel = new I2CPanel(this.device);
+    const i2cSection = el('section', { class: 'section' },
+      el('h3', {}, 'I2C · Qwiic', el('span', { class: 'line' })),
+      this.i2cPanel.root,
+    );
+
+    // ===== Board LEDs section (RGB via 3 PWM pins) =====
+    this.rgbPanel = this.buildRgbPanel();
+    const rgbSection = el('section', { class: 'section' },
+      el('h3', {}, 'Board LEDs · RGB via PWM', el('span', { class: 'line' })),
+      this.rgbPanel.root,
+    );
+
+    // ===== Alerts section =====
+    this.alertsPanel = new AlertsPanel(this.alertManager);
+    const alertsSection = el('section', { class: 'section' },
+      el('h3', {}, 'Threshold Alerts', el('span', { class: 'line' })),
+      this.alertsPanel.root,
+    );
+
+    // Log section + raw command sender
     this.elLog = el('div', { class: 'log' });
     const logHead = el('div', { class: 'log-head' },
       el('h3', {}, 'Wire Log'),
       el('button', { class: 'btn', onclick: () => this.elLog.innerHTML = '' }, 'CLEAR'),
     );
-    const logSection = el('section', { class: 'section log-wrap' }, logHead, this.elLog);
+    this.rawInp  = el('input', {
+      type: 'text', class: 'raw-input', spellcheck: 'false', autocomplete: 'off',
+      placeholder: 'raw command JSON, e.g. {"cmd":"mode","pin":4,"mode":"out"}',
+    });
+    const rawBtn = el('button', { class: 'btn primary' }, 'SEND');
+    const rawClr = el('button', { class: 'btn' }, 'CLEAR');
+    rawBtn.addEventListener('click', () => this.sendRaw());
+    rawClr.addEventListener('click', () => { this.rawInp.value = ''; this.rawInp.focus(); });
+    this.rawInp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') this.sendRaw();
+      else if (e.key === 'ArrowUp' && this.rawHistory && this.rawHistory.length) {
+        this.rawHistIdx = Math.max(0, (this.rawHistIdx ?? this.rawHistory.length) - 1);
+        this.rawInp.value = this.rawHistory[this.rawHistIdx] || '';
+      } else if (e.key === 'ArrowDown' && this.rawHistory) {
+        this.rawHistIdx = Math.min(this.rawHistory.length, (this.rawHistIdx ?? this.rawHistory.length) + 1);
+        this.rawInp.value = this.rawHistory[this.rawHistIdx] || '';
+      }
+    });
+    const rawRow = el('div', { class: 'raw-row' }, this.rawInp, rawBtn, rawClr);
+    const logSection = el('section', { class: 'section log-wrap' }, logHead, this.elLog, rawRow);
 
-    this.root.append(head, digSection, anaSection, logSection);
+    this.root.append(head, digSection, anaSection, analysisSection, i2cSection, rgbSection, alertsSection, logSection);
+  }
+
+  sendRaw() {
+    const text = this.rawInp.value.trim();
+    if (!text) return;
+    let obj;
+    try { obj = JSON.parse(text); }
+    catch (e) { toast('Invalid JSON: ' + e.message, 'err'); return; }
+    if (typeof obj !== 'object' || obj === null) { toast('Must be a JSON object', 'err'); return; }
+    this.rawHistory = this.rawHistory || [];
+    this.rawHistory.push(text);
+    if (this.rawHistory.length > 50) this.rawHistory.shift();
+    this.rawHistIdx = this.rawHistory.length;
+    this.device.send(obj);
+    this.rawInp.value = '';
+  }
+
+  buildRgbPanel() {
+    const pwmPins = Array.from(PWM_PINS).sort((a, b) => a - b);
+    const mkPinSel = (defaultPin) => {
+      const sel = el('select');
+      for (const p of pwmPins) sel.append(el('option', { value: String(p) }, '~D' + p));
+      sel.value = String(defaultPin);
+      return sel;
+    };
+    const r0 = this.device.rgb || { r: 9, g: 10, b: 11, color: '#000000' };
+    this.device.rgb = r0;
+    const rSel  = mkPinSel(r0.r);
+    const gSel  = mkPinSel(r0.g);
+    const bSel  = mkPinSel(r0.b);
+    const cInp  = el('input', { type: 'color', value: r0.color || '#000000' });
+    const swatch = el('div', { class: 'rgb-swatch' });
+    swatch.style.background = r0.color || '#000000';
+    const apply = el('button', { class: 'btn primary' }, 'APPLY');
+    const off   = el('button', { class: 'btn danger' }, 'OFF');
+    const hint  = el('span', { class: 'rgb-hint' }, 'sets R/G/B pins to PWM mode and writes 0-255 duties matching the color');
+
+    const sendColor = (hex) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      const rp = parseInt(rSel.value, 10);
+      const gp = parseInt(gSel.value, 10);
+      const bp = parseInt(bSel.value, 10);
+      // Make sure each pin is in PWM mode (idempotent)
+      for (const p of [rp, gp, bp]) {
+        if (this.device.modes[p] !== 'pwm') this.device.setMode(p, 'pwm');
+      }
+      // Drive duties
+      this.device.setPWM(rp, r);
+      this.device.setPWM(gp, g);
+      this.device.setPWM(bp, b);
+      // Persist config
+      this.device.rgb = { r: rp, g: gp, b: bp, color: hex };
+      swatch.style.background = hex;
+      if (this.session) this.session.scheduleSave();
+    };
+    cInp.addEventListener('input', () => sendColor(cInp.value));
+    apply.addEventListener('click', () => sendColor(cInp.value));
+    off.addEventListener('click', () => { cInp.value = '#000000'; sendColor('#000000'); });
+    // Persist pin selections immediately when changed
+    for (const s of [rSel, gSel, bSel]) {
+      s.addEventListener('change', () => {
+        this.device.rgb = {
+          r: parseInt(rSel.value, 10),
+          g: parseInt(gSel.value, 10),
+          b: parseInt(bSel.value, 10),
+          color: cInp.value,
+        };
+        if (this.session) this.session.scheduleSave();
+      });
+    }
+
+    const root = el('div', { class: 'rgb-wrap' },
+      el('div', { class: 'rgb-row' },
+        el('span', { class: 'lab' }, 'R'), rSel,
+        el('span', { class: 'lab' }, 'G'), gSel,
+        el('span', { class: 'lab' }, 'B'), bSel,
+        el('span', { class: 'lab' }, 'color'), cInp,
+        swatch,
+        apply, off,
+      ),
+      hint,
+    );
+    return { root, rSel, gSel, bSel, cInp, swatch };
   }
 
   makePin(p) {
     const isPwm = PWM_PINS.has(p);
     const isReserved = RESERVED_PINS.has(p);
+    const isInt = INTERRUPT_PINS.has(p);
 
     const label = el('span', { class: 'label' },
       isPwm ? el('span', { class: 'tilde' }, '~') : '',
@@ -752,7 +3797,20 @@ class DeviceCard {
     // Control area (built dynamically per mode)
     const ctrl = el('div', { class: 'ctrl' });
 
-    const root = el('div', { class: 'pin' + (isReserved ? ' reserved' : '') },
+    // Hover tooltip describing the pin's capabilities
+    const caps = [];
+    if (isReserved) caps.push(p === 0 ? 'RX (USB serial)' : 'TX (USB serial)');
+    else {
+      caps.push('digital I/O');
+      if (isPwm) caps.push('PWM-capable (~)');
+      if (isInt) caps.push('interrupt-capable (FREQ mode)');
+      if (p === 13) caps.push('on-board LED');
+    }
+    const title = `D${p}\n` + caps.join('\n') +
+      (!isReserved ? '\nClick mode badge to cycle: OFF → IN → IN-PU → OUT' +
+        (isPwm ? ' → PWM' : '') + (isInt ? ' → FREQ' : '') : '');
+
+    const root = el('div', { class: 'pin' + (isReserved ? ' reserved' : ''), title },
       el('div', { class: 'top' }, label, mode),
       face,
       ctrl,
@@ -763,10 +3821,11 @@ class DeviceCard {
       mode.addEventListener('click', () => {
         const cur = this.device.modes[p] || 'off';
         let idx = MODE_CYCLE.indexOf(cur);
-        // skip pwm if not pwm-capable
         for (let n = 0; n < MODE_CYCLE.length; n++) {
           idx = (idx + 1) % MODE_CYCLE.length;
-          if (MODE_CYCLE[idx] === 'pwm' && !isPwm) continue;
+          const next = MODE_CYCLE[idx];
+          if (next === 'pwm' && !isPwm)   continue;
+          if (next === 'freq' && !isInt)  continue;
           break;
         }
         this.device.setMode(p, MODE_CYCLE[idx]);
@@ -778,16 +3837,49 @@ class DeviceCard {
 
   bind() {
     this.elDisc.addEventListener('click', () => this.device.disconnect());
-    this.device.addEventListener('identified', () => this.refreshHead());
+    this.device.addEventListener('identified', () => {
+      this.refreshHead();
+      // Try to restore session from localStorage on first id
+      if (!this._restored) {
+        this._restored = true;
+        this.session = new SessionManager(this);
+        this.session.tryAutoRestore();
+      }
+    });
     this.device.addEventListener('state',      () => this.refreshState());
     this.device.addEventListener('log',        (e) => this.appendLog(e.detail));
     this.device.addEventListener('disconnect', () => this.die());
+    this.device.addEventListener('calchange',  () => {
+      this.refreshAnalogLabels();
+      this.refreshState();
+      if (this.session) this.session.scheduleSave();
+    });
+    this.btnSessExport.addEventListener('click', () => {
+      if (!this.session) this.session = new SessionManager(this);
+      this.session.exportFile();
+    });
+    this.btnSessImport.addEventListener('click', () => {
+      if (!this.session) this.session = new SessionManager(this);
+      this.session.importFile();
+    });
+  }
+
+  refreshAnalogLabels() {
+    for (let a = 0; a < ANALOG_COUNT; a++) {
+      const cal = this.device.getCal('a' + a);
+      this.aNodes[a].lab.textContent = (cal && cal.label) ? ('A' + a + '/' + cal.label) : ('A' + a);
+    }
   }
 
   refreshHead() {
     this.elName.textContent = this.device.name;
     this.elId.textContent = this.device.id + ' · ' + this.device.transport.label;
     this.root.setAttribute('data-id', this.device.id);
+    this.refreshHz();
+  }
+
+  refreshHz() {
+    if (this.hzSel) this.hzSel.value = String(this.device.hz);
   }
 
   refreshState() {
@@ -803,7 +3895,8 @@ class DeviceCard {
       const v = d.digital[p] || 0;
 
       // mode badge + class
-      node.mode.textContent = (m === 'inp') ? 'IN-PU' : m.toUpperCase();
+      const modeLabel = m === 'inp' ? 'IN-PU' : m === 'freq' ? 'FREQ' : m.toUpperCase();
+      node.mode.textContent = modeLabel;
       node.root.className = 'pin' + (node.isReserved ? ' reserved' : '') + ' m-' + m + ((m === 'out' && v) || m === 'pwm' && d.pwm[p] ? ' active' : '');
 
       // lamp / reading / pwm
@@ -812,6 +3905,12 @@ class DeviceCard {
         node.pwmbar.style.display = '';
         node.pwmbar.firstChild.style.width = (d.pwm[p] / 255 * 100).toFixed(0) + '%';
         node.reading.textContent = d.pwm[p] + '/255';
+      } else if (m === 'freq') {
+        node.lamp.style.display = '';
+        node.lamp.classList.toggle('on', !!v);
+        node.pwmbar.style.display = 'none';
+        const hz = d.frequency[p];
+        node.reading.textContent = (hz >= 0 ? hz + ' Hz' : '...');
       } else if (m === 'off') {
         node.lamp.style.display = '';
         node.lamp.classList.remove('on');
@@ -828,12 +3927,13 @@ class DeviceCard {
       this.renderCtrl(node, m, v);
     }
 
-    // Analog bars
+    // Analog bars (raw drives bar width; readout shows calibrated when set)
     for (let a = 0; a < ANALOG_COUNT; a++) {
       const v = d.analog[a] | 0;
-      const pct = Math.max(0, Math.min(100, (v / ADC_MAX) * 100));
+      const pct = Math.max(0, Math.min(100, (v / d.adcMax) * 100));
       this.aNodes[a].bar.style.width = pct.toFixed(1) + '%';
-      this.aNodes[a].val.textContent = v;
+      const cal = d.getCal('a' + a);
+      this.aNodes[a].val.textContent = cal ? cal.format(v) : String(v);
     }
   }
 
@@ -862,6 +3962,8 @@ class DeviceCard {
       node.ctrl.append(el('span', { class: 'slider' }, slider, lab));
     } else if (mode === 'in' || mode === 'inp') {
       node.ctrl.append(el('span', { style: 'font-size:9px;letter-spacing:.22em;color:var(--muted)' }, mode === 'inp' ? 'PULL-UP' : 'INPUT'));
+    } else if (mode === 'freq') {
+      node.ctrl.append(el('span', { style: 'font-size:9px;letter-spacing:.22em;color:var(--muted)' }, 'COUNTING RISING'));
     } else {
       node.ctrl.append(el('span', { style: 'font-size:9px;letter-spacing:.22em;color:var(--muted-dim)' }, 'click mode →'));
     }
@@ -880,6 +3982,10 @@ class DeviceCard {
     this.elPill.lastChild.nodeValue = 'offline';
     this.root.classList.add('dead');
     this.elDisc.disabled = true;
+    if (this.chart)   this.chart.destroy();
+    if (this.fft)     this.fft.destroy();
+    if (this.spectro) this.spectro.destroy();
+    if (this.scatter) this.scatter.destroy();
   }
 }
 
@@ -888,6 +3994,7 @@ const manager = new DeviceManager();
 const main    = $('#main');
 const empty   = $('#empty');
 const counter = $('#device-count');
+window.__cards = [];
 
 manager.addEventListener('change', () => {
   counter.textContent = String(manager.devices.length);
@@ -905,10 +4012,15 @@ async function attach(transport) {
   const card   = new DeviceCard(device);
   main.append(card.root);
   manager.add(device);
+  window.__cards.push(card);
 
   // Auto-cleanup card on permanent disconnect
   device.addEventListener('disconnect', () => {
-    setTimeout(() => { if (card.root.isConnected) card.root.remove(); }, 4000);
+    setTimeout(() => {
+      if (card.root.isConnected) card.root.remove();
+      const i = window.__cards.indexOf(card);
+      if (i >= 0) window.__cards.splice(i, 1);
+    }, 4000);
   });
 
   // Kick off identification & state pump
@@ -930,6 +4042,157 @@ $('#ws-go').addEventListener('click', () => {
   attach(new WiFiTransport(url));
 });
 $('#ws-url').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#ws-go').click(); });
+
+/* === MQTT connect modal ================================================== */
+$('#btn-mqtt').addEventListener('click', () => {
+  $('#mqtt-modal').classList.add('show');
+  $('#mqtt-url').focus();
+});
+$('#mqtt-cancel').addEventListener('click', () => $('#mqtt-modal').classList.remove('show'));
+$('#mqtt-go').addEventListener('click', () => {
+  const url = $('#mqtt-url').value.trim();
+  if (!/^wss?:\/\//.test(url)) { toast('URL must start with ws:// or wss://', 'err'); return; }
+  const base   = $('#mqtt-base').value.trim() || 'pinscope';
+  const filter = $('#mqtt-filter').value.trim() || null;
+  $('#mqtt-modal').classList.remove('show');
+  attach(new MQTTTransport(url, { topicBase: base, deviceFilter: filter }));
+});
+['#mqtt-url', '#mqtt-base', '#mqtt-filter'].forEach(sel => {
+  $(sel).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#mqtt-go').click(); });
+});
+
+/* === BLE (Web Bluetooth) ================================================= */
+$('#btn-ble').addEventListener('click', () => attach(new BLETransport()));
+if (!navigator.bluetooth) {
+  const b = $('#btn-ble');
+  b.disabled = true;
+  b.title = 'Web Bluetooth not supported in this browser';
+}
+
+/* === REPLAY (open a capture file as a fake device) ======================= */
+$('#btn-replay').addEventListener('click', () => $('#replay-file').click());
+$('#replay-file').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const cap  = JSON.parse(text);
+    if (cap.tool !== 'pinscope' || cap.kind !== 'capture') {
+      toast('Not a PinScope capture file', 'err');
+      return;
+    }
+    if (!Array.isArray(cap.samples) || cap.samples.length === 0) {
+      toast('Capture has no samples', 'err');
+      return;
+    }
+    await attach(new ReplayTransport(cap, file.name));
+  } catch (err) {
+    toast('Bad capture file: ' + err.message, 'err');
+  }
+  e.target.value = '';  // allow re-selecting the same file
+});
+
+/* === LAYOUT TOGGLE ======================================================= */
+const layoutBtn  = $('#btn-layout');
+let gridLayout = false;
+function applyLayout() {
+  const m = $('#main');
+  m.classList.toggle('grid', gridLayout);
+  layoutBtn.textContent = gridLayout ? 'GRID' : 'STACK';
+}
+layoutBtn.addEventListener('click', () => { gridLayout = !gridLayout; applyLayout(); });
+applyLayout();
+
+/* === HELP MODAL ========================================================== */
+const helpModal = $('#help-modal');
+$('#btn-help').addEventListener('click', () => helpModal.classList.add('show'));
+$('#help-close').addEventListener('click', () => helpModal.classList.remove('show'));
+helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.remove('show'); });
+
+/* === KEYBOARD SHORTCUTS ================================================== */
+/* Global hotkeys, suppressed while typing in inputs. The "active" device for
+   per-card shortcuts is the first device card visible in the viewport. */
+function isTyping(t) {
+  return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+}
+function activeCard() {
+  const cards = document.querySelectorAll('.card');
+  for (const c of cards) {
+    const r = c.getBoundingClientRect();
+    if (r.bottom > 0 && r.top < window.innerHeight) return c;
+  }
+  return cards[0] || null;
+}
+function activeDeviceCard() {
+  const root = activeCard();
+  if (!root) return null;
+  // Find the DeviceCard instance via the manager
+  for (const card of (window.__cards || [])) {
+    if (card.root === root) return card;
+  }
+  return null;
+}
+document.addEventListener('keydown', (e) => {
+  if (isTyping(e.target)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  switch (e.key) {
+    case '?':
+      e.preventDefault();
+      helpModal.classList.toggle('show');
+      break;
+    case 'Escape':
+      document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+      break;
+    case ' ':
+    case 'Spacebar': {
+      const card = activeDeviceCard();
+      if (card && card.chart && typeof card.chart.togglePause === 'function') {
+        e.preventDefault();
+        card.chart.togglePause();
+      }
+      break;
+    }
+    case 'c': case 'C': {
+      const card = activeDeviceCard();
+      if (card && card.elLog) { e.preventDefault(); card.elLog.innerHTML = ''; }
+      break;
+    }
+    case 'g': case 'G':
+      e.preventDefault();
+      layoutBtn.click();
+      break;
+    case 's': case 'S':
+      if (!('serial' in navigator)) break;
+      e.preventDefault();
+      $('#btn-serial').click();
+      break;
+    case 'w': case 'W':
+      e.preventDefault();
+      $('#btn-wifi').click();
+      break;
+    case 'm': case 'M':
+      e.preventDefault();
+      $('#btn-mqtt').click();
+      break;
+    case 'b': case 'B':
+      if (!navigator.bluetooth) break;
+      e.preventDefault();
+      $('#btn-ble').click();
+      break;
+    case 'r': case 'R':
+      e.preventDefault();
+      $('#btn-replay').click();
+      break;
+    case '1': case '2': case '3': case '4': {
+      const card = activeDeviceCard();
+      if (!card) break;
+      const tabs = card.root.querySelectorAll('.tab');
+      const i = parseInt(e.key, 10) - 1;
+      if (tabs[i]) { e.preventDefault(); tabs[i].click(); }
+      break;
+    }
+  }
+});
 
 // Disable serial button if Web Serial unsupported
 if (!('serial' in navigator)) {

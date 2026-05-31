@@ -1,0 +1,162 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Each sketch lives at the repository root with no enclosing folder named the
+# same as the .ino, which arduino-cli normally requires. We work around that
+# by copying each sketch into a temporary folder with the matching name before
+# compiling. This keeps the repo layout flat for humans while satisfying
+# arduino-cli's directory expectations.
+
+jobs:
+  lint:
+    name: HTML / JS lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install lint tools
+        run: |
+          npm install --no-save \
+            jshint@2.13.6 \
+            prettier@3.3.3 \
+            html-validate@8.24.2
+      - name: Extract embedded JS for linting
+        run: |
+          # The script body lives between <script> tags in pinscope.html.
+          # We extract it to a standalone .js so JSHint can lint it without
+          # the surrounding HTML noise.
+          awk '/<script>/,/<\/script>/' pinscope.html | sed '1d;$d' > /tmp/pinscope-embedded.js
+          wc -l /tmp/pinscope-embedded.js
+      - name: JSHint (embedded script)
+        run: npx jshint --config .jshintrc /tmp/pinscope-embedded.js
+      - name: Prettier check (non-blocking on .ino files)
+        run: |
+          # Prettier doesn't natively parse .ino, so only enforce on the
+          # text files where formatting actually matters in this repo.
+          npx prettier --check 'README.md' '.jshintrc' '.prettierrc' || true
+      - name: HTML validation (warnings only)
+        run: npx html-validate pinscope.html || true
+      - name: Verify no em dashes anywhere
+        run: |
+          # The em dash character (U+2014) is forbidden in committed sources.
+          # Read it from $'\u2014' so this script itself doesn't contain the
+          # literal byte sequence and trip its own check.
+          DASH=$(printf '\u2014')
+          if grep -l "$DASH" README.md pinscope.html pinscope*.ino pinscope_mqtt_bridge.py 2>/dev/null; then
+            echo 'Em dashes detected; replace with commas, periods, or parentheses.'
+            exit 1
+          fi
+
+  compile-serial:
+    name: Compile pinscope.ino (broad board matrix)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - fqbn: arduino:avr:uno
+            platforms: |
+              - name: arduino:avr
+          - fqbn: arduino:samd:nano_33_iot
+            platforms: |
+              - name: arduino:samd
+          - fqbn: arduino:renesas_uno:unor4wifi
+            platforms: |
+              - name: arduino:renesas_uno
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage sketch in matching folder
+        run: |
+          mkdir -p sketches/pinscope
+          cp pinscope.ino sketches/pinscope/pinscope.ino
+      - name: Compile
+        uses: arduino/compile-sketches@v1
+        with:
+          fqbn: ${{ matrix.board.fqbn }}
+          platforms: ${{ matrix.board.platforms }}
+          sketch-paths: |
+            sketches/pinscope
+
+  compile-ble:
+    name: Compile pinscope_ble.ino (NINA + R4 WiFi)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - fqbn: arduino:samd:nano_33_iot
+            platforms: |
+              - name: arduino:samd
+          - fqbn: arduino:renesas_uno:unor4wifi
+            platforms: |
+              - name: arduino:renesas_uno
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage sketch in matching folder
+        run: |
+          mkdir -p sketches/pinscope_ble
+          cp pinscope_ble.ino sketches/pinscope_ble/pinscope_ble.ino
+      - name: Compile
+        uses: arduino/compile-sketches@v1
+        with:
+          fqbn: ${{ matrix.board.fqbn }}
+          platforms: ${{ matrix.board.platforms }}
+          libraries: |
+            - name: ArduinoBLE
+          sketch-paths: |
+            sketches/pinscope_ble
+
+  compile-mqtt:
+    name: Compile pinscope_mqtt.ino (NINA boards)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - fqbn: arduino:samd:nano_33_iot
+            platforms: |
+              - name: arduino:samd
+          - fqbn: arduino:renesas_uno:unor4wifi
+            platforms: |
+              - name: arduino:renesas_uno
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage sketch in matching folder
+        run: |
+          mkdir -p sketches/pinscope_mqtt
+          cp pinscope_mqtt.ino sketches/pinscope_mqtt/pinscope_mqtt.ino
+      - name: Compile
+        uses: arduino/compile-sketches@v1
+        with:
+          fqbn: ${{ matrix.board.fqbn }}
+          platforms: ${{ matrix.board.platforms }}
+          libraries: |
+            - name: WiFiNINA
+            - name: ArduinoMqttClient
+          sketch-paths: |
+            sketches/pinscope_mqtt
+
+  bridge-syntax:
+    name: Python bridge syntax + import check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install bridge deps
+        run: pip install paho-mqtt pyserial
+      - name: AST parse
+        run: python -m py_compile pinscope_mqtt_bridge.py
+      - name: Lint with ruff (warnings only)
+        run: |
+          pip install ruff
+          ruff check pinscope_mqtt_bridge.py || true
