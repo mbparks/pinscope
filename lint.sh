@@ -39,9 +39,18 @@ TMP_JS="$(mktemp -t pinscope-XXXXXX.js)"
 trap "rm -f '$TMP_JS'" EXIT
 
 echo "[lint] extracting embedded JS from pinscope.html"
-awk '/<script>/,/<\/script>/' pinscope.html | sed '1d;$d' > "$TMP_JS"
+# Find line numbers of the first <script> and last </script> tags. Using
+# the LAST closing tag protects against inline strings that contain a
+# literal </script> substring (e.g. the plugin iframe srcdoc).
+START_LINE=$(grep -n '<script>' pinscope.html | head -1 | cut -d: -f1)
+END_LINE=$(grep -n '</script>' pinscope.html | tail -1 | cut -d: -f1)
+if [[ -z "$START_LINE" || -z "$END_LINE" ]]; then
+  echo "[lint] could not locate <script>...</script> in pinscope.html"
+  exit 1
+fi
+sed -n "$((START_LINE + 1)),$((END_LINE - 1))p" pinscope.html > "$TMP_JS"
 JS_LINES=$(wc -l < "$TMP_JS")
-echo "[lint] $JS_LINES lines extracted"
+echo "[lint] $JS_LINES lines extracted (from line $START_LINE to $END_LINE)"
 
 echo "[lint] running JSHint"
 npx --yes jshint@2.13.6 --config .jshintrc "$TMP_JS"

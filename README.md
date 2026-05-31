@@ -325,6 +325,212 @@ Press `?` for a full list. Quick reference:
 The "active device" is whichever card is closest to the top of the viewport.
 Shortcuts are suppressed while typing in an input or text area.
 
+## Companion sensor library
+
+Pre-baked I2C poll configs for common breakout sensors. In the I2C section,
+pick a sensor from the COMPANION SENSORS dropdown, confirm its address,
+hit APPLY. PinScope assigns free virtual slots to that sensor's registers
+and, when a unit-conversion math expression makes sense, prefills the
+math input below so you can apply it to a free slot with one click.
+
+Current preset list:
+
+- **TMP102, TMP117, MCP9808**, temperature in degrees Celsius
+- **DS3231**, RTC seconds counter (BCD-unpacked)
+- **INA219**, shunt voltage in mV and bus voltage in V (two-slot preset)
+- **APDS-9301**, ambient light channel 0 (needs a one-time init write)
+- **PCF8591**, single-channel ADC
+
+The preset definitions live in `SENSOR_PRESETS` near the top of the
+I2CPanel code in `pinscope.html`. Adding a sensor is one record:
+default address, register list, byte count, signed flag, optional unit
+conversion math expression. PinScope's I2C scope is read-only polling,
+so sensors that need a wake/config write are flagged with a
+`requiresInit` hint rather than auto-initialized.
+
+## Oscilloscope-style trigger
+
+The strip chart has a one-shot trigger mode. Click **TRIG** to open the
+modal: pick a channel, condition (rising/falling/above/below), threshold
+value, and pre/post window in seconds. ARM, then go do whatever you
+need to do. When the condition fires, the chart freezes a snapshot of
+the captured window, pauses the recorder, and overlays a red vertical
+line at the fire time plus a red threshold line. The button pulses to
+show armed state, switches to FIRED once captured.
+
+RE-ARM to start fresh; DISARM to clear the trigger entirely. The
+trigger config persists in the session, so reconnecting auto-arms with
+the same parameters.
+
+## Scripted automation
+
+Every device card has a SCRIPTED AUTOMATION section with a JS sandbox
+for driving the board over time. The available helpers:
+
+- `setMode(pin, mode)`, change a pin's mode (`'out'`, `'in'`, `'pwm'`, etc.)
+- `setDigital(pin, hi)`, drive a digital output
+- `setPWM(pin, val)`, set PWM duty (0..255)
+- `await wait(ms)`, sleep
+- `read(pin)`, latest raw value for any pin key (`'a0'`, `'d2'`, `'v1'`)
+- `log(msg)`, print to the script's output panel
+- `assert(cond, msg)`, throw if `cond` is falsy
+
+JS loops, conditionals, variable declarations, and `await` all work.
+Network and storage globals (`fetch`, `localStorage`, `eval`, `Function`,
+`setTimeout`, `window`, `document`, etc.) are blocked at compile time
+via a strict identifier blocklist. Scripts run in a fresh function
+scope; they can't reach into the rest of the app.
+
+The RUN button starts the script; STOP aborts it (the helpers check an
+aborted flag before resuming). Script content auto-saves to the session
+so a refresh keeps your work. Output streams below the editor as the
+script runs.
+
+Example: ramp PWM duty and log analog readings.
+
+```js
+setMode(9, 'pwm');
+for (let duty = 0; duty <= 255; duty += 32) {
+  setPWM(9, duty);
+  await wait(200);
+  log('duty=' + duty + ' a0=' + read('a0'));
+}
+```
+
+## CSV streaming export
+
+The regular CSV button does a one-shot dump of the recorder buffer
+(9000 samples / 15 minutes at 10 Hz default). For longer tests, the
+STREAM button opens a save-file picker, then appends every new sample
+to that file as it arrives, batched at ~1 Hz for efficiency. Click
+STREAM again to close the file cleanly.
+
+This uses the File System Access API and is Chromium-only (Chrome,
+Edge, Brave, Arc, Opera). In Firefox and Safari the STREAM button is
+disabled with a tooltip explaining why; fall back to the one-shot CSV
+or to a capture file in those browsers.
+
+## Calibration
+
+Click any A0-A5 label on a device card to open the calibration modal. Two
+modes:
+
+- **Manual**, the default. Type a slope `m`, offset `b`, unit, decimals,
+  and a label. Linear conversion `y = m·raw + b` is applied to every
+  reading on that pin and propagates through the strip chart, FFT,
+  spectrogram, scatter, stats, alerts, and CSV export.
+
+- **Wizard**, for when you have a physical reference. Apply a known value
+  at the low end (often a short to ground, or your reference's zero),
+  click CAPTURE LOW. Apply a known value at the high end (a calibrator's
+  full-scale, or a known voltage), click CAPTURE HIGH. PinScope computes
+  the slope and offset from the two-point fit, shows a live preview using
+  the current raw reading, then SAVE writes the calibration to the pin.
+
+The wizard does the algebra (`m = (hi - lo) / (rawHi - rawLo)`,
+`b = lo - m·rawLo`) so you don't have to. If the two raw captures are
+identical, the wizard refuses to fit and tells you so. Calibrations
+persist in the session and export with the JSON.
+
+## Baseline + diff view
+
+The strip chart can overlay a previously captured run as a faded
+dashed-line ghost, and can render a live-minus-baseline difference trace
+on top of it. Useful for "before vs after" comparisons: tweak a circuit,
+flash new firmware, swap a sensor, then see exactly how the new behavior
+differs from the saved one.
+
+Workflow:
+
+1. **CAPTURE** a baseline run (existing button on the strip chart).
+2. **BASELINE** loads a capture file as the baseline. It renders as a
+   ghost trace behind every active live trace. The button highlights to
+   show baseline is loaded; click again to clear.
+3. **DIFF** toggles a difference trace, computed as `live - baseline` for
+   each active channel, normalized across all active diffs and centered on
+   the chart's midline. A faint zero line marks the no-difference axis.
+
+The baseline is aligned to "now" by tail-shifting its timestamps, so a
+capture from yesterday lines up with the current strip-chart window
+without any clock-sync gymnastics. The diff is computed via
+nearest-neighbor matching by time, which is good enough at typical
+sample rates (5 to 50 Hz).
+
+## Oscilloscope-style trigger
+
+The strip chart can capture a fixed window of samples around a threshold
+crossing and freeze on the event for inspection. Useful for one-shot
+events that are hard to spot in the live stream: a glitch, a power
+transient, a single-shot pulse from a sensor.
+
+Click **TRIG** on the chart toolbar, pick a channel (any A, V, F, or D
+pin), pick a condition (rising, falling, above, below), set a threshold
+in raw units, and define pre and post sample windows in seconds. ARM
+the trigger. The button starts pulsing red as long as the trigger is
+armed.
+
+When the condition fires, the chart freezes onto the captured window
+with a red vertical line at the fire time and a red horizontal line at
+the threshold. The recorder auto-pauses so the snapshot stays still.
+RE-ARM resets the trigger and resumes recording; DISARM clears it
+entirely. The trigger configuration persists in the session and
+re-arms automatically on the next connect.
+
+## Scripted automation
+
+Every device card has a Scripted Automation section: a textarea where
+you write a short async JS sequence to exercise the board. Useful for
+test rigs and repeatable sweeps. The script runs in a sandbox with these
+helpers and nothing else available:
+
+| Helper                | What it does                                                 |
+| --------------------- | ------------------------------------------------------------ |
+| `setMode(pin, mode)`  | change pin mode (off, in, inp, out, pwm, freq)               |
+| `setDigital(pin, hi)` | drive a digital output 0 or 1                                |
+| `setPWM(pin, val)`    | set PWM duty (0..255) on a PWM-mode pin                      |
+| `await wait(ms)`      | sleep for the given number of milliseconds                   |
+| `read(pin)`           | latest raw reading from any pin key (`a0`, `d2`, `v1`, `f3`) |
+| `log(msg)`            | append a line to the script's output panel                   |
+| `assert(cond, msg)`   | throw a runtime error if `cond` is falsy                     |
+
+Example:
+
+```js
+setMode(9, 'pwm');
+for (let duty = 0; duty <= 255; duty += 32) {
+  setPWM(9, duty);
+  await wait(200);
+  log('duty=' + duty + ' a0=' + read('a0'));
+}
+```
+
+A blocklist rejects scripts at compile time that reference `window`,
+`document`, `fetch`, `localStorage`, `eval`, `Function`, `setTimeout`,
+`import`, or similar network and storage globals. The compiler uses an
+async function constructor with only the named helpers in scope, so
+unqualified references to other globals fail with `ReferenceError` at
+runtime. RUN starts the script; STOP aborts via a flag the helpers
+poll. Output streams to the panel under the textarea. Script content
+auto-saves with the session.
+
+## CSV streaming
+
+The recorder buffer caps at 9000 samples (about 15 minutes at 10 Hz,
+3 minutes at 50 Hz). For longer runs, click **STREAM** on the chart
+toolbar: a file picker opens (File System Access API), every new
+sample is appended in batches of up to 50 rows. Click STREAM again
+to stop and close the file.
+
+The streamed CSV has the same column layout as the one-shot CSV export:
+timestamp_ms, ISO 8601 time, every digital pin, every analog raw plus
+its calibrated value if a calibration is set, every virtual raw plus
+calibrated. Calibrations applied mid-stream affect subsequent rows.
+
+CSV streaming requires the File System Access API, which is Chromium-only
+at time of writing. In Firefox or Safari the STREAM button is disabled
+with a tooltip explaining why; use the regular CSV button instead, which
+works in every browser.
+
 ## Sessions
 
 Every device card auto-saves its configuration to localStorage 400 ms after
@@ -337,10 +543,14 @@ any change. The saved fields are:
 - I2C poll slot configurations
 - math expressions
 - RGB LED pin assignment and most recent color
+- trigger configuration (channel, condition, value, pre/post windows)
+- scripted automation source
 
 The EXPORT button writes the same snapshot to a JSON file. IMPORT reads one
-back. The session file format is versioned (current version 1.1, additive
-over 1.0); older 1.0 files load fine with the new fields defaulted.
+back. The session file format is versioned (current version 1.2, additive
+over 1.1 and 1.0); older session files load fine with the new fields
+defaulted. Trigger state restores to "armed" so it can fire again, not
+stuck in the captured-but-frozen state.
 
 ## Frequency measurement notes
 

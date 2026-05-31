@@ -30,10 +30,16 @@ jobs:
             html-validate@8.24.2
       - name: Extract embedded JS for linting
         run: |
-          # The script body lives between <script> tags in pinscope.html.
-          # We extract it to a standalone .js so JSHint can lint it without
-          # the surrounding HTML noise.
-          awk '/<script>/,/<\/script>/' pinscope.html | sed '1d;$d' > /tmp/pinscope-embedded.js
+          # Extract from the FIRST <script> to the LAST </script>. Using the
+          # last closing tag protects against inline strings that contain
+          # the literal </script> substring (e.g. the plugin iframe srcdoc).
+          START_LINE=$(grep -n '<script>' pinscope.html | head -1 | cut -d: -f1)
+          END_LINE=$(grep -n '</script>' pinscope.html | tail -1 | cut -d: -f1)
+          if [[ -z "$START_LINE" || -z "$END_LINE" ]]; then
+            echo "could not locate <script>...</script>"
+            exit 1
+          fi
+          sed -n "$((START_LINE + 1)),$((END_LINE - 1))p" pinscope.html > /tmp/pinscope-embedded.js
           wc -l /tmp/pinscope-embedded.js
       - name: JSHint (embedded script)
         run: npx jshint --config .jshintrc /tmp/pinscope-embedded.js

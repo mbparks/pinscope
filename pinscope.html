@@ -606,6 +606,105 @@
   }
   .rgb-hint{font-size:10px;color:var(--muted-dim);font-style:italic;letter-spacing:.08em}
 
+  /* === PLUGIN MANAGER =================================================== */
+  .plugin-box{max-width:760px;width:90vw}
+  .plugin-list-wrap{
+    background:#0a0a09;border:1px solid var(--line);border-radius:2px;
+    margin:8px 0;
+  }
+  .plugin-list-head{
+    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber-dim);
+    padding:6px 10px;border-bottom:1px solid var(--line);
+  }
+  .plugin-list{padding:6px 10px;max-height:160px;overflow-y:auto}
+  .plugin-list.plugins-empty{color:var(--muted-dim);font-style:italic;font-size:10.5px}
+  .plugin-list-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #1a1816}
+  .plugin-list-row:last-child{border-bottom:none}
+  .plugin-list-label{color:var(--text);font-size:11px;flex:1}
+  .plugin-list-id{color:var(--muted-dim);font-size:10px;font-family:'JetBrains Mono',monospace}
+  .plugin-list-size{color:var(--muted-dim);font-size:9.5px;letter-spacing:.06em}
+  .plugin-error{color:#c9554d;border-color:#c9554d;background:rgba(201,85,77,.08)}
+  #plugin-source{
+    width:100%;background:#0a0a09;border:1px solid var(--line);color:var(--text);
+    font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;
+    padding:8px 10px;border-radius:2px;resize:vertical;tab-size:2;
+  }
+  #plugin-source:focus{outline:none;border-color:var(--amber-dim)}
+
+  /* === DEVICE-CARD PLUGIN PANELS ======================================= */
+  .plugins-wrap .plugins-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .plugins-wrap .plugins-head h3{margin:0}
+  .plugins-container{display:flex;flex-direction:column;gap:10px}
+  .plugin-panel{
+    background:#0a0a09;border:1px solid var(--line);border-radius:2px;overflow:hidden;
+  }
+  .plugin-panel-head{
+    background:#161513;border-bottom:1px solid var(--line);padding:5px 10px;
+    font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber-dim);
+  }
+  .plugin-label{color:var(--amber)}
+  .plugin-body{padding:0}
+  .plugin-iframe{display:block}
+  .plugins-empty{
+    color:var(--muted-dim);font-style:italic;font-size:10.5px;
+    padding:10px;background:#0a0a09;border:1px dashed var(--line);border-radius:2px;text-align:center;
+  }
+
+  /* === SCRIPTED AUTOMATION ============================================== */
+  .script-wrap{display:flex;flex-direction:column;gap:8px}
+  .script-input{
+    width:100%;background:#0a0a09;border:1px solid var(--line);color:var(--text);
+    font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;
+    padding:8px 10px;border-radius:2px;resize:vertical;min-height:120px;
+    tab-size:2;
+  }
+  .script-input:focus{outline:none;border-color:var(--amber-dim);background:#161513}
+  .script-row{display:flex;gap:8px}
+  .script-output{
+    background:#0a0a09;border:1px solid var(--line);border-radius:2px;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.5;
+    padding:6px 10px;max-height:200px;overflow-y:auto;min-height:30px;
+  }
+  .script-output:empty::before{content:'no output yet';color:var(--muted-dim);font-style:italic}
+  .script-line{color:var(--text);white-space:pre-wrap;word-break:break-word}
+  .script-line.sys{color:var(--amber-dim);letter-spacing:.1em}
+  .script-line.err{color:#c9554d}
+  .script-hint{font-size:9.5px;color:var(--muted-dim);font-style:italic;letter-spacing:.04em}
+
+  /* === TRIGGER BUTTON ==================================================== */
+  .chart-ctrls .miniact.armed{
+    background:rgba(201,85,77,.16);border-color:#c9554d;color:#c9554d;
+    animation:trigPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes trigPulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(201,85,77,.5)}
+    50%{box-shadow:0 0 0 4px rgba(201,85,77,0)}
+  }
+
+  /* === COMPANION SENSORS ================================================ */
+  .sensor-wrap{
+    background:#0a0a09;border:1px solid var(--line);padding:10px 12px;
+    border-radius:2px;display:flex;flex-direction:column;gap:6px;
+    margin-bottom:8px;
+  }
+  .sensor-head{
+    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber-dim);
+    padding-bottom:4px;border-bottom:1px solid var(--line);
+  }
+  .sensor-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .sensor-row .lab{color:var(--amber-dim);letter-spacing:.18em;text-transform:uppercase;font-size:9.5px}
+  .sensor-row select{
+    background:#161513;border:1px solid var(--line);color:var(--text);
+    padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;border-radius:2px;
+  }
+  .sensor-notes{
+    font-size:10px;color:var(--muted);line-height:1.5;font-style:italic;letter-spacing:.04em;
+    padding:4px 0;
+  }
+
   /* === MATH EXPRESSION PANEL ============================================ */
   .math-wrap{
     background:#0a0a09;border:1px solid var(--line);padding:10px 12px;
@@ -623,6 +722,34 @@
   }
   .math-row input[type="text"]{flex:1;min-width:240px}
   .math-hint{font-size:9.5px;color:var(--muted-dim);font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+
+  /* === CAL MODAL TABS / WIZARD ========================================== */
+  .cal-tabs{
+    display:flex;gap:2px;margin:12px 0 0;border-bottom:1px solid var(--line);
+  }
+  .cal-tab{
+    background:transparent;border:none;border-bottom:2px solid transparent;
+    color:var(--muted);padding:6px 14px;cursor:pointer;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+    transition:color .12s, border-color .12s;
+  }
+  .cal-tab:hover{color:var(--text)}
+  .cal-tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+  .cal-pane{padding-top:10px}
+  .wiz-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0}
+  .wiz-row > div{
+    background:#0a0a09;border:1px solid var(--line);border-radius:2px;
+    padding:10px;display:flex;flex-direction:column;gap:6px;
+  }
+  .wiz-raw-row{display:flex;align-items:center;gap:6px;font-size:10px}
+  .wiz-lab{color:var(--muted-dim);letter-spacing:.16em;text-transform:uppercase;font-size:9px}
+  .wiz-raw{color:var(--amber);font-family:'JetBrains Mono',monospace;font-size:11px}
+  .wiz-result{
+    margin:8px 0;padding:7px 10px;border:1px solid var(--line);background:#0a0a09;
+    border-radius:2px;font-size:11px;color:var(--muted);
+  }
+  .wiz-result.ok{color:var(--text);border-color:var(--amber-dim)}
+  .wiz-result.err{color:#c9554d;border-color:#c9554d}
 
   /* === FOOTER NAMEPLATE ================================================= */
   .credit{
@@ -669,6 +796,7 @@
   <button class="btn" id="btn-replay" title="Replay a previously captured session"><span class="glyph">▷</span>REPLAY</button>
   <input type="file" id="replay-file" accept=".json,application/json" style="display:none">
   <div class="spacer"></div>
+  <button class="btn" id="btn-plugins" title="Plugin manager (manage extensions for device cards)">PLUGINS</button>
   <button class="btn" id="btn-layout" title="Toggle grid layout for multiple devices">STACK</button>
   <button class="btn" id="btn-help" title="Keyboard shortcuts (? )">?</button>
   <span class="counter">Units: <b id="device-count">0</b></span>
@@ -746,11 +874,63 @@
       <div class="kbd-row"><kbd>M</kbd> <span>connect via MQTT</span></div>
       <div class="kbd-row"><kbd>B</kbd> <span>connect via BLE (Web Bluetooth)</span></div>
       <div class="kbd-row"><kbd>R</kbd> <span>open a capture file (REPLAY)</span></div>
+      <div class="kbd-row"><kbd>P</kbd> <span>open plugin manager</span></div>
       <div class="kbd-row"><kbd>1</kbd>..<kbd>4</kbd> <span>switch tabs (Strip / FFT / Spectro / Scatter) on the active device</span></div>
       <div class="kbd-row"><kbd>Esc</kbd> <span>close any open modal</span></div>
     </div>
     <div class="foot">
       <button class="btn primary" id="help-close">DISMISS</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plugin manager modal -->
+<div class="modal" id="plugin-modal">
+  <div class="box plugin-box">
+    <h2>PLUGINS</h2>
+    <div class="hint">
+      Extensions that add panels to every device card. Plugins run in
+      sandboxed iframes (no network, no DOM access outside their slot).
+      Paste plugin code below, give it a label, and click LOAD.
+    </div>
+    <div class="plugin-list-wrap">
+      <div class="plugin-list-head">LOADED PLUGINS</div>
+      <div id="plugin-list" class="plugin-list">no plugins loaded</div>
+    </div>
+    <div class="row">
+      <label>NAME</label>
+      <input type="text" id="plugin-name" placeholder="e.g. my-plugin" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="row">
+      <label>SOURCE</label>
+      <textarea id="plugin-source" rows="10" spellcheck="false"
+        placeholder="// PinScope plugin. Available API:
+//   PinScope.register({ id, name, version, onInit, onState, onDestroy })
+//   api.send(obj)        - send a wire-protocol command to the device
+//   api.getState()       - read the latest state snapshot
+//   api.log(msg)         - print to the plugin's console area
+//   api.render(html)     - replace the plugin panel's body with HTML
+//   api.persist(k, v)    - save plugin state to the session
+//   api.recall(k)        - read previously persisted state
+
+PinScope.register({
+  id: 'hello',
+  name: 'Hello World',
+  version: '1.0',
+  onInit(api) {
+    api.render('&lt;p&gt;waiting for first state...&lt;/p&gt;');
+  },
+  onState(s, api) {
+    api.render('&lt;p&gt;A0 = ' + s.a[0] + '&lt;/p&gt;');
+  },
+});"></textarea>
+    </div>
+    <div class="hint plugin-error" id="plugin-error" style="display:none"></div>
+    <div class="foot">
+      <button class="btn" id="plugin-load-file" title="Load plugin source from a .js file">FROM FILE</button>
+      <input type="file" id="plugin-file-input" accept=".js,text/javascript" style="display:none">
+      <button class="btn" id="plugin-cancel">DISMISS</button>
+      <button class="btn primary" id="plugin-load">LOAD</button>
     </div>
   </div>
 </div>
@@ -1555,8 +1735,12 @@ class Recorder {
   constructor(device, capacity = 9000) {        // 15 min @ 10 Hz
     this.device   = device;
     this.capacity = capacity;
-    this.samples  = [];                          // {t, d:[14], a:[6]}
+    this.samples  = [];                          // {t, d:[14], a:[6], v:[4], f:[14]}
     this.paused   = false;
+    // Optional baseline samples loaded from a capture file. When set, the
+    // strip chart can render these as ghost traces and/or a diff trace.
+    this.baseline      = null;                  // { samples: [{t,d,a,v,f}], deviceId, deviceName, hz, label }
+    this.baselineAlign = 'tail';                 // 'tail' = align baseline's last sample to now; 'head' = align first sample to first live sample
     device.addEventListener('state', () => this.record());
   }
   record() {
@@ -1584,6 +1768,73 @@ class Recorder {
       else hi = mid;
     }
     return this.samples.slice(Math.max(0, lo - 1));  // include 1 prior for line continuity
+  }
+  setBaseline(capture, label) {
+    if (!capture || !Array.isArray(capture.samples) || capture.samples.length === 0) {
+      this.baseline = null;
+      return;
+    }
+    this.baseline = {
+      samples:    capture.samples,
+      deviceId:   capture.deviceId || '',
+      deviceName: capture.deviceName || '',
+      hz:         capture.hz || 10,
+      label:      label || 'baseline',
+    };
+  }
+  clearBaseline() { this.baseline = null; }
+  // Return baseline samples re-timed to the live timeline so they overlay
+  // naturally on the strip chart. If there are no live samples yet, return
+  // the baseline at its original times.
+  baselineWindowed(ms) {
+    if (!this.baseline) return [];
+    const bs = this.baseline.samples;
+    if (bs.length === 0) return [];
+    const now = Date.now();
+    let shift;
+    if (this.baselineAlign === 'head' && this.samples.length > 0) {
+      shift = this.samples[0].t - bs[0].t;
+    } else {
+      // tail: align baseline's last sample to "now"
+      shift = now - bs[bs.length - 1].t;
+    }
+    const cutoff = now - ms;
+    const out = [];
+    for (const s of bs) {
+      const t = s.t + shift;
+      if (t < cutoff) continue;
+      out.push({ t, d: s.d, a: s.a, v: s.v, f: s.f });
+    }
+    return out;
+  }
+  // Return live samples paired with the closest baseline sample (by time)
+  // and a per-channel diff. Used to render the diff trace.
+  diffSamples(ms, channel) {
+    if (!this.baseline || this.samples.length === 0) return [];
+    const live = this.windowed(ms);
+    const baseShifted = this.baselineWindowed(ms);
+    if (baseShifted.length === 0) return [];
+    const getVal = (s) => {
+      const idx = parseInt(channel.slice(1), 10);
+      if (channel[0] === 'a') return s.a ? s.a[idx] : null;
+      if (channel[0] === 'd') return s.d ? s.d[idx] : null;
+      if (channel[0] === 'v') return s.v ? s.v[idx] : null;
+      if (channel[0] === 'f') return s.f ? s.f[idx] : null;
+      return null;
+    };
+    // Nearest-neighbor by time. Baseline is sorted.
+    const out = [];
+    let j = 0;
+    for (const ls of live) {
+      while (j + 1 < baseShifted.length && Math.abs(baseShifted[j + 1].t - ls.t) < Math.abs(baseShifted[j].t - ls.t)) {
+        j++;
+      }
+      const lv = getVal(ls);
+      const bv = getVal(baseShifted[j]);
+      if (lv == null || bv == null) continue;
+      out.push({ t: ls.t, live: lv, base: bv, diff: lv - bv });
+    }
+    return out;
   }
 }
 
@@ -1658,11 +1909,65 @@ class StripChart {
     btnClear.addEventListener('click', () => this.recorder.clear());
     const btnCSV    = el('button', { class: 'miniact' }, 'CSV');
     btnCSV.addEventListener('click', () => exportRecorderCSV(this.recorder));
+    // CSV streaming (long-running tests; uses File System Access API)
+    this.btnStream = el('button', { class: 'miniact', title: 'Stream every sample to a file as it arrives (Chromium-only)' }, 'STREAM');
+    this.csvStream = new CSVStream(this.recorder);
+    this.btnStream.addEventListener('click', async () => {
+      if (this.csvStream.active) {
+        await this.csvStream.stop();
+        this.btnStream.textContent = 'STREAM';
+        this.btnStream.classList.remove('on');
+      } else {
+        try {
+          await this.csvStream.start();
+          this.btnStream.textContent = 'STREAM·';
+          this.btnStream.classList.add('on');
+        } catch (e) {
+          // User cancelled or API unsupported
+          if (e.name !== 'AbortError') toast(e.message, 'err');
+        }
+      }
+    });
+    if (!CSVStream.supported()) {
+      this.btnStream.disabled = true;
+      this.btnStream.title = 'CSV streaming requires the File System Access API (Chromium-based browsers)';
+    }
     const btnCap    = el('button', { class: 'miniact', title: 'Save the current recorder buffer as a replayable capture file' }, 'CAPTURE');
     btnCap.addEventListener('click', () => exportCapture(this.recorder));
+    // Baseline / diff controls
+    this.btnBaseline = el('button', { class: 'miniact', title: 'Load a capture file as a baseline to overlay or diff against' }, 'BASELINE');
+    this.btnBaseline.addEventListener('click', () => this.loadBaselinePrompt());
+    this.btnDiff = el('button', { class: 'miniact', title: 'Show diff between live and baseline for active traces (requires baseline + 1 trace)' }, 'DIFF');
+    this.btnDiff.addEventListener('click', () => this.toggleDiff());
+    this.showDiff = false;
+    // Trigger mode (oscilloscope-style)
+    this.btnTrigger = el('button', { class: 'miniact', title: 'Configure a one-shot trigger that freezes a window around a threshold crossing' }, 'TRIG');
+    this.btnTrigger.addEventListener('click', () => this.openTriggerModal());
+    this.trigger = null;         // { channel, condition, value, preMs, postMs, state: 'armed'|'captured'|'idle' }
+    this.triggerCapture = null;  // captured samples + metadata when state==='captured'
     const btnPNG    = el('button', { class: 'miniact' }, 'PNG');
     btnPNG.addEventListener('click', () => this.snapshot());
-    ctrls.append(this.btnStats, this.btnPause, btnClear, btnCSV, btnCap, btnPNG);
+    // Hidden file input for baseline loader
+    this.baselineFileInput = el('input', { type: 'file', accept: '.json,application/json', style: 'display:none' });
+    this.baselineFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const cap = JSON.parse(text);
+        if (cap.tool !== 'pinscope' || cap.kind !== 'capture') {
+          toast('Not a PinScope capture file', 'err');
+          return;
+        }
+        this.recorder.setBaseline(cap, file.name);
+        this.refreshBaselineButton();
+        toast(`Baseline loaded: ${cap.samples.length} samples from ${cap.deviceId || 'capture'}`);
+      } catch (err) {
+        toast('Bad capture file: ' + err.message, 'err');
+      }
+      e.target.value = '';
+    });
+    ctrls.append(this.btnStats, this.btnPause, btnClear, btnCSV, this.btnStream, btnCap, this.btnBaseline, this.btnDiff, this.btnTrigger, btnPNG, this.baselineFileInput);
 
     // Canvas
     this.canvas = el('canvas', { class: 'chart-canvas' });
@@ -1712,6 +2017,7 @@ class StripChart {
 
   loop() {
     if (!this.alive) return;
+    if (this.trigger && this.trigger.state === 'armed') this.checkTrigger();
     this.draw();
     // Throttle stats render to ~2 Hz
     if (this.showStats && performance.now() - this.lastStatsT > 500) {
@@ -1719,6 +2025,107 @@ class StripChart {
       this.renderStats();
     }
     this.raf = requestAnimationFrame(() => this.loop());
+  }
+
+  // Inspect the most recent recorder samples for a threshold crossing on the
+  // trigger's channel. The "previous" sample acts as the test for "did we
+  // just cross." When fired, capture preMs of samples already in the buffer
+  // and start collecting postMs of future ones.
+  checkTrigger() {
+    const t = this.trigger;
+    const samples = this.recorder.samples;
+    if (samples.length < 2) return;
+    const idx = parseInt(t.channel.slice(1), 10);
+    const getVal = t.channel[0] === 'a' ? (s) => s.a[idx]
+                 : t.channel[0] === 'd' ? (s) => s.d[idx]
+                 : t.channel[0] === 'v' ? (s) => (s.v ? s.v[idx] : null)
+                 :                        (s) => (s.f ? s.f[idx] : null);
+    const last = samples[samples.length - 1];
+    const prev = samples[samples.length - 2];
+    const vNow = getVal(last);
+    const vPrev = getVal(prev);
+    if (vNow == null || vPrev == null) return;
+    let fired = false;
+    if (t.condition === 'rising')       fired = vPrev <  t.value && vNow >= t.value;
+    else if (t.condition === 'falling') fired = vPrev >  t.value && vNow <= t.value;
+    else if (t.condition === 'above')   fired = vNow  >= t.value;
+    else if (t.condition === 'below')   fired = vNow  <= t.value;
+    if (!fired) return;
+    // Capture the pre-trigger window (samples already in the buffer before
+    // the firing one) and start collecting post-trigger.
+    const fireT = last.t;
+    const preCut = fireT - t.preMs;
+    const preSamples = samples.filter((s) => s.t >= preCut);
+    t.state = 'captured';
+    t.fireT = fireT;
+    this.triggerCapture = {
+      pre:    preSamples,
+      post:   [],
+      fireT,
+      until:  fireT + t.postMs,
+      channel: t.channel,
+      value:  t.value,
+      condition: t.condition,
+    };
+    toast(`Trigger fired on ${t.channel.toUpperCase()} ${t.condition} ${t.value}`);
+    // Watch the recorder for new samples until we hit postMs after fireT
+    const fillPost = () => {
+      const cur = this.recorder.samples[this.recorder.samples.length - 1];
+      if (!cur) { setTimeout(fillPost, 20); return; }
+      this.triggerCapture.post = this.recorder.samples.filter(
+        (s) => s.t > fireT && s.t <= this.triggerCapture.until,
+      );
+      if (cur.t < this.triggerCapture.until) {
+        setTimeout(fillPost, 20);
+      } else {
+        // Pause recording so the trigger window stays still until the user
+        // clears it. Users almost always want this; live-pause + replay is
+        // unintuitive otherwise.
+        this.recorder.paused = true;
+        this.btnPause.textContent = 'RESUME';
+        this.btnPause.classList.add('on');
+        this.refreshTriggerButton();
+      }
+    };
+    fillPost();
+    this.refreshTriggerButton();
+  }
+
+  clearTrigger() {
+    this.trigger = null;
+    this.triggerCapture = null;
+    this.refreshTriggerButton();
+    this.device.dispatchEvent(new CustomEvent('vchange', { detail: { source: 'trigger' } }));
+  }
+
+  rearmTrigger() {
+    if (!this.trigger) return;
+    this.triggerCapture = null;
+    this.trigger.state = 'armed';
+    this.trigger.fireT = null;
+    this.refreshTriggerButton();
+    this.device.dispatchEvent(new CustomEvent('vchange', { detail: { source: 'trigger' } }));
+  }
+
+  refreshTriggerButton() {
+    if (!this.btnTrigger) return;
+    if (!this.trigger) {
+      this.btnTrigger.textContent = 'TRIG';
+      this.btnTrigger.classList.remove('on', 'armed');
+      return;
+    }
+    if (this.trigger.state === 'armed') {
+      this.btnTrigger.textContent = 'ARMED';
+      this.btnTrigger.classList.add('on', 'armed');
+    } else if (this.trigger.state === 'captured') {
+      this.btnTrigger.textContent = 'FIRED';
+      this.btnTrigger.classList.add('on');
+      this.btnTrigger.classList.remove('armed');
+    }
+  }
+
+  openTriggerModal() {
+    TriggerModal.open(this);
   }
 
   draw() {
@@ -1800,12 +2207,66 @@ class StripChart {
       return;
     }
 
-    const samples = this.recorder.windowed(this.windowMs);
+    // When the trigger has fired, substitute the captured window for live
+    // samples so the chart freezes on the event. Shift cutoff and time math
+    // to use the captured window's own timeline.
+    let samples, cutoff;
+    if (this.triggerCapture && this.triggerCapture.post.length > 0) {
+      const tc = this.triggerCapture;
+      samples = [...tc.pre, ...tc.post];
+      // Use the trigger's window span: preMs before fire to postMs after.
+      const span = (samples[samples.length - 1].t - samples[0].t) || 1;
+      cutoff = samples[samples.length - 1].t - span;
+      // Force this.windowMs locally for time math (without mutating state)
+      // by computing a span override.
+      this._effectiveWindowMs = span;
+    } else {
+      samples = this.recorder.windowed(this.windowMs);
+      this._effectiveWindowMs = this.windowMs;
+      cutoff = Date.now() - this.windowMs;
+    }
     if (samples.length < 2) return;
 
-    const cutoff = Date.now() - this.windowMs;
     ctx.save();
     ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+
+    const winMs = this._effectiveWindowMs;
+    const inTrigger = !!(this.triggerCapture && this.triggerCapture.post.length > 0);
+
+    // ---- Baseline ghost traces (drawn first, behind live). Skipped during
+    //      trigger capture since the baseline uses live-time alignment. ----
+    const baseSamples = (!inTrigger && this.recorder.baseline) ? this.recorder.baselineWindowed(this.windowMs) : [];
+    if (baseSamples.length >= 2) {
+      for (const key of this.active) {
+        const isDigital = key[0] === 'd';
+        const idx       = parseInt(key.slice(1), 10);
+        const max       = this.device.maxFor(key);
+        const getRaw    = key[0] === 'a' ? (s) => (s.a ? s.a[idx] : null)
+                        : key[0] === 'd' ? (s) => (s.d ? s.d[idx] : null)
+                        : key[0] === 'v' ? (s) => (s.v ? s.v[idx] : null)
+                        :                  (s) => (s.f ? s.f[idx] : null);
+        ctx.beginPath();
+        ctx.strokeStyle = traceColor(key);
+        ctx.globalAlpha = 0.35;
+        ctx.setLineDash([4 * dpr, 3 * dpr]);
+        ctx.lineWidth = 1 * dpr;
+        let started = false, prevY = 0;
+        for (const s of baseSamples) {
+          const raw = getRaw(s);
+          if (raw == null) { started = false; continue; }
+          const x = x0 + ((s.t - cutoff) / winMs) * w;
+          const norm = Math.max(0, Math.min(1, raw / max));
+          const y = y0 + h - norm * h;
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else if (isDigital) { ctx.lineTo(x, prevY); ctx.lineTo(x, y); }
+          else                { ctx.lineTo(x, y); }
+          prevY = y;
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.setLineDash([]);
+    }
 
     for (const key of this.active) {
       const isDigital = key[0] === 'd';
@@ -1822,7 +2283,7 @@ class StripChart {
       for (const s of samples) {
         const raw = getRaw(s);
         if (raw == null) { started = false; continue; }  // gaps for inactive virtual slots
-        const x = x0 + ((s.t - cutoff) / this.windowMs) * w;
+        const x = x0 + ((s.t - cutoff) / winMs) * w;
         const norm = Math.max(0, Math.min(1, raw / max));
         const y = y0 + h - norm * h;
         if (!started) { ctx.moveTo(x, y); started = true; }
@@ -1831,6 +2292,83 @@ class StripChart {
         prevY = y;
       }
       ctx.stroke();
+    }
+
+    // ---- Trigger overlay (vertical line + threshold band) ----
+    if (inTrigger) {
+      const tc = this.triggerCapture;
+      const fireX = x0 + ((tc.fireT - cutoff) / winMs) * w;
+      // Vertical line at fire time
+      ctx.beginPath();
+      ctx.strokeStyle = '#c9554d';
+      ctx.lineWidth = 2 * dpr;
+      ctx.setLineDash([6 * dpr, 4 * dpr]);
+      ctx.moveTo(fireX, y0);
+      ctx.lineTo(fireX, y0 + h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Threshold line for the trigger's channel
+      const max = this.device.maxFor(tc.channel);
+      const norm = Math.max(0, Math.min(1, tc.value / max));
+      const yThresh = y0 + h - norm * h;
+      ctx.beginPath();
+      ctx.strokeStyle = '#c9554d';
+      ctx.lineWidth = 1 * dpr;
+      ctx.setLineDash([2 * dpr, 3 * dpr]);
+      ctx.moveTo(x0, yThresh);
+      ctx.lineTo(x0 + w, yThresh);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Label
+      ctx.fillStyle = '#c9554d';
+      ctx.font = (10 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`TRIG ${tc.channel.toUpperCase()} ${tc.condition} ${tc.value}`, fireX + 4 * dpr, y0 + 4 * dpr);
+    }
+
+    // ---- Diff traces (zero-centered, drawn on top in a contrasting style) ----
+    // ---- Diff traces (zero-centered, drawn on top in a contrasting style)
+    //      Skipped during trigger capture: diff alignment uses live time. ----
+    if (!inTrigger && this.showDiff && this.recorder.baseline) {
+      // Compute global max for diff normalization across active channels
+      const diffs = {};
+      let maxAbs = 1e-6;
+      for (const key of this.active) {
+        const pairs = this.recorder.diffSamples(this.windowMs, key);
+        diffs[key] = pairs;
+        for (const p of pairs) {
+          const a = Math.abs(p.diff);
+          if (a > maxAbs) maxAbs = a;
+        }
+      }
+      // Diff traces use a brighter version of the trace color and a solid line.
+      for (const key of Object.keys(diffs)) {
+        const pairs = diffs[key];
+        if (pairs.length < 2) continue;
+        ctx.beginPath();
+        ctx.strokeStyle = '#f5b724';   // amber-bright; diffs share a single highlight color
+        ctx.lineWidth   = 1.5 * dpr;
+        let started = false;
+        for (const p of pairs) {
+          const x = x0 + ((p.t - cutoff) / winMs) * w;
+          // Map diff onto the upper or lower half of the chart, centered at midline
+          const norm = 0.5 + 0.45 * (p.diff / maxAbs);
+          const y = y0 + h - norm * h;
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else { ctx.lineTo(x, y); }
+        }
+        ctx.stroke();
+      }
+      // Zero line for the diff
+      ctx.beginPath();
+      ctx.strokeStyle = '#8a6914';
+      ctx.lineWidth = 1 * dpr;
+      ctx.setLineDash([2 * dpr, 4 * dpr]);
+      ctx.moveTo(x0, y0 + h / 2);
+      ctx.lineTo(x0 + w, y0 + h / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
     }
 
     // Threshold lines for analog / virtual above/below alerts
@@ -1918,6 +2456,49 @@ class StripChart {
     this.btnPause.classList.toggle('on', this.recorder.paused);
   }
 
+  loadBaselinePrompt() {
+    if (this.recorder.baseline) {
+      // Already loaded; offer to clear instead
+      if (confirm('A baseline is already loaded. Clear it?')) {
+        this.recorder.clearBaseline();
+        this.showDiff = false;
+        this.refreshBaselineButton();
+        this.refreshDiffButton();
+        toast('Baseline cleared');
+      }
+      return;
+    }
+    this.baselineFileInput.click();
+  }
+
+  toggleDiff() {
+    if (!this.recorder.baseline) {
+      toast('Load a baseline capture first', 'err');
+      return;
+    }
+    if (this.active.size === 0) {
+      toast('Select a trace first; DIFF needs at least one active channel', 'err');
+      return;
+    }
+    this.showDiff = !this.showDiff;
+    this.refreshDiffButton();
+  }
+
+  refreshBaselineButton() {
+    if (!this.btnBaseline) return;
+    const has = !!this.recorder.baseline;
+    this.btnBaseline.classList.toggle('on', has);
+    this.btnBaseline.textContent = has ? 'BASELINE×' : 'BASELINE';
+    this.btnBaseline.title = has
+      ? `Baseline: ${this.recorder.baseline.label}. Click to clear.`
+      : 'Load a capture file as a baseline to overlay or diff against';
+  }
+
+  refreshDiffButton() {
+    if (!this.btnDiff) return;
+    this.btnDiff.classList.toggle('on', this.showDiff);
+  }
+
   destroy() {
     this.alive = false;
     if (this.raf) cancelAnimationFrame(this.raf);
@@ -1925,14 +2506,10 @@ class StripChart {
 }
 
 /* === CSV EXPORT =========================================================== */
-function exportRecorderCSV(recorder) {
-  const samples = recorder.samples;
-  if (!samples.length) { toast('No samples to export', 'err'); return; }
-  const device = recorder.device;
+/* === CSV ROW BUILDERS (shared between one-shot export and streaming) ===== */
+function csvHeaders(device) {
   const headers = ['timestamp_ms', 'iso8601'];
-  // Digital raw
   for (let i = 0; i < DIGITAL_COUNT; i++) headers.push('D' + i);
-  // Analog raw + calibrated
   for (let i = 0; i < ANALOG_COUNT;  i++) {
     headers.push('A' + i + '_raw');
     const cal = device.getCal('a' + i);
@@ -1941,7 +2518,6 @@ function exportRecorderCSV(recorder) {
       headers.push(colName.replace(/[,\s]/g, '_'));
     }
   }
-  // Virtual raw + calibrated
   for (let i = 0; i < VIRTUAL_COUNT; i++) {
     headers.push('V' + i + '_raw');
     const cal = device.getCal('v' + i);
@@ -1950,29 +2526,37 @@ function exportRecorderCSV(recorder) {
       headers.push(colName.replace(/[,\s]/g, '_'));
     }
   }
-  const lines = [headers.join(',')];
-  for (const s of samples) {
-    const row = [s.t, new Date(s.t).toISOString()];
-    for (let i = 0; i < DIGITAL_COUNT; i++) row.push(s.d[i]);
-    for (let i = 0; i < ANALOG_COUNT; i++) {
-      row.push(s.a[i]);
-      const cal = device.getCal('a' + i);
-      if (cal) {
-        const v = cal.apply(s.a[i]);
-        row.push(v == null ? '' : v.toFixed(cal.decimals));
-      }
+  return headers;
+}
+function csvRow(sample, device) {
+  const row = [sample.t, new Date(sample.t).toISOString()];
+  for (let i = 0; i < DIGITAL_COUNT; i++) row.push(sample.d[i]);
+  for (let i = 0; i < ANALOG_COUNT; i++) {
+    row.push(sample.a[i]);
+    const cal = device.getCal('a' + i);
+    if (cal) {
+      const v = cal.apply(sample.a[i]);
+      row.push(v == null ? '' : v.toFixed(cal.decimals));
     }
-    for (let i = 0; i < VIRTUAL_COUNT; i++) {
-      const v = s.v ? s.v[i] : null;
-      row.push(v == null ? '' : v);
-      const cal = device.getCal('v' + i);
-      if (cal) {
-        const cv = (v == null) ? null : cal.apply(v);
-        row.push(cv == null ? '' : cv.toFixed(cal.decimals));
-      }
-    }
-    lines.push(row.join(','));
   }
+  for (let i = 0; i < VIRTUAL_COUNT; i++) {
+    const v = sample.v ? sample.v[i] : null;
+    row.push(v == null ? '' : v);
+    const cal = device.getCal('v' + i);
+    if (cal) {
+      const cv = (v == null) ? null : cal.apply(v);
+      row.push(cv == null ? '' : cv.toFixed(cal.decimals));
+    }
+  }
+  return row;
+}
+
+function exportRecorderCSV(recorder) {
+  const samples = recorder.samples;
+  if (!samples.length) { toast('No samples to export', 'err'); return; }
+  const device = recorder.device;
+  const lines = [csvHeaders(device).join(',')];
+  for (const s of samples) lines.push(csvRow(s, device).join(','));
   const csv  = lines.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
@@ -1981,6 +2565,100 @@ function exportRecorderCSV(recorder) {
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   toast(`Exported ${samples.length} samples`);
+}
+
+/* === CSV STREAMING EXPORT ================================================
+   Long-running tests outgrow the recorder buffer (9000 samples). This
+   class hooks the recorder's `record()` event and appends every new
+   sample to a file the user picked via File System Access API. Chromium
+   only; degrades with a clear message elsewhere. */
+class CSVStream {
+  constructor(recorder) {
+    this.recorder    = recorder;
+    this.device      = recorder.device;
+    this.handle      = null;     // FileSystemFileHandle
+    this.writable    = null;     // FileSystemWritableFileStream
+    this.active      = false;
+    this.rowCount    = 0;
+    this.lastFlushT  = 0;
+    this.pending     = [];       // string lines awaiting flush
+    this._onState    = null;
+  }
+
+  static supported() {
+    return typeof window.showSaveFilePicker === 'function';
+  }
+
+  async start() {
+    if (this.active) return;
+    if (!CSVStream.supported()) {
+      throw new Error('CSV streaming requires the File System Access API (Chrome / Edge / Brave / Arc). Use the regular CSV button instead.');
+    }
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const suggested = `pinscope_stream_${this.device.id}_${stamp}.csv`;
+    this.handle = await window.showSaveFilePicker({
+      suggestedName: suggested,
+      types: [{ description: 'CSV', accept: { 'text/csv': ['.csv'] } }],
+    });
+    this.writable = await this.handle.createWritable();
+    // Header
+    const header = csvHeaders(this.device).join(',') + '\n';
+    await this.writable.write(header);
+    this.active = true;
+    this.rowCount = 0;
+    this.pending = [];
+    this.lastFlushT = performance.now();
+
+    // Hook the recorder's state event to append rows
+    this._onState = () => {
+      if (!this.active) return;
+      const s = this.recorder.samples[this.recorder.samples.length - 1];
+      if (!s) return;
+      this.pending.push(csvRow(s, this.device).join(','));
+      this.rowCount++;
+      // Flush in batches of 50 rows or every 1 s, whichever comes first
+      const now = performance.now();
+      if (this.pending.length >= 50 || now - this.lastFlushT > 1000) {
+        this._flush();
+      }
+    };
+    this.device.addEventListener('state', this._onState);
+  }
+
+  async _flush() {
+    if (!this.writable || this.pending.length === 0) return;
+    const chunk = this.pending.join('\n') + '\n';
+    this.pending = [];
+    this.lastFlushT = performance.now();
+    try {
+      await this.writable.write(chunk);
+    } catch (e) {
+      // Stream was closed or file system rejected the write
+      this.active = false;
+      this.writable = null;
+      toast('CSV stream lost: ' + e.message, 'err');
+    }
+  }
+
+  async stop() {
+    if (!this.active) return;
+    this.active = false;
+    if (this._onState) {
+      this.device.removeEventListener('state', this._onState);
+      this._onState = null;
+    }
+    try {
+      await this._flush();
+      if (this.writable) await this.writable.close();
+    } catch (e) {
+      // Ignore close errors
+    }
+    const rows = this.rowCount;
+    this.writable = null;
+    this.handle = null;
+    this.rowCount = 0;
+    toast(`CSV stream closed: ${rows} rows written`);
+  }
 }
 
 /* === CAPTURE EXPORT (for replay) ========================================= */
@@ -2900,6 +3578,88 @@ function compileExpr(expr) {
   return fn;
 }
 
+/* === SCRIPTED AUTOMATION ==================================================
+   Compile and run a JS subset against a sandbox of safe helpers. Same
+   blocklist approach as compileExpr but allows statements: loops, ifs,
+   variable declarations, await. Network and storage globals are removed
+   from the function's parameter list so unqualified references like
+   `fetch` or `localStorage` are syntax errors at compile time (or reach
+   a `ReferenceError` at runtime, since they're not in the function's
+   created scope without a `window.` prefix - which we explicitly block).
+
+   Helper API:
+     setMode(pin, mode)   - send a mode change (returns immediately)
+     setDigital(pin, hi)  - drive a digital output
+     setPWM(pin, val)     - set PWM duty (0..255)
+     await wait(ms)       - sleep
+     read(pin)            - latest raw value for any pin key ('a0', 'd2', 'v1')
+     log(msg)             - print to the script's output panel
+     assert(cond, msg)    - throw if cond is falsy
+*/
+const SCRIPT_BLOCKLIST = /\b(window|document|globalThis|self|parent|top|frames|location|history|navigator|localStorage|sessionStorage|indexedDB|fetch|XMLHttpRequest|WebSocket|EventSource|Worker|SharedWorker|importScripts|import|eval|Function|setTimeout|setInterval|setImmediate|requestAnimationFrame|MessageChannel|BroadcastChannel|postMessage|atob|btoa|crypto|caches|serviceWorker|cookieStore|navigator|process|require|module|exports|require\.resolve)\b/;
+
+function runScript(device, source, logFn, doneFn) {
+  if (SCRIPT_BLOCKLIST.test(source)) {
+    logFn('script rejected: contains a blocked identifier (window, document, fetch, localStorage, eval, Function, setTimeout, ...)', 'err');
+    if (doneFn) doneFn();
+    return { abort: () => {} };
+  }
+  const aborted = { value: false };
+  const wait = (ms) => new Promise((resolve, reject) => {
+    const start = performance.now();
+    const tick = () => {
+      if (aborted.value) { reject(new Error('aborted')); return; }
+      if (performance.now() - start >= ms) { resolve(); return; }
+      // Use a short polling interval so aborts are responsive.
+      const id = setTimeout(tick, Math.min(50, ms));
+      // We don't store id; abort sets a flag and the next tick rejects.
+    };
+    tick();
+  });
+  const helpers = {
+    setMode:    (pin, mode) => device.setMode(pin, mode),
+    setDigital: (pin, hi)   => device.setDigital(pin, hi),
+    setPWM:     (pin, val)  => device.setPWM(pin, val),
+    wait,
+    read:       (pin)       => device.rawFor(pin),
+    log:        (msg)       => logFn(typeof msg === 'object' ? JSON.stringify(msg) : String(msg)),
+    assert:     (cond, msg) => { if (!cond) throw new Error(msg || 'assert failed'); },
+  };
+  let AsyncFn;
+  try {
+    AsyncFn = (async () => {}).constructor;
+  } catch {
+    logFn('async functions not supported in this browser', 'err');
+    if (doneFn) doneFn();
+    return { abort: () => {} };
+  }
+  let fn;
+  try {
+    fn = new AsyncFn(
+      'setMode', 'setDigital', 'setPWM', 'wait', 'read', 'log', 'assert',
+      '"use strict";\n' + source,
+    );
+  } catch (e) {
+    logFn('compile error: ' + e.message, 'err');
+    if (doneFn) doneFn();
+    return { abort: () => {} };
+  }
+  logFn('--- script start ---', 'sys');
+  fn(helpers.setMode, helpers.setDigital, helpers.setPWM, helpers.wait,
+     helpers.read, helpers.log, helpers.assert)
+    .then(() => {
+      if (aborted.value) logFn('--- aborted ---', 'sys');
+      else logFn('--- script end ---', 'sys');
+      if (doneFn) doneFn();
+    })
+    .catch((e) => {
+      if (e && e.message === 'aborted') logFn('--- aborted ---', 'sys');
+      else logFn('runtime error: ' + (e && e.message || e), 'err');
+      if (doneFn) doneFn();
+    });
+  return { abort: () => { aborted.value = true; } };
+}
+
 /* === CALIBRATION ========================================================== */
 /* Linear calibration y = m*raw + b, plus label, unit, precision.
    Calibrations are attached to a Device under a pin key ('a0', 'v1'). */
@@ -2938,17 +3698,69 @@ function readPin(device, pin) {
   return { raw, str: String(raw), label: '' };
 }
 
-/* === CALIBRATION MODAL (singleton) ======================================== */
+/* === CALIBRATION MODAL (singleton) ========================================
+   Two modes:
+   - MANUAL: type m, b, unit, decimals directly. Linear y = m·raw + b.
+   - WIZARD: guided two-point capture. User applies a known value at the
+     low end, clicks CAPTURE LOW; applies a known value at the high end,
+     clicks CAPTURE HIGH; the slope and offset fall out of the linear
+     fit between (raw_lo, known_lo) and (raw_hi, known_hi).
+   Both modes share the label/unit/decimals fields. */
 const CalModal = (() => {
   let modal = null, ctx = null;
   function build() {
+    // Shared header fields
     const labInp = el('input', { type: 'text', maxlength: '32' });
-    const mInp   = el('input', { type: 'number', step: 'any' });
-    const bInp   = el('input', { type: 'number', step: 'any' });
-    const uInp   = el('input', { type: 'text',   maxlength: '12' });
+    const uInp   = el('input', { type: 'text', maxlength: '12' });
     const dSel   = el('select');
     for (let i = 0; i <= 6; i++) dSel.append(el('option', { value: String(i) }, String(i)));
-    const preview = el('span', {});
+
+    // Manual tab fields
+    const mInp = el('input', { type: 'number', step: 'any' });
+    const bInp = el('input', { type: 'number', step: 'any' });
+    const previewManual = el('span', {});
+
+    // Wizard tab fields
+    const knownLoInp = el('input', { type: 'number', step: 'any', placeholder: 'e.g. 0' });
+    const knownHiInp = el('input', { type: 'number', step: 'any', placeholder: 'e.g. 5' });
+    const rawLoOut   = el('span', { class: 'wiz-raw' }, 'not captured');
+    const rawHiOut   = el('span', { class: 'wiz-raw' }, 'not captured');
+    const capLoBtn   = el('button', { class: 'btn primary' }, 'CAPTURE LOW');
+    const capHiBtn   = el('button', { class: 'btn primary' }, 'CAPTURE HIGH');
+    const wizResult  = el('div', { class: 'wiz-result' }, 'set two points to see the fit');
+    const previewWizard = el('span', {});
+
+    // Wizard state
+    const wiz = { rawLo: null, rawHi: null };
+
+    // Tabs
+    const tabManual = el('button', { class: 'cal-tab active' }, 'MANUAL');
+    const tabWizard = el('button', { class: 'cal-tab' }, 'WIZARD');
+    const paneManual = el('div', { class: 'cal-pane' },
+      el('div', { class: 'cal-grid' },
+        el('div', {}, el('label', {}, 'SCALE m'),  mInp),
+        el('div', {}, el('label', {}, 'OFFSET b'), bInp),
+      ),
+      el('div', { class: 'hint' }, 'Preview: ', previewManual),
+    );
+    const paneWizard = el('div', { class: 'cal-pane', style: 'display:none' },
+      el('div', { class: 'hint' },
+        'Apply a known reference at each end and click CAPTURE. The slope and offset are computed from the two points.'),
+      el('div', { class: 'wiz-row' },
+        el('div', {},
+          el('label', {}, 'KNOWN VALUE (low)'), knownLoInp,
+          el('div', { class: 'wiz-raw-row' }, el('span', { class: 'wiz-lab' }, 'raw'), rawLoOut),
+          capLoBtn,
+        ),
+        el('div', {},
+          el('label', {}, 'KNOWN VALUE (high)'), knownHiInp,
+          el('div', { class: 'wiz-raw-row' }, el('span', { class: 'wiz-lab' }, 'raw'), rawHiOut),
+          capHiBtn,
+        ),
+      ),
+      wizResult,
+      el('div', { class: 'hint' }, 'Preview: ', previewWizard),
+    );
 
     const cancelBtn = el('button', { class: 'btn' },         'CANCEL');
     const resetBtn  = el('button', { class: 'btn danger' },  'RESET');
@@ -2957,31 +3769,95 @@ const CalModal = (() => {
     const box = el('div', { class: 'box' },
       el('h2', {}, 'CALIBRATION'),
       el('div', { class: 'hint' }, 'Linear conversion y = m·raw + b applied to the raw reading.'),
-      el('div', { class: 'row' }, el('label', {}, 'LABEL'),    labInp),
-      el('div', { class: 'cal-grid' },
-        el('div', {}, el('label', {}, 'SCALE m'),  mInp),
-        el('div', {}, el('label', {}, 'OFFSET b'), bInp),
-      ),
+      el('div', { class: 'row' }, el('label', {}, 'LABEL'), labInp),
       el('div', { class: 'cal-grid' },
         el('div', {}, el('label', {}, 'UNIT'),    uInp),
         el('div', {}, el('label', {}, 'DECIMALS'), dSel),
       ),
-      el('div', { class: 'hint' }, 'Preview: ', preview),
+      el('div', { class: 'cal-tabs' }, tabManual, tabWizard),
+      paneManual,
+      paneWizard,
       el('div', { class: 'foot' }, resetBtn, cancelBtn, okBtn),
     );
     modal = el('div', { class: 'modal' }, box);
     document.body.append(modal);
 
-    const refreshPreview = () => {
+    // --- Tab switching -------------------------------------------------------
+    let mode = 'manual';
+    const switchTo = (m) => {
+      mode = m;
+      tabManual.classList.toggle('active', m === 'manual');
+      tabWizard.classList.toggle('active', m === 'wizard');
+      paneManual.style.display = m === 'manual' ? '' : 'none';
+      paneWizard.style.display = m === 'wizard' ? '' : 'none';
+    };
+    tabManual.addEventListener('click', () => switchTo('manual'));
+    tabWizard.addEventListener('click', () => switchTo('wizard'));
+
+    // --- Manual preview ------------------------------------------------------
+    const refreshManualPreview = () => {
       if (!ctx) return;
       const m = parseFloat(mInp.value) || 0;
       const b = parseFloat(bInp.value) || 0;
       const raw = ctx.device.rawFor(ctx.pin);
       const cal = new Calibration({ m, b, unit: uInp.value, decimals: +dSel.value });
-      preview.textContent = `raw ${raw} → ${cal.format(raw)}`;
+      previewManual.textContent = `raw ${raw} → ${cal.format(raw)}`;
     };
-    [labInp, mInp, bInp, uInp, dSel].forEach(e => e.addEventListener('input', refreshPreview));
+    [mInp, bInp, uInp, dSel].forEach(e => e.addEventListener('input', refreshManualPreview));
 
+    // --- Wizard logic --------------------------------------------------------
+    const refreshWizard = () => {
+      rawLoOut.textContent = wiz.rawLo == null ? 'not captured' : String(wiz.rawLo);
+      rawHiOut.textContent = wiz.rawHi == null ? 'not captured' : String(wiz.rawHi);
+      const knownLo = parseFloat(knownLoInp.value);
+      const knownHi = parseFloat(knownHiInp.value);
+      if (wiz.rawLo == null || wiz.rawHi == null ||
+          !Number.isFinite(knownLo) || !Number.isFinite(knownHi)) {
+        wizResult.textContent = 'capture both points and enter both known values to see the fit';
+        wizResult.className = 'wiz-result';
+        previewWizard.textContent = '';
+        return;
+      }
+      if (wiz.rawLo === wiz.rawHi) {
+        wizResult.textContent = 'low and high raw values are identical; cannot fit a line';
+        wizResult.className = 'wiz-result err';
+        previewWizard.textContent = '';
+        return;
+      }
+      const m = (knownHi - knownLo) / (wiz.rawHi - wiz.rawLo);
+      const b = knownLo - m * wiz.rawLo;
+      wizResult.innerHTML = `fit: <b>m = ${m.toFixed(6)}</b>, <b>b = ${b.toFixed(6)}</b>`;
+      wizResult.className = 'wiz-result ok';
+      const raw = ctx.device.rawFor(ctx.pin);
+      const cal = new Calibration({ m, b, unit: uInp.value, decimals: +dSel.value });
+      previewWizard.textContent = `current raw ${raw} → ${cal.format(raw)}`;
+      // Stash for SAVE
+      wiz.fittedM = m;
+      wiz.fittedB = b;
+    };
+    [knownLoInp, knownHiInp, uInp, dSel].forEach(e => e.addEventListener('input', refreshWizard));
+    capLoBtn.addEventListener('click', () => {
+      if (!ctx) return;
+      const r = ctx.device.rawFor(ctx.pin);
+      if (r == null || !Number.isFinite(r)) {
+        toast('No raw reading available yet', 'err');
+        return;
+      }
+      wiz.rawLo = r;
+      refreshWizard();
+    });
+    capHiBtn.addEventListener('click', () => {
+      if (!ctx) return;
+      const r = ctx.device.rawFor(ctx.pin);
+      if (r == null || !Number.isFinite(r)) {
+        toast('No raw reading available yet', 'err');
+        return;
+      }
+      wiz.rawHi = r;
+      refreshWizard();
+    });
+
+    // --- Footer buttons ------------------------------------------------------
     cancelBtn.addEventListener('click', () => modal.classList.remove('show'));
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
     resetBtn.addEventListener('click', () => {
@@ -2991,10 +3867,21 @@ const CalModal = (() => {
     });
     okBtn.addEventListener('click', () => {
       if (!ctx) return;
+      let m, b;
+      if (mode === 'wizard') {
+        if (wiz.fittedM == null || wiz.fittedB == null) {
+          toast('Wizard fit is incomplete; capture both points and enter both known values', 'err');
+          return;
+        }
+        m = wiz.fittedM;
+        b = wiz.fittedB;
+      } else {
+        m = parseFloat(mInp.value) || 1;
+        b = parseFloat(bInp.value) || 0;
+      }
       const cal = new Calibration({
         label:    labInp.value.trim(),
-        m:        parseFloat(mInp.value) || 1,
-        b:        parseFloat(bInp.value) || 0,
+        m, b,
         unit:     uInp.value.trim(),
         decimals: +dSel.value,
       });
@@ -3002,19 +3889,143 @@ const CalModal = (() => {
       modal.classList.remove('show');
     });
 
-    return { labInp, mInp, bInp, uInp, dSel, refreshPreview };
+    return { labInp, mInp, bInp, uInp, dSel, knownLoInp, knownHiInp,
+             refreshManualPreview, refreshWizard, switchTo,
+             resetWizard: () => { wiz.rawLo = wiz.rawHi = wiz.fittedM = wiz.fittedB = null; refreshWizard(); } };
   }
   function open(device, pin) {
     const ui = modal ? CalModal._ui : (CalModal._ui = build());
     ctx = { device, pin };
     modal.querySelector('h2').textContent = 'CALIBRATION · ' + pin.toUpperCase();
     const cur = device.getCal(pin);
-    ui.labInp.value = cur?.label ?? '';
-    ui.mInp.value   = String(cur?.m ?? 1);
-    ui.bInp.value   = String(cur?.b ?? 0);
-    ui.uInp.value   = cur?.unit ?? '';
-    ui.dSel.value   = String(cur?.decimals ?? 2);
-    ui.refreshPreview();
+    ui.labInp.value      = cur?.label ?? '';
+    ui.mInp.value        = String(cur?.m ?? 1);
+    ui.bInp.value        = String(cur?.b ?? 0);
+    ui.uInp.value        = cur?.unit ?? '';
+    ui.dSel.value        = String(cur?.decimals ?? 2);
+    ui.knownLoInp.value  = '';
+    ui.knownHiInp.value  = '';
+    ui.resetWizard();
+    ui.switchTo('manual');
+    ui.refreshManualPreview();
+    modal.classList.add('show');
+  }
+  return { open };
+})();
+
+/* === TRIGGER MODAL (singleton) ============================================
+   Configures an oscilloscope-style one-shot trigger. The user picks a
+   channel, a condition (rising/falling/above/below), a threshold value,
+   and pre/post sample windows. When the condition fires, the strip chart
+   freezes the captured window for inspection. */
+const TriggerModal = (() => {
+  let modal = null, chart = null;
+  function build() {
+    const chanSel  = el('select');
+    const condSel  = el('select');
+    for (const c of ['rising', 'falling', 'above', 'below']) {
+      condSel.append(el('option', { value: c }, c));
+    }
+    const valInp   = el('input', { type: 'number', step: 'any', value: '500' });
+    const preInp   = el('input', { type: 'number', value: '5',   step: '1', min: '1', max: '60' });
+    const postInp  = el('input', { type: 'number', value: '10',  step: '1', min: '1', max: '60' });
+
+    const cancelBtn = el('button', { class: 'btn' },         'CANCEL');
+    const disarmBtn = el('button', { class: 'btn danger' },  'DISARM');
+    const rearmBtn  = el('button', { class: 'btn' },         'RE-ARM');
+    const armBtn    = el('button', { class: 'btn primary' }, 'ARM');
+
+    const status = el('div', { class: 'hint' }, 'set parameters and ARM. Existing triggers are replaced.');
+
+    const box = el('div', { class: 'box' },
+      el('h2', {}, 'TRIGGER'),
+      el('div', { class: 'hint' },
+        'Freeze a window of samples around a threshold crossing. Pre/post windows are in seconds and bound the captured snapshot.'),
+      el('div', { class: 'cal-grid' },
+        el('div', {}, el('label', {}, 'CHANNEL'), chanSel),
+        el('div', {}, el('label', {}, 'CONDITION'), condSel),
+      ),
+      el('div', { class: 'row' }, el('label', {}, 'THRESHOLD VALUE (raw units)'), valInp),
+      el('div', { class: 'cal-grid' },
+        el('div', {}, el('label', {}, 'PRE (s)'), preInp),
+        el('div', {}, el('label', {}, 'POST (s)'), postInp),
+      ),
+      status,
+      el('div', { class: 'foot' }, disarmBtn, rearmBtn, cancelBtn, armBtn),
+    );
+    modal = el('div', { class: 'modal' }, box);
+    document.body.append(modal);
+
+    cancelBtn.addEventListener('click', () => modal.classList.remove('show'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+    disarmBtn.addEventListener('click', () => {
+      if (!chart) return;
+      chart.clearTrigger();
+      chart.device.dispatchEvent(new CustomEvent('vchange', { detail: { source: 'trigger' } }));
+      toast('Trigger disarmed');
+      modal.classList.remove('show');
+    });
+    rearmBtn.addEventListener('click', () => {
+      if (!chart) return;
+      chart.rearmTrigger();
+      chart.device.dispatchEvent(new CustomEvent('vchange', { detail: { source: 'trigger' } }));
+      // If the chart had been paused after a fire, resume.
+      if (chart.recorder.paused) {
+        chart.recorder.paused = false;
+        chart.btnPause.textContent = 'PAUSE';
+        chart.btnPause.classList.remove('on');
+      }
+      toast('Trigger re-armed');
+      modal.classList.remove('show');
+    });
+    armBtn.addEventListener('click', () => {
+      if (!chart) return;
+      const channel = chanSel.value;
+      const condition = condSel.value;
+      const value = parseFloat(valInp.value);
+      if (!Number.isFinite(value)) { toast('Threshold value required', 'err'); return; }
+      const preMs  = Math.max(100, parseFloat(preInp.value)  * 1000);
+      const postMs = Math.max(100, parseFloat(postInp.value) * 1000);
+      chart.trigger = { channel, condition, value, preMs, postMs, state: 'armed' };
+      chart.triggerCapture = null;
+      chart.refreshTriggerButton();
+      chart.device.dispatchEvent(new CustomEvent('vchange', { detail: { source: 'trigger' } }));
+      // If recording was paused after a previous fire, resume so the new
+      // arm has live samples to inspect.
+      if (chart.recorder.paused) {
+        chart.recorder.paused = false;
+        chart.btnPause.textContent = 'PAUSE';
+        chart.btnPause.classList.remove('on');
+      }
+      toast(`Armed: ${channel.toUpperCase()} ${condition} ${value}`);
+      modal.classList.remove('show');
+    });
+
+    return { chanSel, condSel, valInp, preInp, postInp };
+  }
+  function populateChannels(ui, ch) {
+    ui.chanSel.innerHTML = '';
+    // List analog + active virtual + frequency-mode pins
+    for (let i = 0; i < ANALOG_COUNT; i++) ui.chanSel.append(el('option', { value: 'a' + i }, 'A' + i));
+    for (let i = 0; i < VIRTUAL_COUNT; i++) ui.chanSel.append(el('option', { value: 'v' + i }, 'V' + i));
+    for (let i = 0; i < DIGITAL_COUNT; i++) {
+      if (ch.device.modes[i] === 'freq') ui.chanSel.append(el('option', { value: 'f' + i }, 'F' + i));
+    }
+    for (let i = 0; i < DIGITAL_COUNT; i++) {
+      if (!RESERVED_PINS.has(i)) ui.chanSel.append(el('option', { value: 'd' + i }, 'D' + i));
+    }
+  }
+  function open(strip) {
+    const ui = modal ? TriggerModal._ui : (TriggerModal._ui = build());
+    chart = strip;
+    populateChannels(ui, chart);
+    if (chart.trigger) {
+      ui.chanSel.value = chart.trigger.channel;
+      ui.condSel.value = chart.trigger.condition;
+      ui.valInp.value  = String(chart.trigger.value);
+      ui.preInp.value  = String(chart.trigger.preMs / 1000);
+      ui.postInp.value = String(chart.trigger.postMs / 1000);
+    }
     modal.classList.add('show');
   }
   return { open };
@@ -3089,6 +4100,111 @@ function snapshotCanvas(srcCanvas, captionLines, filenameStem) {
 }
 
 /* === I2C PANEL ============================================================ */
+/* === COMPANION SENSOR LIBRARY =============================================
+   Pre-baked I2C poll configs for common breakout sensors. Each preset
+   knows the default address and what registers to poll into which slots.
+   Optional `math` strings let the wizard install a virtual-channel math
+   expression to convert raw counts to physical units. We DO NOT include
+   sensors that require multi-step initialization sequences over I2C
+   (BME280's calibration register reads, MPU6050's wake-from-sleep, etc.)
+   because PinScope's I2C scope is read-only polling, not full driver
+   logic. The presets here are deliberately "what you can do with read-only
+   polling against a sensor in its factory-default state." Each preset
+   marks `requiresInit: true` when it would normally need a wake/config
+   write, with a hint about which raw write is needed.
+
+   Adding a sensor: append a record below. Keep the bytes per read ≤ 8 (the
+   firmware cap), keep hz ≤ 50, and document any unit conversion as a math
+   expression that references the slot itself (e.g. "v0 / 256"). */
+const SENSOR_PRESETS = [
+  {
+    id: 'tmp102',
+    name: 'TMP102 · temperature',
+    vendor: 'Texas Instruments',
+    addrDefault: 0x48,
+    addrOptions: [0x48, 0x49, 0x4A, 0x4B],
+    notes: 'Reads the 16-bit temperature register; high 12 bits are the value at 0.0625 deg C per LSB. Math expression converts raw counts to deg C.',
+    requiresInit: false,
+    slots: [
+      { name: 'temp_C', reg: 0x00, count: 2, signed: true, hz: 4, math: '(v0 / 256) * 0.0625', unit: '°C', decimals: 2 },
+    ],
+  },
+  {
+    id: 'tmp117',
+    name: 'TMP117 · precision temperature',
+    vendor: 'Texas Instruments',
+    addrDefault: 0x48,
+    addrOptions: [0x48, 0x49, 0x4A, 0x4B],
+    notes: 'TMP117 powers up in continuous-conversion mode by default, so register 0x00 returns a signed 16-bit temperature at 0.0078125 deg C per LSB.',
+    requiresInit: false,
+    slots: [
+      { name: 'temp_C', reg: 0x00, count: 2, signed: true, hz: 4, math: 'v0 * 0.0078125', unit: '°C', decimals: 3 },
+    ],
+  },
+  {
+    id: 'ds3231',
+    name: 'DS3231 · RTC seconds counter',
+    vendor: 'Maxim',
+    addrDefault: 0x68,
+    addrOptions: [0x68],
+    notes: 'Polls the BCD seconds register. The value is bit-packed BCD (high nibble tens, low nibble units), so the math expression unpacks it for display.',
+    requiresInit: false,
+    slots: [
+      { name: 'sec_BCD', reg: 0x00, count: 1, signed: false, hz: 1, math: 'floor(v0 / 16) * 10 + (v0 % 16)', unit: 's', decimals: 0 },
+    ],
+  },
+  {
+    id: 'mcp9808',
+    name: 'MCP9808 · precision temperature',
+    vendor: 'Microchip',
+    addrDefault: 0x18,
+    addrOptions: [0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F],
+    notes: 'Reads the 13-bit signed temperature from register 0x05. The two MSB sign/alert bits are masked off via the math expression.',
+    requiresInit: false,
+    slots: [
+      { name: 'temp_C', reg: 0x05, count: 2, signed: false, hz: 4, math: '((v0 & 4095) - ((v0 & 4096) ? 4096 : 0)) * 0.0625', unit: '°C', decimals: 2 },
+    ],
+  },
+  {
+    id: 'ina219',
+    name: 'INA219 · current/voltage monitor',
+    vendor: 'Texas Instruments',
+    addrDefault: 0x40,
+    addrOptions: [0x40, 0x41, 0x44, 0x45],
+    notes: 'Reads the shunt voltage register (signed, 10 µV per LSB) and bus voltage register (right-shifted by 3, then 4 mV per LSB). Calibration register is left at default.',
+    requiresInit: false,
+    slots: [
+      { name: 'shunt_mV', reg: 0x01, count: 2, signed: true,  hz: 10, math: 'v0 * 0.01',                  unit: 'mV', decimals: 2 },
+      { name: 'bus_V',    reg: 0x02, count: 2, signed: false, hz: 10, math: 'floor(v1 / 8) * 0.004',      unit: 'V',  decimals: 3 },
+    ],
+  },
+  {
+    id: 'apds9301',
+    name: 'APDS-9301 · ambient light',
+    vendor: 'Avago',
+    addrDefault: 0x39,
+    addrOptions: [0x29, 0x39, 0x49],
+    notes: 'Reads the broadband channel 0 ADC (lower 16 bits at register 0x0C, with command bit 0x80 set). REQUIRES a one-time control register write (0xC0 → 0x03) to power on the sensor before useful values are seen.',
+    requiresInit: true,
+    initHint: 'Send a raw I2C write: addr 0x39, reg 0xC0, data [0x03] to power on before polling.',
+    slots: [
+      { name: 'ch0_raw', reg: 0x8C, count: 2, signed: false, hz: 4, math: null, unit: 'counts', decimals: 0 },
+    ],
+  },
+  {
+    id: 'pcf8591',
+    name: 'PCF8591 · ADC channel 0',
+    vendor: 'NXP',
+    addrDefault: 0x48,
+    addrOptions: [0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F],
+    notes: 'Reads one byte from the PCF8591 ADC. Channel selection is driven by the control byte. PinScope polls register 0x00 which selects channel 0 by default.',
+    requiresInit: false,
+    slots: [
+      { name: 'ch0_raw', reg: 0x00, count: 1, signed: false, hz: 10, math: null, unit: 'counts', decimals: 0 },
+    ],
+  },
+];
+
 class I2CPanel {
   constructor(device) {
     this.device = device;
@@ -3196,6 +4312,7 @@ class I2CPanel {
       headRow,
       this.grid,
       this.tools,
+      this.buildSensorPanel(),
       mathPanel,
       el('div', { class: 'i2c-slots-head' }, 'POLL SLOTS · feeds V0-V3 into the recorder'),
       this.slotsList,
@@ -3203,6 +4320,115 @@ class I2CPanel {
     this.tools.style.display = 'none';
     // Listen for slot config changes from anywhere (including session restore)
     this.device.addEventListener('vchange', () => this.refreshSlots());
+    this.refreshSlots();
+  }
+
+  buildSensorPanel() {
+    this.sensorSel = el('select');
+    this.sensorSel.append(el('option', { value: '' }, '(pick a sensor)'));
+    for (const p of SENSOR_PRESETS) {
+      this.sensorSel.append(el('option', { value: p.id }, p.name));
+    }
+    this.sensorAddrSel = el('select');                  // populated when sensor is chosen
+    this.sensorNotes   = el('div', { class: 'sensor-notes' }, 'choose a sensor to see what it reads');
+    this.sensorApplyBtn = el('button', { class: 'btn primary' }, 'APPLY');
+    this.sensorApplyBtn.disabled = true;
+    this.sensorApplyBtn.addEventListener('click', () => this.applySensorPreset());
+
+    this.sensorSel.addEventListener('change', () => this.onSensorPick());
+
+    return el('div', { class: 'sensor-wrap' },
+      el('div', { class: 'sensor-head' }, 'COMPANION SENSORS · one-click I2C poll presets'),
+      el('div', { class: 'sensor-row' },
+        el('span', { class: 'lab' }, 'sensor'),  this.sensorSel,
+        el('span', { class: 'lab' }, 'address'), this.sensorAddrSel,
+        this.sensorApplyBtn,
+      ),
+      this.sensorNotes,
+    );
+  }
+
+  onSensorPick() {
+    const id = this.sensorSel.value;
+    this.sensorAddrSel.innerHTML = '';
+    if (!id) {
+      this.sensorNotes.textContent = 'choose a sensor to see what it reads';
+      this.sensorApplyBtn.disabled = true;
+      return;
+    }
+    const p = SENSOR_PRESETS.find((x) => x.id === id);
+    if (!p) return;
+    for (const a of p.addrOptions) {
+      const hex = '0x' + a.toString(16).toUpperCase().padStart(2, '0');
+      const opt = el('option', { value: String(a) }, hex);
+      if (a === p.addrDefault) opt.selected = true;
+      this.sensorAddrSel.append(opt);
+    }
+    const slotSummary = p.slots.map((s) => `${s.name} (V?: reg 0x${s.reg.toString(16).toUpperCase()}, ${s.count}B${s.signed ? ', signed' : ''})`).join(' · ');
+    let txt = `${p.vendor}. Reads: ${slotSummary}. ${p.notes}`;
+    if (p.requiresInit) txt += ` ⚠ Requires init: ${p.initHint || 'see datasheet'}`;
+    this.sensorNotes.textContent = txt;
+    this.sensorApplyBtn.disabled = false;
+  }
+
+  applySensorPreset() {
+    const id = this.sensorSel.value;
+    if (!id) return;
+    const p = SENSOR_PRESETS.find((x) => x.id === id);
+    if (!p) return;
+    const addr = parseInt(this.sensorAddrSel.value, 10);
+    // Pick the first N free slots (no math, no I2C). If we don't have enough,
+    // tell the user instead of clobbering existing config.
+    const free = [];
+    for (let i = 0; i < VIRTUAL_COUNT; i++) {
+      if (!this.device.i2cConfigs[i] && !this.device.mathExpressions[i]) free.push(i);
+    }
+    if (free.length < p.slots.length) {
+      toast(`Need ${p.slots.length} free slot${p.slots.length === 1 ? '' : 's'}; only ${free.length} available. Clear existing slots and try again.`, 'err');
+      return;
+    }
+    const assigned = [];
+    for (let i = 0; i < p.slots.length; i++) {
+      const cfg  = p.slots[i];
+      const slot = free[i];
+      this.device.i2cPoll(slot, addr, cfg.reg, cfg.count, cfg.hz, cfg.signed);
+      assigned.push(slot);
+    }
+    // Math expressions cannot live on the same slot as the I2C poll feeding
+    // them (math overrides I2C, so the source data would vanish). Instead we
+    // build the suggested expressions and prefill the math expression input
+    // with the first one, so the user is one click + slot-pick away from
+    // applying it. Any remaining hints come out as a toast.
+    const slotsTxt = assigned.map((s, i) => `V${s}=${p.slots[i].name}`).join(' · ');
+    toast(`${p.name} → ${slotsTxt}`);
+    const mathHints = [];
+    for (let i = 0; i < p.slots.length; i++) {
+      const cfg = p.slots[i];
+      if (!cfg.math) continue;
+      let expr = cfg.math;
+      for (let j = 0; j < assigned.length; j++) expr = expr.replace(new RegExp('\\bv' + j + '\\b', 'g'), 'v' + assigned[j]);
+      mathHints.push({ name: cfg.name, unit: cfg.unit, expr });
+    }
+    if (mathHints.length > 0) {
+      // Prefill the math input so the user just picks a free slot and hits ASSIGN
+      const first = mathHints[0];
+      if (this.mathExprInp) {
+        this.mathExprInp.value = first.expr;
+        // Auto-select a free math slot if one exists
+        const freeForMath = [];
+        for (let i = 0; i < VIRTUAL_COUNT; i++) {
+          if (!this.device.i2cConfigs[i] && !this.device.mathExpressions[i]) freeForMath.push(i);
+        }
+        if (freeForMath.length > 0) this.mathSlotSel.value = String(freeForMath[0]);
+      }
+      const rest = mathHints.length === 1
+        ? `expr prefilled below: ${first.expr}`
+        : `${mathHints.length} unit-conversion exprs: first is prefilled below (${first.expr}); others: ${mathHints.slice(1).map(h => h.name + ': ' + h.expr).join(' | ')}`;
+      toast(rest);
+    }
+    if (p.requiresInit) {
+      toast(`⚠ ${p.name} needs init write before useful data appears`, 'err');
+    }
     this.refreshSlots();
   }
 
@@ -3356,6 +4582,10 @@ class SessionManager {
     this.device.addEventListener('calchange', () => this.scheduleSave());
     this.device.addEventListener('vchange',   () => this.scheduleSave());
     this.card.alertManager.addEventListener('change', () => this.scheduleSave());
+    // Script edits autosave (debounced via scheduleSave)
+    if (this.card.scriptPanel && this.card.scriptPanel.ta) {
+      this.card.scriptPanel.ta.addEventListener('input', () => this.scheduleSave());
+    }
   }
 
   scheduleSave() {
@@ -3365,8 +4595,19 @@ class SessionManager {
 
   snapshot() {
     const d = this.device;
+    // Trigger config: persist the configuration (channel/condition/value/pre/post)
+    // but NOT the captured snapshot or fire state. On restore the trigger
+    // returns to "armed" so it can fire again, not stuck in "captured".
+    const trig = this.card.chart.trigger;
+    const triggerCfg = trig ? {
+      channel:   trig.channel,
+      condition: trig.condition,
+      value:     trig.value,
+      preMs:     trig.preMs,
+      postMs:    trig.postMs,
+    } : null;
     return {
-      version:       '1.1',
+      version:       '1.2',
       tool:          'pinscope',
       deviceId:      d.id,
       deviceName:    d.name,
@@ -3385,6 +4626,8 @@ class SessionManager {
       i2cConfigs:    d.i2cConfigs.map((c, i) => c ? ({ slot: i, ...c }) : null).filter(Boolean),
       mathExprs:     d.mathExpressions.map((m, i) => m ? ({ slot: i, expr: m.expr }) : null).filter(Boolean),
       rgb:           d.rgb,
+      trigger:       triggerCfg,
+      script:        this.card.scriptPanel?.ta.value || '',
     };
   }
 
@@ -3446,6 +4689,25 @@ class SessionManager {
       d.hz = data.hz;
       // Send to firmware once connected (only if differs from current setting)
       try { d.send({ cmd: 'hz', val: data.hz }); } catch {}
+    }
+    if (data.trigger && typeof data.trigger === 'object') {
+      const t = data.trigger;
+      if (typeof t.channel === 'string' && typeof t.condition === 'string'
+          && Number.isFinite(t.value) && Number.isFinite(t.preMs) && Number.isFinite(t.postMs)) {
+        this.card.chart.trigger = {
+          channel:   t.channel,
+          condition: t.condition,
+          value:     t.value,
+          preMs:     t.preMs,
+          postMs:    t.postMs,
+          state:     'armed',
+        };
+        this.card.chart.triggerCapture = null;
+        this.card.chart.refreshTriggerButton();
+      }
+    }
+    if (typeof data.script === 'string' && this.card.scriptPanel) {
+      this.card.scriptPanel.ta.value = data.script;
     }
     this.card.refreshHead();
     this.card.refreshState();
@@ -3517,6 +4779,284 @@ class DeviceManager extends EventTarget {
   }
 
   emit(name) { this.dispatchEvent(new CustomEvent(name)); }
+}
+
+/* === PLUGIN SYSTEM ========================================================
+   A plugin is a string of user-supplied JS. It runs inside a sandboxed
+   iframe with `sandbox="allow-scripts"` (no network, no top-window access,
+   no localStorage of its own). The host bridges everything the plugin
+   needs through postMessage. Plugins are loaded globally (one definition,
+   one instance per device card). The PluginRegistry holds the definitions;
+   each DeviceCard creates a PluginInstance per registered plugin.
+
+   Security model: the iframe is same-origin (about:blank), which means
+   postMessage works without origin-validation gymnastics, but the lack
+   of `allow-same-origin` blocks the iframe from reaching the parent
+   document. Allowed: render HTML into its own body, message the host.
+   Blocked: fetch, localStorage, window.parent.something, navigation.
+
+   Plugin contract: the source must call PinScope.register({...}) exactly
+   once with id, name, optional version, and lifecycle hooks. */
+const PluginRegistry = (() => {
+  const plugins = new Map();    // id -> { id, name, source, enabled }
+  const listeners = new Set();
+  const STORAGE_KEY = 'pinscope.plugins.v1';
+
+  function emit() { for (const cb of listeners) try { cb(); } catch {} }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) return;
+      for (const p of arr) {
+        if (typeof p.id === 'string' && typeof p.source === 'string') {
+          plugins.set(p.id, { id: p.id, name: p.name || p.id, source: p.source, enabled: p.enabled !== false });
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load plugins from localStorage:', e);
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(plugins.values())));
+    } catch (e) {
+      console.warn('Failed to save plugins:', e);
+    }
+  }
+
+  function register(id, name, source) {
+    if (!/^[a-zA-Z][\w-]{0,40}$/.test(id)) {
+      throw new Error('plugin id must be alphanumeric/hyphens, 1-41 chars, starting with a letter');
+    }
+    if (typeof source !== 'string' || source.length === 0) {
+      throw new Error('plugin source is required');
+    }
+    if (source.length > 200000) {
+      throw new Error('plugin source too large (200 KB max)');
+    }
+    plugins.set(id, { id, name: name || id, source, enabled: true });
+    save();
+    emit();
+  }
+
+  function remove(id) {
+    plugins.delete(id);
+    save();
+    emit();
+  }
+
+  function setEnabled(id, enabled) {
+    const p = plugins.get(id);
+    if (p) {
+      p.enabled = !!enabled;
+      save();
+      emit();
+    }
+  }
+
+  function list() { return Array.from(plugins.values()); }
+  function get(id) { return plugins.get(id); }
+  function onChange(cb) { listeners.add(cb); return () => listeners.delete(cb); }
+
+  load();
+  return { register, remove, setEnabled, list, get, onChange };
+})();
+
+/* A single plugin instance for one device card. Owns the sandboxed iframe,
+   the postMessage bridge, and the per-instance persistent state. */
+class PluginInstance {
+  constructor(definition, device, hostEl) {
+    this.def      = definition;
+    this.device   = device;
+    this.hostEl   = hostEl;
+    this.iframe   = null;
+    this.ready    = false;
+    this.destroyed = false;
+    this.bridgeId = 'pp-' + Math.random().toString(36).slice(2, 10);
+    this.persistKey = 'plugin.' + definition.id;     // stored in device.pluginState
+    this._onMessage = (e) => this.onMessage(e);
+    this._onState   = () => this.pushState();
+  }
+
+  mount() {
+    if (this.destroyed) return;
+    // Build the iframe srcdoc. The sandbox attr keeps the iframe in an
+    // opaque origin: scripts run, but no same-origin DOM access.
+    //
+    // SECURITY: the plugin source is user-supplied, so we must NOT embed it
+    // via template interpolation (a malicious plugin could close the
+    // template with a backtick and inject code into the host's parse
+    // scope). Instead we JSON.stringify it into a JS string literal and
+    // eval it inside the iframe at runtime. The iframe is already
+    // sandbox="allow-scripts" (no allow-same-origin), so the worst a
+    // plugin can do is break itself.
+    const sourceLiteral = JSON.stringify(this.def.source);
+    const bridgeIdLiteral = JSON.stringify(this.bridgeId);
+    const init = `
+      (function() {
+        const HOST_BRIDGE_ID = ${bridgeIdLiteral};
+        let _registration = null;
+        const _msg = (type, payload) => {
+          parent.postMessage({ __pp: HOST_BRIDGE_ID, type, payload }, '*');
+        };
+        const _pending = new Map();
+        let _seq = 0;
+        const _request = (type, payload) => {
+          return new Promise((resolve) => {
+            const id = ++_seq;
+            _pending.set(id, resolve);
+            parent.postMessage({ __pp: HOST_BRIDGE_ID, type, payload, replyId: id }, '*');
+          });
+        };
+        window.addEventListener('message', (e) => {
+          const d = e.data;
+          if (!d || d.__pp !== HOST_BRIDGE_ID) return;
+          if (d.type === 'state' && _registration && _registration.onState) {
+            try { _registration.onState(d.payload, api); }
+            catch (err) { _msg('error', 'onState: ' + err.message); }
+          } else if (d.type === 'destroy') {
+            if (_registration && _registration.onDestroy) {
+              try { _registration.onDestroy(); } catch (e) {}
+            }
+          } else if (d.type === 'reply' && _pending.has(d.replyId)) {
+            const r = _pending.get(d.replyId);
+            _pending.delete(d.replyId);
+            r(d.payload);
+          }
+        });
+        const api = {
+          send: (obj) => _msg('send', obj),
+          getState: () => _request('getState'),
+          log: (msg) => _msg('log', String(msg)),
+          render: (html) => {
+            const safe = String(html).replace(/<script[\\s\\S]*?<\\/script>/gi, '');
+            document.body.innerHTML = safe;
+          },
+          renderSVG: (svgText) => {
+            document.body.innerHTML = String(svgText);
+          },
+          persist: (k, v) => _msg('persist', { key: k, value: v }),
+          recall: (k) => _request('recall', { key: k }),
+        };
+        window.PinScope = {
+          register: (def) => {
+            if (!def || typeof def !== 'object') throw new Error('register: object required');
+            _registration = def;
+            _msg('registered', { id: def.id, name: def.name, version: def.version });
+            if (def.onInit) {
+              try { def.onInit(api); }
+              catch (err) { _msg('error', 'onInit: ' + err.message); }
+            }
+          },
+        };
+        const PLUGIN_SOURCE = ${sourceLiteral};
+        try {
+          (0, eval)(PLUGIN_SOURCE);
+        } catch (err) {
+          _msg('error', 'load: ' + err.message);
+        }
+        setTimeout(() => {
+          if (!_registration) _msg('error', 'plugin did not call PinScope.register');
+        }, 100);
+      })();
+    `;
+    const styleReset = `
+      <style>
+        html,body { margin: 0; padding: 6px 8px; background: #0a0a09; color: #d4a017;
+          font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; }
+        h1,h2,h3 { color: #f5b724; margin: 6px 0; font-weight: 500; }
+        button { background: #161513; border: 1px solid #2a2826; color: #d4a017;
+          padding: 4px 10px; font-family: inherit; cursor: pointer; border-radius: 2px; }
+        button:hover { border-color: #d4a017; }
+        input, select { background: #161513; border: 1px solid #2a2826; color: #d4a017;
+          padding: 4px 8px; font-family: inherit; }
+      </style>
+    `;
+    // Build srcdoc. A closing script tag inside this string would
+    // normally terminate the host's outer script block in the HTML
+    // parser, even though it sits inside a JS string. Split it so the
+    // browser sees only a literal substring while building the srcdoc.
+    const srcdoc = `<!doctype html><html><head>${styleReset}</head><body></body><scr` + `ipt>${init}</scr` + `ipt></html>`;
+    this.iframe = document.createElement('iframe');
+    this.iframe.className = 'plugin-iframe';
+    this.iframe.sandbox   = 'allow-scripts';  // CRITICAL: no allow-same-origin
+    this.iframe.srcdoc    = srcdoc;
+    this.iframe.style.cssText = 'width:100%;height:160px;border:0;background:#0a0a09;border-radius:2px';
+    window.addEventListener('message', this._onMessage);
+    this.hostEl.append(this.iframe);
+    this.device.addEventListener('state', this._onState);
+  }
+
+  pushState() {
+    if (!this.ready || this.destroyed || !this.iframe?.contentWindow) return;
+    const snapshot = {
+      d: this.device.digital.slice(),
+      a: this.device.analog.slice(),
+      v: this.device.virtual.slice(),
+      f: this.device.frequency.slice(),
+      m: this.device.modes.slice(),
+      t: this.device.lastSeen,
+    };
+    this.iframe.contentWindow.postMessage(
+      { __pp: this.bridgeId, type: 'state', payload: snapshot }, '*');
+  }
+
+  onMessage(e) {
+    const d = e.data;
+    if (!d || d.__pp !== this.bridgeId) return;
+    if (d.type === 'registered') {
+      this.ready = true;
+      // Push initial state right away if device is alive
+      if (this.device.lastSeen) this.pushState();
+    } else if (d.type === 'send') {
+      // Plugin-issued wire command. Validate shape minimally.
+      if (typeof d.payload === 'object' && d.payload !== null && typeof d.payload.cmd === 'string') {
+        this.device.send(d.payload);
+      }
+    } else if (d.type === 'log') {
+      console.log(`[plugin:${this.def.id}]`, d.payload);
+    } else if (d.type === 'error') {
+      toast(`Plugin ${this.def.id}: ${d.payload}`, 'err');
+    } else if (d.type === 'persist') {
+      this.device.pluginState = this.device.pluginState || {};
+      this.device.pluginState[this.def.id] = this.device.pluginState[this.def.id] || {};
+      if (d.payload && typeof d.payload.key === 'string') {
+        this.device.pluginState[this.def.id][d.payload.key] = d.payload.value;
+      }
+    } else if (d.type === 'recall') {
+      const state = (this.device.pluginState && this.device.pluginState[this.def.id]) || {};
+      const value = d.payload && typeof d.payload.key === 'string' ? state[d.payload.key] : null;
+      this.iframe.contentWindow.postMessage(
+        { __pp: this.bridgeId, type: 'reply', replyId: d.replyId, payload: value }, '*');
+    } else if (d.type === 'getState' && d.replyId) {
+      const snapshot = {
+        d: this.device.digital.slice(),
+        a: this.device.analog.slice(),
+        v: this.device.virtual.slice(),
+        f: this.device.frequency.slice(),
+        m: this.device.modes.slice(),
+      };
+      this.iframe.contentWindow.postMessage(
+        { __pp: this.bridgeId, type: 'reply', replyId: d.replyId, payload: snapshot }, '*');
+    }
+  }
+
+  destroy() {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    if (this.iframe?.contentWindow) {
+      try { this.iframe.contentWindow.postMessage({ __pp: this.bridgeId, type: 'destroy' }, '*'); }
+      catch {}
+    }
+    window.removeEventListener('message', this._onMessage);
+    this.device.removeEventListener('state', this._onState);
+    if (this.iframe?.parentNode) this.iframe.parentNode.removeChild(this.iframe);
+    this.iframe = null;
+  }
 }
 
 /* === DEVICE CARD (view) =================================================== */
@@ -3653,6 +5193,13 @@ class DeviceCard {
       this.rgbPanel.root,
     );
 
+    // ===== Scripted automation section =====
+    this.scriptPanel = this.buildScriptPanel();
+    const scriptSection = el('section', { class: 'section' },
+      el('h3', {}, 'Scripted Automation', el('span', { class: 'line' })),
+      this.scriptPanel.root,
+    );
+
     // ===== Alerts section =====
     this.alertsPanel = new AlertsPanel(this.alertManager);
     const alertsSection = el('section', { class: 'section' },
@@ -3687,7 +5234,64 @@ class DeviceCard {
     const rawRow = el('div', { class: 'raw-row' }, this.rawInp, rawBtn, rawClr);
     const logSection = el('section', { class: 'section log-wrap' }, logHead, this.elLog, rawRow);
 
-    this.root.append(head, digSection, anaSection, analysisSection, i2cSection, rgbSection, alertsSection, logSection);
+    // Plugins section: one collapsible panel per loaded + enabled plugin.
+    this.pluginsContainer = el('div', { class: 'plugins-container' });
+    this.pluginInstances  = new Map();   // plugin id -> PluginInstance
+    const pluginsHead = el('div', { class: 'plugins-head' },
+      el('h3', {}, 'Plugins'),
+      el('button', { class: 'btn', onclick: () => $('#btn-plugins').click() }, 'MANAGE'),
+    );
+    const pluginsSection = el('section', { class: 'section plugins-wrap' },
+      pluginsHead, this.pluginsContainer);
+
+    this.root.append(head, digSection, anaSection, analysisSection, i2cSection, rgbSection, scriptSection, alertsSection, pluginsSection, logSection);
+
+    // React to plugin registry changes
+    this._unsubPlugins = PluginRegistry.onChange(() => this.refreshPlugins());
+    this.refreshPlugins();
+  }
+
+  refreshPlugins() {
+    const plugins = PluginRegistry.list();
+    const enabledIds = new Set(plugins.filter(p => p.enabled).map(p => p.id));
+
+    // Tear down instances for plugins that are no longer loaded or enabled
+    for (const [id, inst] of this.pluginInstances) {
+      if (!enabledIds.has(id)) {
+        inst.destroy();
+        this.pluginInstances.delete(id);
+        const panel = this.pluginsContainer.querySelector(`[data-plugin-id="${CSS.escape(id)}"]`);
+        if (panel) panel.remove();
+      }
+    }
+
+    // Mount any newly-enabled plugins
+    for (const p of plugins) {
+      if (!p.enabled) continue;
+      if (this.pluginInstances.has(p.id)) continue;
+      const panel = el('div', { class: 'plugin-panel', 'data-plugin-id': p.id },
+        el('div', { class: 'plugin-panel-head' },
+          el('span', { class: 'plugin-label' }, p.name + ' · ' + p.id),
+        ),
+      );
+      const body = el('div', { class: 'plugin-body' });
+      panel.append(body);
+      this.pluginsContainer.append(panel);
+      const inst = new PluginInstance(p, this.device, body);
+      this.pluginInstances.set(p.id, inst);
+      try {
+        inst.mount();
+      } catch (e) {
+        toast(`Failed to mount plugin ${p.id}: ${e.message}`, 'err');
+      }
+    }
+
+    // Empty-state message when there are no plugins
+    if (plugins.length === 0) {
+      this.pluginsContainer.innerHTML = '<div class="plugins-empty">no plugins loaded · click MANAGE to add one</div>';
+    } else if (plugins.every(p => !p.enabled)) {
+      this.pluginsContainer.innerHTML = '<div class="plugins-empty">all plugins disabled</div>';
+    }
   }
 
   sendRaw() {
@@ -3703,6 +5307,54 @@ class DeviceCard {
     this.rawHistIdx = this.rawHistory.length;
     this.device.send(obj);
     this.rawInp.value = '';
+  }
+
+  buildScriptPanel() {
+    const ta = el('textarea', {
+      class: 'script-input',
+      spellcheck: 'false',
+      rows: '6',
+      placeholder: '// Sequence pins over time. Available helpers:\n//   setMode(pin, mode), setDigital(pin, hi), setPWM(pin, val),\n//   await wait(ms), read(pin), log(msg), assert(cond, msg)\n// Example:\nsetMode(9, "pwm");\nfor (let duty = 0; duty <= 255; duty += 32) {\n  setPWM(9, duty);\n  await wait(200);\n  log("duty=" + duty + " a0=" + read("a0"));\n}',
+    });
+    const runBtn  = el('button', { class: 'btn primary' }, 'RUN');
+    const stopBtn = el('button', { class: 'btn danger' }, 'STOP');
+    const clrBtn  = el('button', { class: 'btn' }, 'CLEAR');
+    const out     = el('div', { class: 'script-output' }, '');
+    const hint    = el('span', { class: 'script-hint' },
+      'Safe sandbox: JS subset, await wait(ms), log/assert.  Loops and conditionals allowed.  Network/storage access is blocked.');
+
+    let runner = null;   // { abort: () => void }
+    const setBusy = (busy) => {
+      runBtn.disabled  = busy;
+      stopBtn.disabled = !busy;
+      runBtn.textContent = busy ? 'RUNNING...' : 'RUN';
+    };
+    setBusy(false);
+
+    runBtn.addEventListener('click', () => {
+      const src = ta.value.trim();
+      if (!src) return;
+      out.innerHTML = '';
+      const append = (txt, cls) => {
+        const div = el('div', { class: 'script-line' + (cls ? ' ' + cls : '') }, txt);
+        out.append(div);
+        out.scrollTop = out.scrollHeight;
+      };
+      setBusy(true);
+      runner = runScript(this.device, src, append, () => { setBusy(false); runner = null; });
+    });
+    stopBtn.addEventListener('click', () => {
+      if (runner && runner.abort) runner.abort();
+    });
+    clrBtn.addEventListener('click', () => { out.innerHTML = ''; });
+
+    const root = el('div', { class: 'script-wrap' },
+      ta,
+      el('div', { class: 'script-row' }, runBtn, stopBtn, clrBtn),
+      out,
+      hint,
+    );
+    return { root, ta, out };
   }
 
   buildRgbPanel() {
@@ -3986,6 +5638,11 @@ class DeviceCard {
     if (this.fft)     this.fft.destroy();
     if (this.spectro) this.spectro.destroy();
     if (this.scatter) this.scatter.destroy();
+    if (this._unsubPlugins) this._unsubPlugins();
+    if (this.pluginInstances) {
+      for (const inst of this.pluginInstances.values()) inst.destroy();
+      this.pluginInstances.clear();
+    }
   }
 }
 
@@ -4109,6 +5766,89 @@ $('#btn-help').addEventListener('click', () => helpModal.classList.add('show'));
 $('#help-close').addEventListener('click', () => helpModal.classList.remove('show'));
 helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.remove('show'); });
 
+/* === PLUGIN MANAGER ====================================================== */
+const pluginModal = $('#plugin-modal');
+const pluginList  = $('#plugin-list');
+const pluginError = $('#plugin-error');
+function refreshPluginListUI() {
+  const plugins = PluginRegistry.list();
+  pluginList.innerHTML = '';
+  if (plugins.length === 0) {
+    pluginList.textContent = 'no plugins loaded';
+    pluginList.classList.add('plugins-empty');
+    return;
+  }
+  pluginList.classList.remove('plugins-empty');
+  for (const p of plugins) {
+    const row = el('div', { class: 'plugin-list-row' });
+    const checkbox = el('input', { type: 'checkbox' });
+    checkbox.checked = p.enabled;
+    checkbox.addEventListener('change', () => PluginRegistry.setEnabled(p.id, checkbox.checked));
+    const label = el('span', { class: 'plugin-list-label' }, p.name);
+    const id    = el('span', { class: 'plugin-list-id' }, p.id);
+    const size  = el('span', { class: 'plugin-list-size' }, (p.source.length / 1024).toFixed(1) + ' KB');
+    const removeBtn = el('button', { class: 'btn danger' }, 'REMOVE');
+    removeBtn.addEventListener('click', () => {
+      if (confirm(`Remove plugin "${p.name}"?`)) PluginRegistry.remove(p.id);
+    });
+    row.append(checkbox, label, id, size, removeBtn);
+    pluginList.append(row);
+  }
+}
+PluginRegistry.onChange(refreshPluginListUI);
+refreshPluginListUI();
+
+$('#btn-plugins').addEventListener('click', () => {
+  pluginError.style.display = 'none';
+  refreshPluginListUI();
+  pluginModal.classList.add('show');
+});
+$('#plugin-cancel').addEventListener('click', () => pluginModal.classList.remove('show'));
+pluginModal.addEventListener('click', (e) => { if (e.target === pluginModal) pluginModal.classList.remove('show'); });
+
+$('#plugin-load-file').addEventListener('click', () => $('#plugin-file-input').click());
+$('#plugin-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    $('#plugin-source').value = text;
+    if (!$('#plugin-name').value) {
+      const stem = file.name.replace(/\.[^.]+$/, '').replace(/[^\w-]/g, '-');
+      $('#plugin-name').value = stem;
+    }
+  } catch (err) {
+    pluginError.textContent = 'Could not read file: ' + err.message;
+    pluginError.style.display = '';
+  }
+  e.target.value = '';
+});
+
+$('#plugin-load').addEventListener('click', () => {
+  pluginError.style.display = 'none';
+  const id = $('#plugin-name').value.trim();
+  const source = $('#plugin-source').value;
+  if (!id) {
+    pluginError.textContent = 'NAME is required';
+    pluginError.style.display = '';
+    return;
+  }
+  try {
+    // Lightweight pre-check: PinScope.register must appear in the source so we
+    // can give a useful error early (the iframe also checks at runtime).
+    if (!/PinScope\.register\s*\(/.test(source)) {
+      throw new Error('source must call PinScope.register({...})');
+    }
+    PluginRegistry.register(id, id, source);
+    toast(`Plugin "${id}" loaded`);
+    $('#plugin-name').value = '';
+    $('#plugin-source').value = '';
+  } catch (err) {
+    pluginError.textContent = err.message;
+    pluginError.style.display = '';
+  }
+});
+
 /* === KEYBOARD SHORTCUTS ================================================== */
 /* Global hotkeys, suppressed while typing in inputs. The "active" device for
    per-card shortcuts is the first device card visible in the viewport. */
@@ -4182,6 +5922,10 @@ document.addEventListener('keydown', (e) => {
     case 'r': case 'R':
       e.preventDefault();
       $('#btn-replay').click();
+      break;
+    case 'p': case 'P':
+      e.preventDefault();
+      $('#btn-plugins').click();
       break;
     case '1': case '2': case '3': case '4': {
       const card = activeDeviceCard();
