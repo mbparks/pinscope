@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Reference · PinScope</title>
+  <meta name="description" content="Full feature reference for PinScope, the single-file HTML console for Arduino boards.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-head">
+  <a href="./" class="brand">PINSCOPE<span class="sub">Field Instrument 005</span></a>
+  <nav>
+    <a href="./">Home</a>
+    <a href="reference.html" class="current">Reference</a>
+    <a href="plugins.html">Plugins</a>
+    <a href="bringup.html">Bring-up</a>
+  </nav>
+  <div class="spacer"></div>
+  <a href="https://github.com/mbparks/pinscope" class="github-link">GitHub</a>
+</header>
+
+<main>
+
+<h1 class="page-title">Reference</h1>
+<div class="page-subtitle">Every feature, in detail</div>
+
+<div class="meta-strip">
+  <span class="pill">v1.3</span>
+  <span class="pill">6300 lines</span>
+  <span class="pill">12 test suites</span>
+  <span class="pill">GPL-3.0</span>
+</div>
+
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#pin-model">Pin model</a>
+  <a href="#sample-rate">Sample rate</a>
+  <a href="#calibration">Calibration</a>
+  <a href="#virtual-channels">Virtual channels</a>
+  <a href="#cross-pin-math">Cross-pin math</a>
+  <a href="#strip-chart">Strip chart</a>
+  <a href="#baseline-diff">Baseline + diff</a>
+  <a href="#trigger">Oscilloscope trigger</a>
+  <a href="#fft">FFT + spectrogram</a>
+  <a href="#scatter">XY scatter</a>
+  <a href="#frequency">Frequency measurement</a>
+  <a href="#alerts">Threshold alerts</a>
+  <a href="#i2c">I2C / Qwiic</a>
+  <a href="#sensor-library">Sensor library</a>
+  <a href="#rgb">RGB LED panel</a>
+  <a href="#scripted-automation">Scripted automation</a>
+  <a href="#csv-export">CSV export</a>
+  <a href="#replay">Replay</a>
+  <a href="#sessions">Sessions</a>
+  <a href="#session-diff">Session diff</a>
+  <a href="#wire-protocol">Wire protocol</a>
+  <a href="#keyboard">Keyboard shortcuts</a>
+</nav>
+
+<section id="pin-model">
+  <h2>Pin model</h2>
+  <p>
+    Every device card maps the host MCU's pins to a uniform model:
+  </p>
+  <ul>
+    <li><strong>D0-D13</strong>, digital pins. Modes: <code>off</code>,
+      <code>in</code> (high-Z input), <code>inp</code> (input with
+      pull-up), <code>out</code>, <code>pwm</code> (only on PWM-capable
+      pins, marked with a ~ in the UI), <code>freq</code> (only on
+      interrupt-capable pins). Click the mode badge to cycle.</li>
+    <li><strong>A0-A5</strong>, analog inputs. 10-bit by default;
+      toggle to 12-bit if the board's core supports
+      <code>analogReadResolution(12)</code>.</li>
+    <li><strong>V0-V3</strong>, virtual channels. Filled in by I2C
+      polling or cross-pin math expressions. Treated identically to
+      A0-A5 by every visualization, alert, and CSV export.</li>
+    <li><strong>F0-F13</strong>, frequency channels. Populated by pins
+      in FREQ mode.</li>
+  </ul>
+  <p>D0 and D1 are reserved (USB serial uses them) and grayed out.</p>
+</section>
+
+<section id="sample-rate">
+  <h2>Sample rate</h2>
+  <p>
+    The Hz selector on each device card sets how often the firmware
+    sends state packets. Range is 1 to 50 Hz. The default is 10 Hz.
+    Higher rates give smoother strip charts and finer FFT resolution
+    but consume more transport bandwidth.
+  </p>
+  <p>
+    Inside the firmware, the state push period is
+    <code>1000 / hz</code> milliseconds. Lower the rate if the wire
+    log shows tx pressure or if you're on a slow transport like BLE;
+    raise it for fast transients.
+  </p>
+</section>
+
+<section id="calibration">
+  <h2>Calibration</h2>
+  <p>
+    Click any A0-A5 (or V0-V3) label on a device card to open the
+    calibration modal. Two modes:
+  </p>
+  <h3>Manual</h3>
+  <p>
+    Type a slope <code>m</code>, offset <code>b</code>, unit, decimals,
+    and a label. Linear conversion <code>y = m·raw + b</code> is
+    applied to every reading on that pin and propagates through the
+    strip chart, FFT, spectrogram, scatter, stats, alerts, and CSV
+    export.
+  </p>
+  <h3>Wizard (two-point fit)</h3>
+  <p>
+    Apply a known value at the low end (often a short to ground),
+    click CAPTURE LOW. Apply a known value at the high end, click
+    CAPTURE HIGH. PinScope computes:
+  </p>
+  <pre><code>m = (knownHi - knownLo) / (rawHi - rawLo)
+b = knownLo - m * rawLo</code></pre>
+  <p>
+    The wizard shows a live preview using the current raw reading,
+    then SAVE writes the calibration to the pin. If the two raw
+    captures are identical, the wizard refuses to fit and tells you
+    so.
+  </p>
+  <p>Calibrations persist in the session and export with the JSON.</p>
+</section>
+
+<section id="virtual-channels">
+  <h2>Virtual channels</h2>
+  <p>
+    PinScope has four virtual analog slots (V0-V3) that show up in
+    every visualization next to A0-A5. Two sources can feed a virtual
+    slot:
+  </p>
+  <ul>
+    <li><strong>I2C polling</strong>: configure a slot to poll an I2C
+      register at a fixed Hz; the latest read goes into the virtual
+      channel.</li>
+    <li><strong>Cross-pin math</strong>: assign an expression like
+      <code>v0 = sqrt(a0*a0 + a1*a1)</code> to a slot; the expression
+      is recomputed every state packet.</li>
+  </ul>
+  <p>Math overrides I2C if both target the same slot.</p>
+</section>
+
+<section id="cross-pin-math">
+  <h2>Cross-pin math</h2>
+  <p>
+    The math engine lets a virtual channel be a function of any other
+    channels. The expression syntax is a small JS subset: arithmetic,
+    the math globals (<code>sin</code>, <code>cos</code>,
+    <code>sqrt</code>, <code>log</code>, <code>exp</code>,
+    <code>abs</code>, <code>pow</code>, <code>min</code>,
+    <code>max</code>, <code>floor</code>, <code>ceil</code>,
+    <code>round</code>), and references to channels by their key
+    (<code>a0</code> to <code>a5</code>, <code>d0</code> to
+    <code>d13</code>, <code>v0</code> to <code>v3</code>,
+    <code>f0</code> to <code>f13</code>).
+  </p>
+  <table>
+    <thead>
+      <tr><th>Expression</th><th>What it derives</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>(a0 + a1) / 2</code></td><td>average of two analog inputs</td></tr>
+      <tr><td><code>sqrt(a0*a0 + a1*a1)</code></td><td>magnitude of an XY pair</td></tr>
+      <tr><td><code>a0 - a1</code></td><td>differential measurement</td></tr>
+      <tr><td><code>v0 * 0.0078125</code></td><td>TMP117 raw to degrees Celsius</td></tr>
+      <tr><td><code>floor(v0 / 16) * 10 + (v0 % 16)</code></td><td>BCD-unpacked seconds from a DS3231</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Expressions are compiled via <code>new Function(...)</code> with
+    strict mode and no access to globals beyond the math helpers. Bad
+    syntax surfaces in a toast; null inputs produce null outputs.
+  </p>
+</section>
+
+<section id="strip-chart">
+  <h2>Strip chart</h2>
+  <p>
+    The strip chart shows up to 14 channels at once. Click any chip in
+    the ANALOG / DIGITAL / VIRTUAL rows under the chart to toggle that
+    channel on. Each trace gets a deterministic color keyed off its
+    name.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Button</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>15s 1m 5m 15m</code></td><td>window length</td></tr>
+      <tr><td><code>STATS</code></td><td>per-trace stats overlay (min, max, mean, std dev)</td></tr>
+      <tr><td><code>PAUSE</code></td><td>freeze chart and recorder</td></tr>
+      <tr><td><code>CLEAR</code></td><td>drop the recorder buffer</td></tr>
+      <tr><td><code>CSV</code></td><td>one-shot dump to a CSV file</td></tr>
+      <tr><td><code>STREAM</code></td><td>append every new sample to a file (Chromium only)</td></tr>
+      <tr><td><code>CAPTURE</code></td><td>save buffer as a replayable JSON file</td></tr>
+      <tr><td><code>BASELINE</code></td><td>load a capture as a faded ghost overlay</td></tr>
+      <tr><td><code>DIFF</code></td><td>toggle live-minus-baseline trace</td></tr>
+      <tr><td><code>TRIG</code></td><td>open the trigger modal</td></tr>
+      <tr><td><code>PNG</code></td><td>snapshot current chart</td></tr>
+    </tbody>
+  </table>
+  <p>
+    The recorder buffer caps at 9000 samples (about 15 minutes at
+    10 Hz, 3 minutes at 50 Hz). For longer runs use STREAM.
+  </p>
+</section>
+
+<section id="baseline-diff">
+  <h2>Baseline + diff view</h2>
+  <p>
+    The strip chart can overlay a previously captured run as a faded
+    dashed ghost and render a live-minus-baseline diff trace on top.
+    Useful for before-vs-after comparisons: tweak a circuit, flash new
+    firmware, swap a sensor, see exactly how the new behavior differs.
+  </p>
+  <ol>
+    <li>CAPTURE a baseline run.</li>
+    <li>BASELINE loads a capture file as the baseline overlay. Click
+      again to clear.</li>
+    <li>DIFF toggles the difference trace, computed as
+      <code>live - baseline</code> for each active channel, normalized
+      and centered on the chart's midline.</li>
+  </ol>
+  <p>
+    The baseline is aligned to "now" by tail-shifting its timestamps,
+    so a capture from yesterday lines up with the current strip-chart
+    window without clock-sync gymnastics. Diff is nearest-neighbor by
+    time.
+  </p>
+</section>
+
+<section id="trigger">
+  <h2>Oscilloscope-style trigger</h2>
+  <p>
+    The strip chart can capture a fixed window of samples around a
+    threshold crossing and freeze on the event for inspection. Useful
+    for one-shot events that are hard to spot in the live stream: a
+    glitch, a power transient, a single-shot pulse from a sensor.
+  </p>
+  <p>
+    Click <code>TRIG</code> on the chart toolbar, pick a channel (any
+    A, V, F, or D pin), pick a condition (rising, falling, above,
+    below), set a threshold in raw units, define pre and post sample
+    windows in seconds. ARM the trigger. The button pulses red while
+    armed.
+  </p>
+  <p>
+    When the condition fires, the chart freezes onto the captured
+    window with a red vertical line at the fire time and a red
+    horizontal threshold line. The recorder auto-pauses. RE-ARM
+    resets and resumes recording; DISARM clears it entirely.
+  </p>
+</section>
+
+<section id="fft">
+  <h2>FFT and spectrogram</h2>
+  <p>
+    The FFT tab shows the magnitude spectrum of the active analog or
+    virtual channel. Window length comes from the strip chart
+    selector. Window functions (Hann, Hamming, Blackman, none) are
+    selectable. Magnitude is plotted on a log y-axis by default.
+  </p>
+  <p>
+    The Spectrogram tab is a rolling waterfall of the same FFT over
+    time. Useful for non-stationary signals where the frequency
+    content shifts.
+  </p>
+</section>
+
+<section id="scatter">
+  <h2>XY scatter</h2>
+  <p>
+    The Scatter tab plots two channels against each other for
+    Lissajous-style visualization. Pick X and Y from the dropdowns.
+    Optional connecting lines link adjacent samples in time, so you
+    can see the trajectory and not just the cloud. Useful for phase
+    analysis, sensor correlation, or just looking at a circuit's
+    transfer function.
+  </p>
+</section>
+
+<section id="frequency">
+  <h2>Frequency measurement</h2>
+  <p>
+    Pins in FREQ mode count rising edges via
+    <code>attachInterrupt</code>. The firmware has one ISR per pin
+    (small wrappers around a per-pin volatile counter). Every 250 ms
+    the main loop reads and resets the counters with interrupts
+    briefly off, and converts counts to Hz.
+  </p>
+  <ul>
+    <li>Minimum measurable: roughly 4 Hz (one edge per 250 ms
+      window). Below that the readout flickers between 0 and 4 Hz.</li>
+    <li>Maximum measurable: depends on the host MCU. Classic Uno R3
+      caps around 100-200 kHz before edges are missed. Uno R4 WiFi
+      and Nano 33 IoT go higher.</li>
+  </ul>
+  <p>
+    Only pins with hardware interrupt support can be put in FREQ
+    mode. The firmware returns "no interrupt on pin" if you try to
+    set FREQ on an unsupported pin.
+  </p>
+</section>
+
+<section id="alerts">
+  <h2>Threshold alerts</h2>
+  <p>
+    Each device card has a Threshold Alerts panel for raising an alert
+    when a channel crosses a value. Pick a pin, pick a condition
+    (above, below, rising, falling, equal), a value, optionally a
+    sound. Alerts fire when the condition transitions from false to
+    true (not held continuously).
+  </p>
+</section>
+
+<section id="i2c">
+  <h2>I2C / Qwiic</h2>
+  <p>
+    Every device card has an I2C / Qwiic section with three tools:
+  </p>
+  <ul>
+    <li><strong>SCAN BUS</strong>: highlights every responding I2C
+      address on a 16×8 grid.</li>
+    <li><strong>READ / WRITE</strong>: one-shot reads (up to 8 bytes)
+      and writes against any register.</li>
+    <li><strong>POLL</strong>: configure a virtual slot to poll a
+      register at a fixed Hz. The latest read feeds the virtual
+      channel.</li>
+  </ul>
+  <p>
+    Signed reads are supported (the firmware sign-extends per the
+    byte count). Polls are paused while a one-shot read or write
+    runs, then resume.
+  </p>
+</section>
+
+<section id="sensor-library">
+  <h2>Companion sensor library</h2>
+  <p>
+    The I2C panel ships with one-click presets for common breakout
+    sensors. Pick a sensor from the dropdown, confirm the address,
+    APPLY drops the right I2C poll into the first free virtual slot
+    and prefills the math input below with the unit-conversion
+    expression.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Preset</th><th>Reads</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TMP102</td><td>12-bit temperature</td><td>0.0625 °C/LSB</td></tr>
+      <tr><td>TMP117</td><td>precision temperature</td><td>0.0078125 °C/LSB</td></tr>
+      <tr><td>DS3231</td><td>RTC seconds counter</td><td>BCD-unpacked</td></tr>
+      <tr><td>MCP9808</td><td>13-bit signed temperature</td><td>Microchip</td></tr>
+      <tr><td>INA219</td><td>shunt + bus voltage</td><td>two-slot preset</td></tr>
+      <tr><td>APDS-9301</td><td>ambient light channel 0</td><td>requires power-on init write</td></tr>
+      <tr><td>PCF8591</td><td>ADC channel 0</td><td>NXP</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Preset definitions live in <code>SENSOR_PRESETS</code> near the
+    top of the I2CPanel code in <code>pinscope.html</code>. Adding a
+    sensor is a few lines.
+  </p>
+</section>
+
+<section id="rgb">
+  <h2>RGB LED panel</h2>
+  <p>
+    Three dropdowns (R, G, B) select PWM pins, a color picker picks
+    a color, APPLY puts each pin in PWM mode and writes the matching
+    duty. OFF stops driving. Useful for common-anode/cathode RGB LEDs
+    or any three-channel PWM device.
+  </p>
+</section>
+
+<section id="scripted-automation">
+  <h2>Scripted automation</h2>
+  <p>
+    Every device card has a SCRIPTED AUTOMATION section: a textarea
+    where you write a short async JS sequence to exercise the board.
+  </p>
+  <table>
+    <thead><tr><th>Helper</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>setMode(pin, mode)</code></td><td>change a pin's mode</td></tr>
+      <tr><td><code>setDigital(pin, hi)</code></td><td>drive a digital output</td></tr>
+      <tr><td><code>setPWM(pin, val)</code></td><td>set PWM duty (0..255)</td></tr>
+      <tr><td><code>await wait(ms)</code></td><td>sleep</td></tr>
+      <tr><td><code>read(pin)</code></td><td>latest raw value</td></tr>
+      <tr><td><code>log(msg)</code></td><td>print to output panel</td></tr>
+      <tr><td><code>assert(cond, msg)</code></td><td>throw if cond is falsy</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Loops, conditionals, declarations, <code>await</code> all work.
+    Network and storage globals (<code>fetch</code>,
+    <code>localStorage</code>, <code>eval</code>, <code>Function</code>,
+    <code>setTimeout</code>, <code>window</code>, <code>document</code>)
+    are blocked at compile time via an identifier blocklist.
+  </p>
+  <div class="code-label">EXAMPLE</div>
+  <pre><code>setMode(9, 'pwm');
+for (let duty = 0; duty &lt;= 255; duty += 32) {
+  setPWM(9, duty);
+  await wait(200);
+  log('duty=' + duty + ' a0=' + read('a0'));
+}</code></pre>
+</section>
+
+<section id="csv-export">
+  <h2>CSV export</h2>
+  <p>
+    The CSV button on the strip chart toolbar does a one-shot dump of
+    the recorder buffer. Columns: timestamp_ms, ISO 8601 time, every
+    digital pin, every analog raw plus its calibrated value if a
+    calibration is set, every virtual raw plus calibrated.
+  </p>
+  <p>
+    For longer runs, the STREAM button opens a save-file picker (File
+    System Access API), then appends every new sample to that file in
+    batches. Click STREAM again to stop and close the file.
+  </p>
+  <div class="callout">
+    <span class="callout-label">Browser support</span>
+    <p>CSV streaming is Chromium-only. In Firefox and Safari the
+    STREAM button is disabled with a tooltip; fall back to the
+    one-shot CSV or to a capture file.</p>
+  </div>
+</section>
+
+<section id="replay">
+  <h2>Replay</h2>
+  <p>
+    The REPLAY button on the rail loads a capture JSON file as a
+    synthetic <code>[replay]</code> device card. The card plays the
+    captured samples back in real time. Useful for sharing a
+    problematic recording with a colleague, or for reviewing a run
+    without having to recreate the hardware setup.
+  </p>
+</section>
+
+<section id="sessions">
+  <h2>Sessions</h2>
+  <p>
+    Every device card auto-saves its configuration to localStorage
+    400 ms after any change. Saved fields:
+  </p>
+  <ul>
+    <li>alias, ADC resolution, sample rate</li>
+    <li>per-pin calibrations</li>
+    <li>active strip chart traces</li>
+    <li>threshold alerts</li>
+    <li>I2C poll slot configurations</li>
+    <li>math expressions</li>
+    <li>RGB LED pin assignment and most recent color</li>
+    <li>trigger configuration</li>
+    <li>scripted automation source</li>
+    <li>plugin state (everything plugins write via
+      <code>api.persist</code>)</li>
+  </ul>
+  <p>
+    The EXPORT button writes the same snapshot to a JSON file. IMPORT
+    reads one back. Session file format is currently version 1.3
+    (additive over 1.2, 1.1, 1.0).
+  </p>
+</section>
+
+<section id="session-diff">
+  <h2>Session diff</h2>
+  <p>
+    The DIFF button (between EXPORT and IMPORT on each device card)
+    compares the current session against a saved JSON file. A modal
+    shows exactly what changed: calibrations, alerts, I2C polls,
+    math expressions, trigger config, scripted automation source
+    (with a line-by-line LCS diff), plugin state.
+  </p>
+  <p>
+    Read-only; doesn't modify the active session. Useful for catching
+    calibration drift between test rigs, confirming that an
+    "identical" board is actually identical, pre-flight checking a
+    session JSON before committing it to a repo.
+  </p>
+</section>
+
+<section id="wire-protocol">
+  <h2>Wire protocol</h2>
+  <p>
+    PinScope speaks a small JSON line protocol over every transport.
+    One JSON object per line, newline-terminated.
+  </p>
+  <h3>Host to board</h3>
+  <table>
+    <thead><tr><th>Command</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>{"cmd":"hello"}</code></td><td>request a hello packet</td></tr>
+      <tr><td><code>{"cmd":"poll"}</code></td><td>request a state packet on demand</td></tr>
+      <tr><td><code>{"cmd":"mode","pin":N,"mode":M}</code></td><td>M is one of off, in, inp, out, pwm, freq</td></tr>
+      <tr><td><code>{"cmd":"set","pin":N,"val":V}</code></td><td>V is 0 or 1; only valid in out mode</td></tr>
+      <tr><td><code>{"cmd":"pwm","pin":N,"val":V}</code></td><td>V is 0-255; only valid in pwm mode</td></tr>
+      <tr><td><code>{"cmd":"hz","val":H}</code></td><td>H is 1-50</td></tr>
+      <tr><td><code>{"cmd":"i2c","op":"scan"}</code></td><td>scan the bus</td></tr>
+      <tr><td><code>{"cmd":"i2c","op":"read","addr":A,"reg":R,"count":N}</code></td><td>one-shot read</td></tr>
+      <tr><td><code>{"cmd":"i2c","op":"write","addr":A,"reg":R,"data":[...]}</code></td><td>one-shot write</td></tr>
+      <tr><td><code>{"cmd":"i2c","op":"poll","slot":S,"addr":A,"reg":R,"count":N,"hz":H,"signed":bool}</code></td><td>configure polling slot</td></tr>
+      <tr><td><code>{"cmd":"i2c","op":"stoppoll","slot":S}</code></td><td>stop a polling slot</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Board to host</h3>
+  <table>
+    <thead><tr><th>Packet</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>{"t":"hello","id":"...","name":"...","hz":H,"adcMax":N}</code></td><td>sent on connect and on hello cmd</td></tr>
+      <tr><td><code>{"t":"state","d":[...],"a":[...],"m":[...],"v":[...],"f":[...]}</code></td><td>periodic</td></tr>
+      <tr><td><code>{"t":"i2c","op":"scan","addrs":[...]}</code></td><td>scan result</td></tr>
+      <tr><td><code>{"t":"i2c","op":"read","addr":A,"reg":R,"data":[...]}</code></td><td>read result</td></tr>
+      <tr><td><code>{"t":"ack","cmd":"..."}</code></td><td>command accepted</td></tr>
+      <tr><td><code>{"t":"err","msg":"..."}</code></td><td>command rejected</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="keyboard">
+  <h2>Keyboard shortcuts</h2>
+  <table>
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>S W M B</code></td><td>open SERIAL / WIFI / MQTT / BLE dialog</td></tr>
+      <tr><td><code>R</code></td><td>open a capture file (REPLAY)</td></tr>
+      <tr><td><code>P</code></td><td>open the plugin manager</td></tr>
+      <tr><td><code>G</code></td><td>toggle stacked vs grid layout</td></tr>
+      <tr><td><code>?</code></td><td>open the help modal</td></tr>
+      <tr><td><code>1 2 3 4</code></td><td>switch tabs on the active device</td></tr>
+      <tr><td><code>Space</code></td><td>pause / resume the strip chart</td></tr>
+      <tr><td><code>C</code></td><td>clear the wire log</td></tr>
+      <tr><td><code>Esc</code></td><td>close any open modal</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  PinScope · Field Instrument 005 ·
+  <a href="https://github.com/mbparks/pinscope/blob/main/LICENSE">GPL-3.0-or-later</a> ·
+  Made by <a href="https://michaelbparks.com">M.B. Parks</a> at
+  <a href="https://greenshoe.garage">Green Shoe Garage</a>
+</footer>
+
+</body>
+</html>

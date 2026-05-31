@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PinScope · Field Instrument 005</title>
+  <meta name="description" content="Single-file HTML console for the Arduino Uno Q. USB serial, WiFi, MQTT, BLE. Strip chart, FFT, spectrogram, I2C scanner, scripted automation, sandboxed plugin system.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-head">
+  <a href="./" class="brand">PINSCOPE<span class="sub">Field Instrument 005</span></a>
+  <nav>
+    <a href="./" class="current">Home</a>
+    <a href="reference.html">Reference</a>
+    <a href="plugins.html">Plugins</a>
+    <a href="bringup.html">Bring-up</a>
+  </nav>
+  <div class="spacer"></div>
+  <a href="https://github.com/mbparks/pinscope" class="github-link">GitHub</a>
+</header>
+
+<div class="hero">
+  <div class="tagline">Single-file HTML console</div>
+  <h1>PinScope</h1>
+  <p class="lede">
+    Drop one HTML file into a browser, connect to an Arduino over USB serial,
+    WiFi, MQTT, or BLE, and get a live console for every pin on the board.
+    Strip chart, FFT, spectrogram, I2C scanner, calibration wizard,
+    oscilloscope-style trigger, scripted automation, sandboxed plugin
+    system. No build step. No framework. No external assets at runtime.
+  </p>
+  <div class="cta-row">
+    <a href="https://github.com/mbparks/pinscope" class="cta primary">View on GitHub</a>
+    <a href="reference.html" class="cta secondary">Read the docs</a>
+    <a href="bringup.html" class="cta secondary">Bring up a board</a>
+  </div>
+</div>
+
+<main>
+
+<section>
+  <h2>What it does</h2>
+  <p>
+    PinScope is a browser console for embedded boards that speak a small
+    JSON wire protocol. You flash a firmware sketch onto the board (one of
+    three variants ship with the repo: serial, BLE, MQTT). You open
+    <code>pinscope.html</code> in any modern browser. The page connects
+    over the transport you chose and gives you a live view of every digital
+    and analog pin, plus everything the firmware can do with them.
+  </p>
+  <p>
+    It is single-file by design. Once the page loads, it makes no further
+    network requests. You can serve it from a Raspberry Pi, drop it on a
+    USB stick, save it to a thumb drive for offline field work, embed it
+    inside a CI run, or pin it to localhost. It runs anywhere a Chromium
+    browser does.
+  </p>
+</section>
+
+<section>
+  <h2>What you get</h2>
+  <div class="feature-grid">
+
+    <div class="feature">
+      <h3>Pin Control</h3>
+      <p>Click any digital pin's mode badge to cycle through input,
+        input-pullup, output, PWM, or interrupt-counting FREQ mode. Outputs
+        toggle on click; PWM pins get a duty slider.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Strip Chart</h3>
+      <p>Up to 14 channels at once with per-trace stats, calibration in
+        real units, threshold alerts, CSV one-shot and streaming export,
+        PNG snapshots, capture and replay.</p>
+    </div>
+
+    <div class="feature">
+      <h3>FFT &amp; Spectrogram</h3>
+      <p>Magnitude spectrum and rolling waterfall for any analog or
+        virtual channel. Hann, Hamming, and Blackman windows. Log or
+        linear scaling.</p>
+    </div>
+
+    <div class="feature">
+      <h3>I2C Scanner</h3>
+      <p>SCAN BUS highlights every responding I2C address on a 16×8 grid.
+        Read or write any register. Four polling slots feed I2C registers
+        into virtual channels at up to 50 Hz.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Sensor Library</h3>
+      <p>One-click presets for TMP102, TMP117, MCP9808, DS3231, INA219,
+        APDS-9301, PCF8591. Sensible defaults and unit-conversion math
+        pre-filled.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Cross-pin Math</h3>
+      <p>Derive a virtual channel from any expression of other channels.
+        Differential measurements, magnitude of XY pairs, unit
+        conversions, anything <code>new Function()</code> can compile.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Calibration Wizard</h3>
+      <p>Two-point fit. Apply a known reference, click CAPTURE LOW.
+        Apply the high reference, CAPTURE HIGH. PinScope computes slope
+        and offset and shows a live preview.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Scope Trigger</h3>
+      <p>Rising, falling, above, or below threshold. Configurable pre and
+        post windows. The chart freezes onto the captured event with a
+        red fire line and threshold marker.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Baseline &amp; Diff</h3>
+      <p>Load a previously captured run as a faded ghost trace overlay.
+        Toggle a live-minus-baseline diff trace on top. Catch
+        regressions between hardware revisions.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Scripted Automation</h3>
+      <p>A sandboxed JS subset for repeatable test sequences. Loops,
+        awaits, asserts, all blocked from touching anything outside the
+        device. Source auto-saves to the session.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Plugin System</h3>
+      <p>Load extensions that get their own panel on every device card.
+        Sandboxed iframes, postMessage bridge, persistent per-device
+        state. Four example plugins ship with the repo.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Session Diff</h3>
+      <p>Compare your current device's config against a saved JSON file.
+        Calibrations changed, alerts added or removed, scripts edited,
+        plugin state changed: see exactly what differs.</p>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <h2>Supported boards</h2>
+  <table>
+    <thead>
+      <tr><th>Board</th><th>Serial</th><th>BLE</th><th>WiFi / MQTT</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Arduino Uno R3 (any AVR)</td><td>Yes</td><td>No</td><td>Via bridge</td></tr>
+      <tr><td>Arduino Nano 33 IoT</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td>Arduino Uno R4 WiFi</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td>Arduino Uno Q</td><td>Yes</td><td>Experimental</td><td>Via bridge</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Any board that speaks the wire protocol over a transport PinScope
+    understands will work. The provided <code>pinscope.ino</code> firmware
+    detects the host MCU at compile time and adapts the ADC resolution,
+    name, and capability set automatically.
+  </p>
+</section>
+
+<section>
+  <h2>Quick start</h2>
+  <div class="code-label">SHELL</div>
+  <pre><code>git clone https://github.com/mbparks/pinscope.git
+cd pinscope
+open pinscope.html       # macOS
+xdg-open pinscope.html   # Linux
+start pinscope.html      # Windows</code></pre>
+  <p>
+    No install for the browser side. The Arduino firmwares need
+    arduino-cli or the Arduino IDE 2.x. See the
+    <a href="bringup.html">bring-up walkthrough</a> for board-specific
+    setup.
+  </p>
+</section>
+
+<section>
+  <h2>Design principles</h2>
+  <p>
+    PinScope is built around a few rules that produced everything else.
+    They are worth knowing if you want to extend it or fork it.
+  </p>
+  <ul>
+    <li><strong>One file, no build.</strong> <code>pinscope.html</code> is
+      around 6300 lines of HTML, CSS, and JavaScript in one document.
+      It has no runtime dependencies, fetches nothing, runs from
+      <code>file://</code> or any static server.</li>
+    <li><strong>Wire protocol is trivial.</strong> JSON objects, one per
+      line, over whatever transport you have. Any embedded developer can
+      speak it from a fresh sketch in an hour.</li>
+    <li><strong>The firmware is dumb.</strong> All visualization, math,
+      calibration, alerts, and analysis live in the browser. The board
+      just reads and writes pins and reports state.</li>
+    <li><strong>Sessions persist.</strong> Every device card's full
+      configuration, calibrations, alerts, math, plugin state, all of
+      it, round-trips through a JSON file. No surprises on reload.</li>
+    <li><strong>Plugins are sandboxed.</strong> Extensions run inside
+      iframes with no DOM access outside their panel. The host never
+      runs plugin code with privileges.</li>
+    <li><strong>The aesthetic is intentional.</strong> Amber on black,
+      monospace, dense, sparse. PinScope is a tool you use in the
+      garage at 11 PM with a soldering iron next to it. It should look
+      like one.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Learn more</h2>
+  <ul>
+    <li><a href="reference.html">Full feature reference</a></li>
+    <li><a href="plugins.html">Plugin API and example plugins</a></li>
+    <li><a href="bringup.html">Hardware bring-up walkthrough</a> (Arduino Uno Q on macOS)</li>
+    <li><a href="https://github.com/mbparks/pinscope">Source on GitHub</a></li>
+    <li><a href="https://github.com/mbparks/pinscope/blob/main/CONTRIBUTING.md">Contributing</a></li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  PinScope · Field Instrument 005 ·
+  <a href="https://github.com/mbparks/pinscope/blob/main/LICENSE">GPL-3.0-or-later</a> ·
+  Made by <a href="https://michaelbparks.com">M.B. Parks</a> at
+  <a href="https://greenshoe.garage">Green Shoe Garage</a>
+</footer>
+
+</body>
+</html>

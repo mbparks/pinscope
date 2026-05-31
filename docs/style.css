@@ -1,0 +1,494 @@
+/*
+ * PinScope docs site shared stylesheet
+ *
+ * Maintains the amber-on-dark "field instrument" aesthetic from pinscope.html
+ * with adjustments for long-form reading: larger body type, generous
+ * line-height, constrained content width, more whitespace.
+ *
+ * GPL-3.0-or-later
+ */
+
+:root {
+  --bg:            #0c0c0c;
+  --panel:         #161513;
+  --panel-2:       #1d1c19;
+  --panel-3:       #232220;
+  --line:          #2a2826;
+  --line-bright:   #3d3a36;
+  --amber:         #d4a017;
+  --amber-bright:  #f5b724;
+  --amber-dim:     #8a6914;
+  --amber-low:     #4a3a0a;
+  --muted:         #6b5e43;
+  --muted-dim:     #4a4133;
+  --text:          #d4c9a8;
+  --good:          #6ba368;
+  --bad:           #c9554d;
+
+  --font-display:  'Major Mono Display', 'JetBrains Mono', ui-monospace, monospace;
+  --font-mono:     'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --content-max:   780px;
+  --body-size:     15px;
+  --body-line:     1.7;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--body-size);
+  line-height: var(--body-line);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle CRT-style scanline gradient over the whole page for atmosphere */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(212, 160, 23, 0.01) 0px,
+    rgba(212, 160, 23, 0.01) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+a {
+  color: var(--amber);
+  text-decoration: none;
+  border-bottom: 1px solid var(--amber-low);
+  transition: color .1s, border-color .1s;
+}
+a:hover { color: var(--amber-bright); border-color: var(--amber); }
+
+/* === Header (every page) =================================================== */
+.site-head {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(12, 12, 12, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 24px;
+  display: flex; align-items: center; gap: 24px;
+}
+.site-head .brand {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--amber-bright);
+  letter-spacing: .06em;
+}
+.site-head .brand .sub {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  margin-top: 2px;
+}
+.site-head nav {
+  display: flex; gap: 18px;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+.site-head nav a {
+  color: var(--muted);
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+.site-head nav a:hover { color: var(--amber-bright); }
+.site-head nav a.current {
+  color: var(--amber);
+  border-bottom: 1px solid var(--amber-dim);
+}
+.site-head .spacer { flex: 1; }
+.site-head .github-link {
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: none;
+  padding: 4px 10px;
+  border: 1px solid var(--line-bright);
+  border-radius: 2px;
+}
+.site-head .github-link:hover {
+  color: var(--amber);
+  border-color: var(--amber-dim);
+}
+
+/* === Main content area ==================================================== */
+main {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+  position: relative; z-index: 1;
+}
+
+/* === Hero (landing page only) ============================================= */
+.hero {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 80px 24px 60px;
+  position: relative; z-index: 1;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: 56px;
+  letter-spacing: .04em;
+  color: var(--amber-bright);
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+.hero .tagline {
+  font-size: 11px;
+  letter-spacing: .4em;
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  margin-bottom: 32px;
+}
+.hero .lede {
+  font-size: 18px;
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 720px;
+  margin-bottom: 36px;
+}
+.hero .cta-row {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  margin-top: 12px;
+}
+.hero .cta {
+  display: inline-block;
+  padding: 12px 22px;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  border-bottom: none;
+}
+.hero .cta.primary {
+  background: rgba(212, 160, 23, 0.1);
+  border: 1px solid var(--amber);
+  color: var(--amber-bright);
+}
+.hero .cta.primary:hover {
+  background: rgba(212, 160, 23, 0.18);
+}
+.hero .cta.secondary {
+  border: 1px solid var(--line-bright);
+  color: var(--amber);
+}
+.hero .cta.secondary:hover {
+  border-color: var(--amber-dim);
+  color: var(--amber-bright);
+}
+
+/* === Section dividers ===================================================== */
+section + section { margin-top: 56px; }
+
+h1.page-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  color: var(--amber-bright);
+  margin-bottom: 6px;
+  letter-spacing: .04em;
+}
+.page-subtitle {
+  font-size: 11px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  margin-bottom: 40px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--amber);
+  letter-spacing: .04em;
+  margin: 48px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+h3 {
+  font-size: 13px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--amber-bright);
+  margin: 32px 0 12px;
+}
+h4 {
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  margin: 24px 0 10px;
+}
+
+p { margin: 0 0 18px; color: var(--text); }
+p.lede { font-size: 17px; color: var(--text); }
+
+ul, ol { margin: 0 0 18px 0; padding-left: 28px; color: var(--text); }
+li { margin-bottom: 6px; }
+li::marker { color: var(--amber-dim); }
+
+strong, b { color: var(--amber-bright); font-weight: 500; }
+em, i { color: var(--amber); font-style: normal; letter-spacing: .04em; }
+
+hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 48px 0;
+}
+
+/* === Code blocks ========================================================== */
+code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--panel);
+  color: var(--amber-bright);
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+pre {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 14px 18px;
+  overflow-x: auto;
+  margin: 0 0 24px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text);
+  font-size: inherit;
+}
+.code-label {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+/* === Tables =============================================================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 28px;
+  font-size: 13px;
+}
+th, td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+th {
+  color: var(--amber-dim);
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-bottom-color: var(--line-bright);
+}
+td code { font-size: 12px; }
+
+/* === Feature card grid (landing) ========================================== */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 32px 0;
+}
+.feature {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 18px 20px;
+  transition: border-color .15s, background .15s;
+}
+.feature:hover {
+  border-color: var(--amber-dim);
+  background: var(--panel-2);
+}
+.feature h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--amber);
+}
+.feature p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--text);
+}
+
+/* === Callout boxes ======================================================== */
+.callout {
+  background: var(--panel);
+  border-left: 2px solid var(--amber-dim);
+  padding: 14px 20px;
+  margin: 24px 0;
+  font-size: 14px;
+}
+.callout .callout-label {
+  font-size: 9px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  margin-bottom: 6px;
+  display: block;
+}
+.callout p:last-child { margin-bottom: 0; }
+.callout.warn { border-left-color: var(--bad); }
+.callout.warn .callout-label { color: var(--bad); }
+
+/* === Inline meta strip (page-level metadata pill row) ===================== */
+.meta-strip {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 32px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.meta-strip .pill {
+  padding: 3px 8px;
+  border: 1px solid var(--line-bright);
+  border-radius: 2px;
+  color: var(--amber-dim);
+}
+
+/* === TOC for the reference page =========================================== */
+.toc {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 14px 20px;
+  margin: 0 0 40px;
+  font-size: 12px;
+  columns: 2;
+  column-gap: 28px;
+}
+.toc-title {
+  font-size: 9px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  margin-bottom: 10px;
+  column-span: all;
+}
+.toc a {
+  display: block;
+  padding: 3px 0;
+  color: var(--text);
+  border-bottom: none;
+  break-inside: avoid;
+}
+.toc a:hover { color: var(--amber-bright); }
+
+/* === Bring-up phase styling (bringup.html) ================================ */
+.phase {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  position: relative;
+}
+.phase-head {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.phase-num {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--amber-bright);
+  letter-spacing: .04em;
+  line-height: 1;
+}
+.phase-title {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin: 0;
+}
+.phase-expected {
+  font-size: 12px;
+  color: var(--good);
+  background: rgba(107, 163, 104, 0.08);
+  border-left: 2px solid var(--good);
+  padding: 10px 14px;
+  margin: 16px 0;
+}
+.phase-expected .label {
+  font-size: 9px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--good);
+  display: block;
+  margin-bottom: 4px;
+}
+.phase-failure {
+  font-size: 13px;
+  color: var(--text);
+  margin: 14px 0;
+}
+.phase-failure h4 {
+  color: var(--bad);
+  margin-top: 14px;
+}
+
+/* === Footer =============================================================== */
+.site-foot {
+  border-top: 1px solid var(--line);
+  padding: 32px 24px;
+  margin-top: 80px;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+  text-align: center;
+  position: relative; z-index: 1;
+}
+.site-foot a {
+  color: var(--muted);
+  border-bottom: none;
+}
+.site-foot a:hover { color: var(--amber); }
+
+/* === Responsive =========================================================== */
+@media (max-width: 720px) {
+  .hero h1 { font-size: 36px; }
+  .hero .lede { font-size: 16px; }
+  .site-head { padding: 12px 16px; gap: 14px; flex-wrap: wrap; }
+  .site-head nav { gap: 12px; font-size: 10px; }
+  main { padding: 32px 16px 64px; }
+  .toc { columns: 1; }
+  table { font-size: 12px; }
+  th, td { padding: 6px 8px; }
+}

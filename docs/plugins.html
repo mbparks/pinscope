@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Plugins · PinScope</title>
+  <meta name="description" content="Plugin API, security model, and example plugins for PinScope.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-head">
+  <a href="./" class="brand">PINSCOPE<span class="sub">Field Instrument 005</span></a>
+  <nav>
+    <a href="./">Home</a>
+    <a href="reference.html">Reference</a>
+    <a href="plugins.html" class="current">Plugins</a>
+    <a href="bringup.html">Bring-up</a>
+  </nav>
+  <div class="spacer"></div>
+  <a href="https://github.com/mbparks/pinscope" class="github-link">GitHub</a>
+</header>
+
+<main>
+
+<h1 class="page-title">Plugins</h1>
+<div class="page-subtitle">Sandboxed extensions for device cards</div>
+
+<section>
+  <p class="lede">
+    PinScope supports user-loaded extensions. Each plugin gets a panel
+    on every device card and runs inside a sandboxed iframe with no
+    network, no DOM access outside its own body, no
+    <code>localStorage</code> of its own. Communication with the host
+    happens through <code>postMessage</code> over a per-instance
+    bridge id.
+  </p>
+</section>
+
+<section>
+  <h2>Loading a plugin</h2>
+  <p>
+    Open the manager with the PLUGINS button on the rail, or press
+    <code>P</code>. Paste plugin source or load it from a file, give
+    it a name, click LOAD.
+  </p>
+  <p>
+    Loaded plugins persist in <code>localStorage</code> under the key
+    <code>pinscope.plugins.v1</code> and re-mount automatically the
+    next time the page opens. The checkbox next to each loaded plugin
+    toggles enable; REMOVE deletes it entirely.
+  </p>
+</section>
+
+<section>
+  <h2>API contract</h2>
+  <p>
+    Inside the sandbox iframe, plugins call
+    <code>PinScope.register({...})</code> exactly once with these
+    fields:
+  </p>
+  <div class="code-label">PLUGIN SHAPE</div>
+  <pre><code>PinScope.register({
+  id:       'my-plugin',      // unique alphanumeric identifier
+  name:     'My Plugin',      // human label shown in the panel head
+  version:  '1.0',            // any string
+  onInit(api)         { /* called once after registration */ },
+  onState(state, api) { /* called for every state packet  */ },
+  onDestroy()         { /* called on disconnect or disable */ },
+});</code></pre>
+  <p>
+    The <code>state</code> argument matches the wire protocol packet:
+    <code>{ d: [14], a: [6], v: [4], f: [14], m: [14], t: timestamp }</code>.
+  </p>
+</section>
+
+<section>
+  <h2>The api object</h2>
+  <table>
+    <thead><tr><th>Method</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>api.send(obj)</code></td><td>send a wire-protocol command (subject to the same validation user actions go through)</td></tr>
+      <tr><td><code>api.getState()</code></td><td>returns a Promise resolving to a state snapshot</td></tr>
+      <tr><td><code>api.log(msg)</code></td><td>prints to the host's developer console</td></tr>
+      <tr><td><code>api.render(html)</code></td><td>replaces the plugin panel body with HTML (script tags stripped, defense in depth)</td></tr>
+      <tr><td><code>api.renderSVG(svgText)</code></td><td>same but without script stripping, for trusted SVG content</td></tr>
+      <tr><td><code>api.persist(key, value)</code></td><td>save plugin state to the session; survives reload and export</td></tr>
+      <tr><td><code>api.recall(key)</code></td><td>returns a Promise resolving to a previously persisted value</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Persistence round-trip</h2>
+  <p>
+    Anything a plugin writes through <code>api.persist</code> lands
+    in <code>device.pluginState[plugin.id][key]</code> on the host
+    and is part of the session snapshot. Plugin state survives:
+  </p>
+  <ul>
+    <li>page reload (via localStorage autosave, 400 ms debounce)</li>
+    <li>session EXPORT to JSON file</li>
+    <li>session IMPORT from JSON file (plugins are force-remounted so
+      <code>onInit</code> re-reads via <code>api.recall()</code>)</li>
+  </ul>
+  <div class="callout">
+    <span class="callout-label">Gotcha</span>
+    <p>Always read persisted state in <code>onInit</code>, never cache
+    it from a previous lifecycle. Plugins are torn down and remounted
+    on session import.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Example plugins</h2>
+  <p>
+    Four plugins ship with the repo under <code>plugins/</code>. They
+    progress from "minimal" to "full API workout."
+  </p>
+
+  <h3>hello.js (28 lines)</h3>
+  <p>
+    The simplest possible plugin. Prints A0 with an ASCII bar. Useful
+    as a template for new plugins.
+  </p>
+  <pre><code>PinScope.register({
+  id: 'hello',
+  name: 'Hello World',
+  version: '1.0',
+
+  onInit(api) {
+    api.render('&lt;p&gt;waiting for first state packet...&lt;/p&gt;');
+  },
+
+  onState(state, api) {
+    const a0 = state.a[0];
+    const bars = '█'.repeat(Math.floor(a0 / 100));
+    api.render(
+      '&lt;h3&gt;A0 LIVE&lt;/h3&gt;' +
+      '&lt;p&gt;' + a0 + ' / 1023&lt;/p&gt;' +
+      '&lt;p style="color:#f5b724"&gt;' + bars + '&lt;/p&gt;'
+    );
+  },
+});</code></pre>
+
+  <h3>gauge.js (73 lines)</h3>
+  <p>
+    An SVG arc gauge for any analog pin. Demonstrates
+    <code>renderSVG</code> (which bypasses the script stripper for
+    trusted SVG content), <code>persist</code> / <code>recall</code>
+    for the selected pin, and a button group rendered into the
+    plugin's own DOM.
+  </p>
+
+  <h3>servo-sweep.js (71 lines)</h3>
+  <p>
+    Drives a PWM pin in a slow triangle wave. Demonstrates
+    <code>api.send</code> to issue wire-protocol commands and a small
+    UI with selectable PWM pin and start/stop controls.
+  </p>
+
+  <h3>field-notes.js (145 lines)</h3>
+  <p>
+    A persistent notebook attached to the device card. Free-form notes
+    textarea plus a list of timestamped "moments" that snapshot the
+    current state with optional labels. Demonstrates the full
+    <code>persist</code> / <code>recall</code> round-trip for both
+    simple (string) and complex (array of objects) value types.
+  </p>
+  <p>
+    The recommended starting point for "useful" plugins, since
+    notebooks are something most users want and the plugin doubles as
+    a worked example of the API.
+  </p>
+</section>
+
+<section>
+  <h2>Security model</h2>
+  <p>
+    The iframe sandbox is <code>sandbox="allow-scripts"</code> only.
+    The lack of <code>allow-same-origin</code> is deliberate and
+    blocks the iframe from reaching the parent document, navigating
+    the top frame, or making same-origin network requests. The bridge
+    id is randomized per instance, so a malicious plugin can't
+    impersonate another plugin's messages.
+  </p>
+  <p>
+    User-supplied plugin source is embedded into the iframe via
+    <code>JSON.stringify</code> and run with <code>eval</code> inside
+    the sandbox, which prevents template-literal breakout attacks on
+    the host. The closing <code>script&gt;</code> tag in the srcdoc
+    is split across two string concatenations so the host HTML parser
+    doesn't terminate the outer script block early.
+  </p>
+  <h3>What plugins cannot do, by design</h3>
+  <ul>
+    <li>see other plugins' iframes</li>
+    <li>read the host's <code>localStorage</code></li>
+    <li>access <code>fetch</code>, <code>XMLHttpRequest</code>, or
+      any network primitive</li>
+    <li>modify other device cards</li>
+    <li>override built-in PinScope behavior</li>
+  </ul>
+  <p>
+    Wire commands route through the same <code>device.send()</code>
+    path as user actions, so any abuse appears in the Wire Log and
+    can be paused or audited.
+  </p>
+  <div class="callout warn">
+    <span class="callout-label">Caveat</span>
+    <p>Plugin source is still user-trusted code. PinScope sandboxes
+    plugins against affecting the host, but a plugin you load can
+    issue any wire command the firmware accepts. Treat plugin source
+    like any other code you run on your hardware.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Writing your own</h2>
+  <p>
+    Start from <code>plugins/hello.js</code>. Replace the
+    <code>onState</code> body with whatever you want to show. The
+    sandbox iframe's body is yours to draw into. The styles inside
+    the iframe inherit a sensible default (amber on dark, monospace,
+    small padding) but you can override them with your own
+    <code>&lt;style&gt;</code> blocks.
+  </p>
+  <p>
+    A few patterns that work well:
+  </p>
+  <ul>
+    <li><strong>Stateful UI</strong>: keep state on <code>this</code>
+      and re-render in <code>onState</code> by reading the latest
+      <code>state</code> argument.</li>
+    <li><strong>Persistent settings</strong>: read with
+      <code>api.recall</code> in <code>onInit</code>, write with
+      <code>api.persist</code> on user input.</li>
+    <li><strong>Event handlers</strong>: re-attach every render. The
+      sandbox's DOM is small enough that re-binding is cheaper than
+      tracking node identity.</li>
+    <li><strong>HTML escaping</strong>: <code>api.render</code> is
+      raw HTML by design. Escape user-typed strings before
+      interpolating them.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Plugin development workflow</h2>
+  <ol>
+    <li>Write the plugin in a <code>.js</code> file in your editor.</li>
+    <li>Open <code>pinscope.html</code> in the browser.</li>
+    <li>Press <code>P</code>, click FROM FILE, pick your file. The
+      plugin loads with the file's stem as its id.</li>
+    <li>Connect a device. Your plugin's panel appears at the bottom
+      of the device card.</li>
+    <li>Iterate: edit the file, hit REMOVE in the plugin manager,
+      reload the file. Hot-reload is on the roadmap but not shipped
+      yet.</li>
+  </ol>
+  <p>
+    Source is plain JS. Use whatever debugger you'd use for any
+    sandboxed iframe (DevTools shows the iframe as a separate
+    execution context).
+  </p>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  PinScope · Field Instrument 005 ·
+  <a href="https://github.com/mbparks/pinscope/blob/main/LICENSE">GPL-3.0-or-later</a> ·
+  Made by <a href="https://michaelbparks.com">M.B. Parks</a> at
+  <a href="https://greenshoe.garage">Green Shoe Garage</a>
+</footer>
+
+</body>
+</html>

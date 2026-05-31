@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Bring-up · PinScope</title>
+  <meta name="description" content="Phase-by-phase walkthrough for bringing PinScope up on an Arduino Uno Q on macOS.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-head">
+  <a href="./" class="brand">PINSCOPE<span class="sub">Field Instrument 005</span></a>
+  <nav>
+    <a href="./">Home</a>
+    <a href="reference.html">Reference</a>
+    <a href="plugins.html">Plugins</a>
+    <a href="bringup.html" class="current">Bring-up</a>
+  </nav>
+  <div class="spacer"></div>
+  <a href="https://github.com/mbparks/pinscope" class="github-link">GitHub</a>
+</header>
+
+<main>
+
+<h1 class="page-title">Bring-up</h1>
+<div class="page-subtitle">Arduino Uno Q on macOS, phase by phase</div>
+
+<section>
+  <p class="lede">
+    This walkthrough covers bringing PinScope up on real hardware. It is
+    tailored to the Arduino Uno Q on macOS, but most phases apply to any
+    supported board. Each phase has a clear pass criterion. When
+    something fails, capture the exact symptom (error text, screenshot,
+    output) and work backwards from there.
+  </p>
+  <div class="callout">
+    <span class="callout-label">Why this matters</span>
+    <p>
+      The Uno Q is the most uncertain target because its MCU runs Arduino
+      sketches under Zephyr OS via <code>arduino:zephyr:unoq</code>, not
+      bare-metal classic Arduino. The serial firmware
+      (<code>pinscope.ino</code>) has compile-time guards for this, but
+      runtime behavior of <code>attachInterrupt</code>,
+      <code>Wire.h</code>, and <code>analogReadResolution</code> can
+      still surprise. Go slowly and verify at each layer.
+    </p>
+  </div>
+</section>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">00</span>
+    <h2 class="phase-title">Hardware sanity</h2>
+  </div>
+  <p>Before anything software-related:</p>
+  <ul>
+    <li>Uno Q powered up via USB-C, both LEDs near the USB port lit</li>
+    <li>The board enumerates in <code>System Information &gt; USB</code></li>
+    <li><code>ls /dev/cu.usbmodem*</code> in Terminal lists at least one device</li>
+  </ul>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    At least one <code>/dev/cu.usbmodem*</code> device appears.
+  </div>
+  <div class="phase-failure">
+    <h4>Likely failure modes</h4>
+    <ul>
+      <li>No device shows up: try a different USB-C cable. Many cables
+        are charge-only and don't carry data.</li>
+      <li>Device disappears after a few seconds: power delivery issue.
+        Try a different port or a powered hub.</li>
+      <li>Two devices show up: the Uno Q exposes both the Qualcomm
+        Linux side and the STM32U585 MCU side. Both are normal.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">01</span>
+    <h2 class="phase-title">Tooling install</h2>
+  </div>
+  <h3>Option A: Arduino IDE 2.x</h3>
+  <ul>
+    <li>Download Arduino IDE 2.x from arduino.cc (not legacy 1.x)</li>
+    <li>Tools &gt; Board &gt; Boards Manager: search "uno q"</li>
+    <li>Install the matching package (exact name varies; expect
+      something like <code>arduino:zephyr</code>)</li>
+    <li>Tools &gt; Board &gt; Arduino UNO Q</li>
+    <li>Tools &gt; Port: pick the matching <code>/dev/cu.usbmodem*</code></li>
+  </ul>
+  <h3>Option B: arduino-cli</h3>
+  <pre><code>brew install arduino-cli
+arduino-cli core update-index
+arduino-cli core search uno
+arduino-cli core install arduino:zephyr
+arduino-cli board listall | grep -i "uno q"</code></pre>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    The board shows up in the board list with FQBN
+    <code>arduino:zephyr:unoq</code>.
+  </div>
+  <div class="phase-failure">
+    <h4>Likely failure modes</h4>
+    <ul>
+      <li>"Board not found" after install: Boards Manager may not yet
+        expose Uno Q via the public catalog. Workaround: install
+        Arduino App Lab from arduino.cc.</li>
+      <li>arduino-cli too old: <code>brew upgrade arduino-cli</code>.
+        Anything older than 1.0.0 won't recognize the Zephyr core.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">02</span>
+    <h2 class="phase-title">Compile the serial firmware</h2>
+  </div>
+  <p>
+    First real test. Not flashing yet, just confirming the sketch
+    compiles against the Zephyr-based Uno Q core.
+    <code>pinscope.ino</code> has board-detection macros that set
+    <code>PINSCOPE_ADC_BITS = 12</code> and the right board name for
+    Uno Q automatically. No manual edits should be needed.
+  </p>
+  <pre><code>cd pinscope
+scripts/compile.sh pinscope.ino arduino:zephyr:unoq</code></pre>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    Clean compile, no errors. Note the sketch size in the output.
+  </div>
+  <div class="phase-failure">
+    <h4>Likely failure modes</h4>
+    <ul>
+      <li><code>attachInterrupt</code> or
+        <code>digitalPinToInterrupt</code> undefined: the Zephyr core
+        is supposed to expose the classic Arduino interrupt API. If
+        not, FREQ mode needs another guard.</li>
+      <li><code>Wire.h</code> not found: should be bundled, but if
+        Zephyr renames it (e.g. <code>ZephyrI2C.h</code>), conditional
+        include needed.</li>
+      <li><code>analogReadResolution(12)</code> undefined: the
+        <code>PINSCOPE_SET_ADC_RES</code> macro guards the call so we
+        can flip it to 0 for boards that don't support it.</li>
+      <li>"Sketch too big" or "no upload protocol": library or board
+        config mismatch.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">03</span>
+    <h2 class="phase-title">Flash</h2>
+  </div>
+  <pre><code>arduino-cli upload \
+  -p /dev/cu.usbmodemXXXX \
+  --fqbn arduino:zephyr:unoq \
+  /path/to/sketch</code></pre>
+  <p>Or from the IDE: hit the arrow (Upload).</p>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    Upload completes, board reboots. On-board LED behavior may
+    briefly change.
+  </div>
+  <div class="phase-failure">
+    <h4>Likely failure modes</h4>
+    <ul>
+      <li>1200-bps touch fails: double-tap the reset button on the
+        board to force bootloader mode, then upload.</li>
+      <li>"Port not found" mid-upload: macOS sometimes reassigns the
+        <code>/dev/cu.usbmodem*</code> number after a reboot. Re-run
+        <code>ls /dev/cu.usbmodem*</code>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">04</span>
+    <h2 class="phase-title">Serial monitor smoke test</h2>
+  </div>
+  <p>
+    Don't open PinScope yet. First confirm the firmware boots and
+    emits sensible output.
+  </p>
+  <ul>
+    <li>Open Serial Monitor at 115200 baud (or
+      <code>screen /dev/cu.usbmodemXXXX 115200</code>)</li>
+    <li>Send <code>{"cmd":"hello"}</code> + Enter</li>
+  </ul>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    <pre style="margin-top:8px;background:transparent;border:none;padding:0"><code>{"t":"hello","id":"FI005-XXXX","name":"Arduino Uno Q","hz":10,"adcMax":4095}
+{"t":"state","d":[0,0,0,...],"a":[N,N,...],...}</code></pre>
+    The <code>adcMax:4095</code> indicates 12-bit ADC reporting. State
+    packets follow every ~100 ms.
+  </div>
+  <div class="phase-failure">
+    <h4>Likely failure modes</h4>
+    <ul>
+      <li>Nothing at all: serial isn't connecting. Check baud (must be
+        115200), port, that nothing else is holding the port open.</li>
+      <li>Garbled text: the firmware came up but at a different baud.
+        Try 9600 or 921600.</li>
+      <li>Only <code>state</code> lines, no <code>hello</code>: the
+        firmware is alive but missed your command. Try
+        <code>{"cmd":"poll"}</code> to confirm command parsing.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">05</span>
+    <h2 class="phase-title">PinScope console connect</h2>
+  </div>
+  <ul>
+    <li>Open <code>pinscope.html</code> in Chrome or Edge</li>
+    <li>Click SERIAL</li>
+    <li>Pick the same <code>/dev/cu.usbmodem*</code> from the picker</li>
+    <li>Allow access</li>
+  </ul>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    Within a second, a device card appears titled "Arduino Uno Q"
+    with an id like <code>FI005-XXXX</code>, tx/rx counters ticking,
+    analog channel bars for A0-A5 wiggling.
+  </div>
+  <div class="phase-failure">
+    <h4>Likely failure modes</h4>
+    <ul>
+      <li>Picker shows no devices: Web Serial requires HTTPS or
+        <code>file://</code>. Open the HTML file from disk, not
+        <code>http://</code>. Chromium-only.</li>
+      <li>"Connection failed": another process has the port open.
+        Close the Arduino IDE Serial Monitor and try again.</li>
+      <li>No state updates: tx counter goes up, rx stays at zero. The
+        browser is sending but the firmware isn't responding. Re-check
+        Phase 4.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">06</span>
+    <h2 class="phase-title">Pin control round-trip</h2>
+  </div>
+  <p>First real interactive test:</p>
+  <ul>
+    <li>Click D13's mode badge until it reads OUT</li>
+    <li>Click the toggle button. The on-board user LED should light</li>
+    <li>Click again, LED off</li>
+  </ul>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    LED responds to clicks within ~100 ms.
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">07</span>
+    <h2 class="phase-title">Analog + strip chart</h2>
+  </div>
+  <ul>
+    <li>Click the A0 chip in the trace selector under the strip chart</li>
+    <li>Touch A0 with your finger (picks up ~60 Hz hum)</li>
+    <li>Connect A0 to ground briefly: trace drops to 0</li>
+    <li>Connect A0 to 3.3V: trace pegs</li>
+  </ul>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    Trace responds instantly, values match expected scale (0-4095 for
+    Uno Q's 12-bit ADC, since the hello packet's <code>adcMax</code>
+    drove the auto-detect).
+  </div>
+  <div class="phase-failure">
+    <h4>Likely failure modes</h4>
+    <ul>
+      <li>Flat line at 0 or 4095: ADC isn't being read, or
+        <code>analogRead(A0+i)</code> doesn't work on this board.</li>
+      <li>Values stuck in 0-1023 range when board should be 12-bit:
+        <code>adcMax</code> in the hello packet didn't propagate.
+        Manually click the "12" toggle as a workaround and tell me
+        (that's a real bug to fix).</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">08</span>
+    <h2 class="phase-title">PWM</h2>
+  </div>
+  <ul>
+    <li>Click D11 mode badge to cycle to PWM</li>
+    <li>Drag the slider from 0 to 255</li>
+    <li>With an LED + resistor on D11, watch the brightness ramp</li>
+  </ul>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    Smooth ramp, no flicker steps.
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">09</span>
+    <h2 class="phase-title">FREQ mode</h2>
+  </div>
+  <ul>
+    <li>Wire D2 to D11 with a jumper (D11 still in PWM from Phase 8)</li>
+    <li>Cycle D2's mode to FREQ</li>
+    <li>D2's face should show a Hz reading</li>
+  </ul>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    Hz value matches PWM frequency on the Uno Q.
+  </div>
+  <div class="phase-failure">
+    <h4>Likely failure modes</h4>
+    <ul>
+      <li>"no interrupt on pin": <code>digitalPinToInterrupt(2)</code>
+        returned <code>NOT_AN_INTERRUPT</code>. Try D3. If all pins
+        fail, the Zephyr core doesn't expose the classic interrupt
+        API and FREQ needs a native implementation.</li>
+      <li>"0 Hz" persistently: ISR is attached but never firing. Edge
+        polarity or signal-level issue.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">10</span>
+    <h2 class="phase-title">I2C scan</h2>
+  </div>
+  <p>Skip this if you don't have a Qwiic device handy.</p>
+  <ul>
+    <li>Wire SDA/SCL/GND/3V3 to an I2C device (BME280, MPU6050, etc.)</li>
+    <li>Click SCAN BUS</li>
+    <li>Grid should highlight the address(es)</li>
+  </ul>
+  <div class="phase-expected">
+    <span class="label">Pass criterion</span>
+    At least one address lights up.
+  </div>
+  <div class="phase-failure">
+    <h4>Likely failure modes</h4>
+    <ul>
+      <li>Empty scan: wiring (pull-ups? supply voltage? SDA/SCL
+        swapped?), or Wire library on Uno Q uses different default
+        pins.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">11</span>
+    <h2 class="phase-title">Session save + replay</h2>
+  </div>
+  <p>Non-hardware sanity checks:</p>
+  <ul>
+    <li>Set up a couple of pins, calibrate A0, add a threshold alert</li>
+    <li>Click EXPORT, save the JSON file</li>
+    <li>Reload <code>pinscope.html</code></li>
+    <li>Reconnect, confirm the session restored from localStorage</li>
+    <li>Click CAPTURE, disconnect, click REPLAY, pick the JSON</li>
+    <li>A <code>[replay]</code> card appears with the captured trace looping</li>
+  </ul>
+</div>
+
+<section>
+  <h2>What success looks like</h2>
+  <p>
+    Phases 1-8 all green means the core PinScope experience works on
+    Uno Q. Phases 9-11 are bonus and tell you how complete the
+    Zephyr-core compatibility is.
+  </p>
+  <p>After bring-up, possible next steps:</p>
+  <ul>
+    <li>Patching <code>pinscope.ino</code> for any Uno Q quirks you found</li>
+    <li>Updating the README to remove "experimental" from the Uno Q claim</li>
+    <li>BLE bring-up on Uno Q (or punt to a more confirmed BLE target like Nano 33 IoT)</li>
+    <li>A short blog post or video walkthrough</li>
+  </ul>
+</section>
+
+<section>
+  <h2>When you get stuck</h2>
+  <p>
+    The structure of a useful bug report:
+  </p>
+  <ol>
+    <li>Which phase you got to</li>
+    <li>What the expected pass criterion was</li>
+    <li>What actually happened (exact text or screenshot)</li>
+    <li>The relevant Wire Log entries if any</li>
+  </ol>
+  <p>
+    File at <a href="https://github.com/mbparks/pinscope/issues">github.com/mbparks/pinscope/issues</a>.
+  </p>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  PinScope · Field Instrument 005 ·
+  <a href="https://github.com/mbparks/pinscope/blob/main/LICENSE">GPL-3.0-or-later</a> ·
+  Made by <a href="https://michaelbparks.com">M.B. Parks</a> at
+  <a href="https://greenshoe.garage">Green Shoe Garage</a>
+</footer>
+
+</body>
+</html>
