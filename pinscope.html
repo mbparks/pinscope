@@ -606,6 +606,64 @@
   }
   .rgb-hint{font-size:10px;color:var(--muted-dim);font-style:italic;letter-spacing:.08em}
 
+  /* === SESSION DIFF MODAL =============================================== */
+  .diff-box{max-width:900px;width:92vw;max-height:88vh;display:flex;flex-direction:column}
+  .diff-body{
+    flex:1;overflow-y:auto;padding:4px 0;max-height:70vh;
+  }
+  .diff-header{
+    font-size:10.5px;color:var(--muted);line-height:1.7;
+    background:#0a0a09;border:1px solid var(--line);padding:8px 12px;
+    border-radius:2px;margin-bottom:12px;
+  }
+  .diff-header b{color:var(--amber-dim);letter-spacing:.1em}
+  .diff-summary{
+    font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber-dim);
+    margin-bottom:8px;
+  }
+  .diff-clean{
+    color:#6ba368;font-size:12px;font-style:italic;padding:18px;text-align:center;
+    background:#0a0a09;border:1px solid var(--line);border-radius:2px;
+  }
+  .diff-section{
+    background:#0a0a09;border:1px solid var(--line);border-radius:2px;
+    padding:10px 14px;margin-bottom:10px;
+  }
+  .diff-section h3{
+    margin:0 0 8px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--amber-bright);font-weight:500;
+  }
+  .diff-sub{
+    font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-dim);
+    margin:6px 0 4px;
+  }
+  .diff-table{width:100%;border-collapse:collapse;font-size:10.5px;margin:4px 0}
+  .diff-table td{padding:3px 8px;vertical-align:top;border-bottom:1px solid #1a1816}
+  .diff-table tr:last-child td{border-bottom:none}
+  .diff-label{color:var(--muted);min-width:120px}
+  .diff-cur{color:#c9554d;font-family:'JetBrains Mono',monospace}
+  .diff-oth{color:#6ba368;font-family:'JetBrains Mono',monospace}
+  .diff-arrow{color:var(--muted-dim);width:20px;text-align:center}
+  .diff-list{margin:4px 0 8px;padding-left:18px;font-size:10.5px;color:var(--text)}
+  .diff-list li{margin:3px 0;line-height:1.5}
+  .diff-key{
+    color:var(--amber-dim);font-family:'JetBrains Mono',monospace;
+    letter-spacing:.04em;margin-right:6px;
+  }
+  .diff-trace-row{display:flex;flex-wrap:wrap;gap:6px;font-size:10.5px;padding:2px 0}
+  .diff-trace-row code{
+    background:#161513;color:var(--amber);padding:2px 6px;border:1px solid var(--line);
+    border-radius:2px;
+  }
+  .diff-text{
+    background:#0a0a09;border:1px solid var(--line);padding:8px 10px;border-radius:2px;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.5;
+    max-height:300px;overflow:auto;white-space:pre;margin:0;
+  }
+  .diff-eq{color:var(--muted)}
+  .diff-add{color:#6ba368;background:rgba(107,163,104,.06);display:inline-block;width:100%}
+  .diff-del{color:#c9554d;background:rgba(201,85,77,.06);display:inline-block;width:100%}
+
   /* === PLUGIN MANAGER =================================================== */
   .plugin-box{max-width:760px;width:90vw}
   .plugin-list-wrap{
@@ -1632,6 +1690,13 @@ class Device extends EventTarget {
       if (msg.id)   this.id   = msg.id;
       if (msg.name) this.name = msg.name;
       if (typeof msg.hz === 'number') this.hz = msg.hz;
+      // Some firmwares announce their ADC bit width via adcMax. Honoring it
+      // means the strip chart's percent scale and the analog bar widths line
+      // up with the board's real readings without the user toggling 10/12.
+      if (typeof msg.adcMax === 'number' && msg.adcMax > 0) {
+        this.adcMax = msg.adcMax;
+        this.emit('adcChange');
+      }
       this.emit('identified');
     } else if (msg.t === 'state') {
       if (Array.isArray(msg.d)) this.digital   = msg.d.slice(0, DIGITAL_COUNT);
@@ -4607,7 +4672,7 @@ class SessionManager {
       postMs:    trig.postMs,
     } : null;
     return {
-      version:       '1.2',
+      version:       '1.3',
       tool:          'pinscope',
       deviceId:      d.id,
       deviceName:    d.name,
@@ -4628,6 +4693,7 @@ class SessionManager {
       rgb:           d.rgb,
       trigger:       triggerCfg,
       script:        this.card.scriptPanel?.ta.value || '',
+      pluginState:   d.pluginState || {},
     };
   }
 
@@ -4709,6 +4775,11 @@ class SessionManager {
     if (typeof data.script === 'string' && this.card.scriptPanel) {
       this.card.scriptPanel.ta.value = data.script;
     }
+    if (data.pluginState && typeof data.pluginState === 'object') {
+      this.device.pluginState = JSON.parse(JSON.stringify(data.pluginState));
+      // Force remount so each plugin's onInit re-reads the restored state.
+      this.card.refreshPlugins({ force: true });
+    }
     this.card.refreshHead();
     this.card.refreshState();
     this.card.refreshHz();
@@ -4758,7 +4829,348 @@ class SessionManager {
       input.click();
     });
   }
+
+  async diffFile() {
+    const input = el('input', { type: 'file', accept: 'application/json,.json' });
+    input.style.display = 'none';
+    document.body.append(input);
+    return new Promise((resolve) => {
+      input.addEventListener('change', async () => {
+        const file = input.files?.[0];
+        input.remove();
+        if (!file) { resolve(); return; }
+        try {
+          const text  = await file.text();
+          const other = JSON.parse(text);
+          if (other.tool !== 'pinscope') {
+            toast('Not a PinScope session file', 'err');
+            resolve();
+            return;
+          }
+          const diff = computeSessionDiff(this.snapshot(), other, file.name);
+          SessionDiffModal.open(diff);
+        } catch (e) {
+          toast('Failed to read session file: ' + e.message, 'err');
+        }
+        resolve();
+      });
+      input.click();
+    });
+  }
 }
+
+/* === SESSION DIFF =========================================================
+   Compare the current device's session snapshot against another one
+   loaded from a JSON file. Produces a structured diff object that
+   SessionDiffModal renders as a human-readable report.
+
+   Sections compared (any of these can be added, removed, or changed):
+     - alias, ADC resolution, sample rate
+     - per-pin calibrations
+     - threshold alerts
+     - active strip chart traces
+     - I2C poll configurations
+     - cross-pin math expressions
+     - RGB LED config
+     - trigger configuration
+     - scripted automation source (unified-ish diff)
+     - plugin state (deep equality per plugin)
+*/
+function computeSessionDiff(current, other, filename) {
+  const sections = [];
+  const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+  // Top-level scalars
+  const scalars = [
+    { key: 'alias',     label: 'Alias' },
+    { key: 'adcMax',    label: 'ADC resolution' },
+    { key: 'hz',        label: 'Sample rate (Hz)' },
+    { key: 'deviceName', label: 'Device name' },
+  ];
+  const scalarChanges = [];
+  for (const s of scalars) {
+    if (!eq(current[s.key], other[s.key])) {
+      scalarChanges.push({ label: s.label, current: current[s.key], other: other[s.key] });
+    }
+  }
+  if (scalarChanges.length > 0) {
+    sections.push({ title: 'Basic settings', kind: 'scalars', changes: scalarChanges });
+  }
+
+  // Calibrations (objects keyed by pin id)
+  const calChanges = diffKeyedObject(current.calibrations || {}, other.calibrations || {});
+  if (calChanges.added.length + calChanges.removed.length + calChanges.changed.length > 0) {
+    sections.push({ title: 'Calibrations', kind: 'keyed', ...calChanges });
+  }
+
+  // Alerts (array; key by pin+condition+value to identify "same alert")
+  const alertChanges = diffArrayByKey(
+    current.alerts || [], other.alerts || [],
+    (a) => `${a.pin}|${a.condition}|${a.value}`,
+  );
+  if (alertChanges.added.length + alertChanges.removed.length + alertChanges.changed.length > 0) {
+    sections.push({ title: 'Threshold alerts', kind: 'array', ...alertChanges });
+  }
+
+  // I2C poll configurations (array of { slot, addr, reg, count, hz, signed })
+  const i2cChanges = diffArrayByKey(
+    current.i2cConfigs || [], other.i2cConfigs || [],
+    (c) => 'slot:' + c.slot,
+  );
+  if (i2cChanges.added.length + i2cChanges.removed.length + i2cChanges.changed.length > 0) {
+    sections.push({ title: 'I2C poll slots', kind: 'array', ...i2cChanges });
+  }
+
+  // Math expressions (array of { slot, expr })
+  const mathChanges = diffArrayByKey(
+    current.mathExprs || [], other.mathExprs || [],
+    (m) => 'slot:' + m.slot,
+  );
+  if (mathChanges.added.length + mathChanges.removed.length + mathChanges.changed.length > 0) {
+    sections.push({ title: 'Cross-pin math', kind: 'array', ...mathChanges });
+  }
+
+  // Strip chart active traces (array of strings, treated as a set)
+  const curTraces = new Set(current.tracesActive || []);
+  const othTraces = new Set(other.tracesActive || []);
+  const tracesAdded   = [...othTraces].filter((t) => !curTraces.has(t));   // in other but not current
+  const tracesRemoved = [...curTraces].filter((t) => !othTraces.has(t));   // in current but not other
+  if (tracesAdded.length + tracesRemoved.length > 0) {
+    sections.push({
+      title: 'Active traces',
+      kind: 'traces',
+      // "added" from the perspective of "the other file has but current does not"
+      added: tracesAdded, removed: tracesRemoved,
+    });
+  }
+
+  // RGB
+  if (!eq(current.rgb || {}, other.rgb || {})) {
+    sections.push({
+      title: 'RGB LED panel',
+      kind: 'scalars',
+      changes: [{ label: 'RGB config', current: current.rgb || null, other: other.rgb || null }],
+    });
+  }
+
+  // Trigger
+  if (!eq(current.trigger || null, other.trigger || null)) {
+    sections.push({
+      title: 'Trigger configuration',
+      kind: 'scalars',
+      changes: [{ label: 'Trigger', current: current.trigger || null, other: other.trigger || null }],
+    });
+  }
+
+  // Script (unified-ish line diff for readability)
+  const curScript = current.script || '';
+  const othScript = other.script || '';
+  if (curScript !== othScript) {
+    sections.push({
+      title: 'Scripted automation source',
+      kind: 'text',
+      lineDiff: simpleLineDiff(curScript, othScript),
+    });
+  }
+
+  // Plugin state (per plugin id, deep equality)
+  const pluginChanges = diffKeyedObject(current.pluginState || {}, other.pluginState || {});
+  if (pluginChanges.added.length + pluginChanges.removed.length + pluginChanges.changed.length > 0) {
+    sections.push({ title: 'Plugin state', kind: 'keyed', ...pluginChanges });
+  }
+
+  return {
+    filename,
+    currentDeviceId: current.deviceId,
+    otherDeviceId:   other.deviceId,
+    currentSavedAt:  current.savedAt,
+    otherSavedAt:    other.savedAt,
+    sections,
+  };
+}
+
+// Helper: diff two objects keyed by string. Returns { added, removed, changed }
+// where added is in "other" but not "current", removed is in "current" but not
+// "other", and changed has the same key but unequal value (deep).
+function diffKeyedObject(current, other) {
+  const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const added = [], removed = [], changed = [];
+  const curKeys = new Set(Object.keys(current));
+  const othKeys = new Set(Object.keys(other));
+  for (const k of othKeys) {
+    if (!curKeys.has(k)) added.push({ key: k, value: other[k] });
+  }
+  for (const k of curKeys) {
+    if (!othKeys.has(k)) removed.push({ key: k, value: current[k] });
+    else if (!eq(current[k], other[k])) changed.push({ key: k, current: current[k], other: other[k] });
+  }
+  return { added, removed, changed };
+}
+
+// Helper: diff two arrays by a key function. Returns { added, removed, changed }
+// where added is in "other" but not "current", etc.
+function diffArrayByKey(current, other, keyFn) {
+  const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const curMap = new Map();
+  const othMap = new Map();
+  for (const item of current) curMap.set(keyFn(item), item);
+  for (const item of other)   othMap.set(keyFn(item), item);
+  const added = [], removed = [], changed = [];
+  for (const [k, v] of othMap) {
+    if (!curMap.has(k)) added.push({ key: k, value: v });
+  }
+  for (const [k, v] of curMap) {
+    if (!othMap.has(k)) removed.push({ key: k, value: v });
+    else if (!eq(v, othMap.get(k))) changed.push({ key: k, current: v, other: othMap.get(k) });
+  }
+  return { added, removed, changed };
+}
+
+// Helper: compute a simple per-line diff for two strings. Returns an array of
+// { kind: 'eq' | 'add' | 'del', text } entries. Uses LCS for a reasonable
+// alignment. For typical script sizes (under a few hundred lines) this is
+// fast enough and produces readable output without pulling a diff library.
+function simpleLineDiff(a, b) {
+  const aLines = a.split('\n');
+  const bLines = b.split('\n');
+  const m = aLines.length, n = bLines.length;
+  // LCS table
+  const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+  for (let i = m - 1; i >= 0; i--) {
+    for (let j = n - 1; j >= 0; j--) {
+      if (aLines[i] === bLines[j]) dp[i][j] = dp[i + 1][j + 1] + 1;
+      else dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+  const out = [];
+  let i = 0, j = 0;
+  while (i < m && j < n) {
+    if (aLines[i] === bLines[j]) {
+      out.push({ kind: 'eq', text: aLines[i] });
+      i++; j++;
+    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+      out.push({ kind: 'del', text: aLines[i] });
+      i++;
+    } else {
+      out.push({ kind: 'add', text: bLines[j] });
+      j++;
+    }
+  }
+  while (i < m) { out.push({ kind: 'del', text: aLines[i++] }); }
+  while (j < n) { out.push({ kind: 'add', text: bLines[j++] }); }
+  return out;
+}
+
+/* === SESSION DIFF MODAL =================================================== */
+const SessionDiffModal = (() => {
+  let modal = null;
+  function build() {
+    const body = el('div', { class: 'diff-body' });
+    const closeBtn = el('button', { class: 'btn primary' }, 'CLOSE');
+    const box = el('div', { class: 'box diff-box' },
+      el('h2', {}, 'SESSION DIFF'),
+      body,
+      el('div', { class: 'foot' }, closeBtn),
+    );
+    modal = el('div', { class: 'modal' }, box);
+    document.body.append(modal);
+    closeBtn.addEventListener('click', () => modal.classList.remove('show'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+    return { body };
+  }
+  function escapeHTML(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+  function formatValue(v) {
+    if (v === null || v === undefined) return '<i>none</i>';
+    if (typeof v === 'object') {
+      const s = JSON.stringify(v);
+      return '<code>' + escapeHTML(s.length > 200 ? s.slice(0, 200) + '...' : s) + '</code>';
+    }
+    return '<code>' + escapeHTML(String(v)) + '</code>';
+  }
+  function renderSection(s) {
+    let html = '<div class="diff-section"><h3>' + escapeHTML(s.title) + '</h3>';
+    if (s.kind === 'scalars') {
+      html += '<table class="diff-table">';
+      for (const c of s.changes) {
+        html += '<tr><td class="diff-label">' + escapeHTML(c.label) + '</td>' +
+                '<td class="diff-cur">' + formatValue(c.current) + '</td>' +
+                '<td class="diff-arrow">→</td>' +
+                '<td class="diff-oth">' + formatValue(c.other) + '</td></tr>';
+      }
+      html += '</table>';
+    } else if (s.kind === 'keyed' || s.kind === 'array') {
+      if (s.added.length > 0) {
+        html += '<div class="diff-sub">Added (in file, not in current):</div><ul class="diff-list">';
+        for (const a of s.added) {
+          html += '<li><span class="diff-key">' + escapeHTML(a.key || '?') + '</span> ' + formatValue(a.value) + '</li>';
+        }
+        html += '</ul>';
+      }
+      if (s.removed.length > 0) {
+        html += '<div class="diff-sub">Removed (in current, not in file):</div><ul class="diff-list">';
+        for (const r of s.removed) {
+          html += '<li><span class="diff-key">' + escapeHTML(r.key || '?') + '</span> ' + formatValue(r.value) + '</li>';
+        }
+        html += '</ul>';
+      }
+      if (s.changed.length > 0) {
+        html += '<div class="diff-sub">Changed:</div><table class="diff-table">';
+        for (const c of s.changed) {
+          html += '<tr><td class="diff-label">' + escapeHTML(c.key) + '</td>' +
+                  '<td class="diff-cur">' + formatValue(c.current) + '</td>' +
+                  '<td class="diff-arrow">→</td>' +
+                  '<td class="diff-oth">' + formatValue(c.other) + '</td></tr>';
+        }
+        html += '</table>';
+      }
+    } else if (s.kind === 'traces') {
+      if (s.added.length > 0) {
+        html += '<div class="diff-sub">Added:</div><div class="diff-trace-row">' +
+          s.added.map((t) => '<code>' + escapeHTML(t) + '</code>').join(' ') + '</div>';
+      }
+      if (s.removed.length > 0) {
+        html += '<div class="diff-sub">Removed:</div><div class="diff-trace-row">' +
+          s.removed.map((t) => '<code>' + escapeHTML(t) + '</code>').join(' ') + '</div>';
+      }
+    } else if (s.kind === 'text') {
+      html += '<pre class="diff-text">';
+      for (const ln of s.lineDiff) {
+        const cls = 'diff-' + ln.kind;
+        const prefix = ln.kind === 'add' ? '+ ' : ln.kind === 'del' ? '- ' : '  ';
+        html += '<span class="' + cls + '">' + escapeHTML(prefix + ln.text) + '</span>\n';
+      }
+      html += '</pre>';
+    }
+    html += '</div>';
+    return html;
+  }
+  function open(diff) {
+    const ui = modal ? SessionDiffModal._ui : (SessionDiffModal._ui = build());
+    let html = '';
+    html += '<div class="diff-header">';
+    html += '<div><b>Current:</b> ' + escapeHTML(diff.currentDeviceId || '?') +
+            ' (saved ' + escapeHTML(diff.currentSavedAt || 'just now') + ')</div>';
+    html += '<div><b>File:</b> ' + escapeHTML(diff.filename || '?') +
+            ' (id ' + escapeHTML(diff.otherDeviceId || '?') +
+            ', saved ' + escapeHTML(diff.otherSavedAt || '?') + ')</div>';
+    html += '</div>';
+    if (diff.sections.length === 0) {
+      html += '<div class="diff-clean">No differences. Sessions are identical (ignoring savedAt timestamps).</div>';
+    } else {
+      html += '<div class="diff-summary">' + diff.sections.length + ' section' +
+              (diff.sections.length === 1 ? '' : 's') + ' with changes:</div>';
+      for (const s of diff.sections) html += renderSection(s);
+    }
+    ui.body.innerHTML = html;
+    modal.classList.add('show');
+  }
+  return { open };
+})();
 
 /* === DEVICE MANAGER ======================================================= */
 class DeviceManager extends EventTarget {
@@ -5026,6 +5438,8 @@ class PluginInstance {
       this.device.pluginState[this.def.id] = this.device.pluginState[this.def.id] || {};
       if (d.payload && typeof d.payload.key === 'string') {
         this.device.pluginState[this.def.id][d.payload.key] = d.payload.value;
+        // Trigger session autosave through the existing vchange listener.
+        this.device.dispatchEvent(new CustomEvent('vchange', { detail: { source: 'plugin', id: this.def.id } }));
       }
     } else if (d.type === 'recall') {
       const state = (this.device.pluginState && this.device.pluginState[this.def.id]) || {};
@@ -5084,13 +5498,14 @@ class DeviceCard {
       if (this.session) this.session.scheduleSave();
     });
     this.btnSessExport = el('button', { class: 'btn', title: 'Export session (alerts, calibrations, traces, I2C) as JSON' }, 'EXPORT');
+    this.btnSessDiff   = el('button', { class: 'btn', title: 'Compare the current session against a saved JSON file' }, 'DIFF');
     this.btnSessImport = el('button', { class: 'btn', title: 'Import a previously saved session JSON' }, 'IMPORT');
     this.elDisc  = el('button', { class: 'btn danger' }, 'DISCONNECT');
 
     const head = el('div', { class: 'head' },
       el('div', { class: 'ident' }, this.elName, this.elId),
       el('div', { class: 'meta' }, this.elPill, this.elStats, this.hzSel),
-      el('div', { class: 'actions' }, this.btnSessExport, this.btnSessImport, this.elDisc),
+      el('div', { class: 'actions' }, this.btnSessExport, this.btnSessDiff, this.btnSessImport, this.elDisc),
     );
 
     // Digital section
@@ -5133,6 +5548,9 @@ class DeviceCard {
     };
     adc10.addEventListener('click', () => setRes(1023));
     adc12.addEventListener('click', () => setRes(4095));
+    // If the firmware announces adcMax in hello, the device updates itself
+    // and emits adcChange. Reflect that in the UI without forcing a click.
+    this.device.addEventListener('adcChange', () => setRes(this.device.adcMax));
     const resToggle = el('span', { class: 'res-toggle' },
       el('span', { class: 'res-lab' }, 'ADC'), adc10, adc12, el('span', { class: 'res-lab' }, 'BIT'),
     );
@@ -5251,13 +5669,14 @@ class DeviceCard {
     this.refreshPlugins();
   }
 
-  refreshPlugins() {
+  refreshPlugins({ force = false } = {}) {
     const plugins = PluginRegistry.list();
     const enabledIds = new Set(plugins.filter(p => p.enabled).map(p => p.id));
 
-    // Tear down instances for plugins that are no longer loaded or enabled
+    // Tear down instances for plugins that are no longer enabled, OR all of
+    // them if forced (e.g. on session restore so onInit re-reads state).
     for (const [id, inst] of this.pluginInstances) {
-      if (!enabledIds.has(id)) {
+      if (force || !enabledIds.has(id)) {
         inst.destroy();
         this.pluginInstances.delete(id);
         const panel = this.pluginsContainer.querySelector(`[data-plugin-id="${CSS.escape(id)}"]`);
@@ -5509,6 +5928,10 @@ class DeviceCard {
     this.btnSessExport.addEventListener('click', () => {
       if (!this.session) this.session = new SessionManager(this);
       this.session.exportFile();
+    });
+    this.btnSessDiff.addEventListener('click', () => {
+      if (!this.session) this.session = new SessionManager(this);
+      this.session.diffFile();
     });
     this.btnSessImport.addEventListener('click', () => {
       if (!this.session) this.session = new SessionManager(this);

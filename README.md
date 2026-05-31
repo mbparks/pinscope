@@ -1,460 +1,356 @@
 # PinScope · Field Instrument 005
 
 [![CI](https://github.com/mbparks/pinscope/actions/workflows/ci.yml/badge.svg)](https://github.com/mbparks/pinscope/actions/workflows/ci.yml)
+[![Docs](https://github.com/mbparks/pinscope/actions/workflows/pages.yml/badge.svg)](https://mbparks.github.io/pinscope/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Single-file](https://img.shields.io/badge/runtime-single--file%20HTML-d4a017)](pinscope.html)
+
+**Docs site:** [mbparks.github.io/pinscope](https://mbparks.github.io/pinscope/)
 
 Single-file HTML console for the Arduino Uno Q (and any classic Uno-compatible
 board) over USB serial, WiFi, MQTT, or BLE. Drop the page into a browser,
 connect to a running firmware, and you get:
 
-- a live map of every digital and analog pin
-- click-to-toggle outputs, sliders for PWM, an interrupt-counting FREQ mode for
-  pulse and tachometer signals
+- a live map of every digital and analog pin, click-to-toggle outputs, sliders
+  for PWM, an interrupt-counting FREQ mode for pulse and tachometer signals
 - a strip chart with per-trace stats, calibration in real units, threshold
-  alerts, paused/CSV/PNG export
-- an FFT view and a waterfall spectrogram for any analog or virtual channel
-- an XY scatter (Lissajous-style) with optional connecting lines
-- an I2C / Qwiic scanner and four poll slots that feed virtual channels
-- a cross-pin math engine: derive a virtual channel as an expression of any
-  other channels (e.g. `v0 = sqrt(a0*a0 + a1*a1)`)
+  alerts, oscilloscope-style trigger, baseline + diff view, CSV one-shot and
+  streaming export, PNG snapshots
+- FFT, waterfall spectrogram, and XY scatter views for any analog or virtual
+  channel
+- an I2C / Qwiic scanner with four poll slots that feed virtual channels, a
+  companion sensor library of one-click presets for common breakouts
+- a cross-pin math engine: derive a virtual channel from any other channels
+  (e.g. `v0 = sqrt(a0*a0 + a1*a1)`)
+- a scripted automation sandbox for repeatable test sequences
 - an RGB LED panel that drives any three PWM pins from a color picker
-- a per-device session that auto-saves to localStorage, plus JSON
-  export and import
+- a sandboxed plugin system so users can ship their own panels per device
+- per-device sessions that auto-save to localStorage, plus JSON export and
+  import (calibrations, alerts, trigger, math, plugin state, all of it)
 
 No build step. No framework. No external assets at runtime once loaded.
 
 The visual language is the same amber-on-dark "field instrument" treatment
 used in the rest of the M.B. Parks tool series.
 
+## Table of contents
+
+- [Quick start](#quick-start)
+- [Hardware bring-up](#hardware-bring-up) (see `BRINGUP.md` for the full walkthrough)
+- [Files in this repo](#files-in-this-repo)
+- [Browser support](#browser-support)
+- [Repo layout](#repo-layout)
+- [Publishing this repo](#publishing-this-repo)
+
+**Console reference:**
+
+- [Pin model](#pin-model)
+- [Sample rate](#sample-rate)
+- [Keyboard shortcuts](#keyboard-shortcuts)
+- [Multi-board layout](#multi-board-layout)
+- [Raw command sender](#raw-command-sender)
+
+**Channels and analysis:**
+
+- [Calibration](#calibration)
+- [Virtual channels](#virtual-channels)
+- [Cross-pin math](#cross-pin-math)
+- [Strip chart](#strip-chart)
+- [Baseline + diff view](#baseline--diff-view)
+- [Oscilloscope-style trigger](#oscilloscope-style-trigger)
+- [FFT and spectrogram](#fft-and-spectrogram)
+- [XY scatter](#xy-scatter)
+- [Frequency measurement](#frequency-measurement)
+- [Threshold alerts](#threshold-alerts)
+
+**I/O and protocols:**
+
+- [I2C / Qwiic](#i2c--qwiic)
+- [Companion sensor library](#companion-sensor-library)
+- [RGB LED panel](#rgb-led-panel)
+- [Wire protocol](#wire-protocol)
+
+**Automation:**
+
+- [Scripted automation](#scripted-automation)
+- [CSV export](#csv-export)
+- [Replay](#replay)
+- [Plugins](#plugins)
+
+**Connectivity:**
+
+- [USB serial firmware](#usb-serial-firmware)
+- [WiFi firmware (raw socket)](#wifi-firmware-raw-socket)
+- [MQTT](#mqtt)
+- [BLE](#ble)
+- [Session diff](#session-diff)
+
+**Project:**
+
+- [Sessions](#sessions)
+- [Continuous integration](#continuous-integration)
+- [License](#license)
+
 ## Quick start
 
-1. Flash `pinscope.ino` onto your Uno Q (or any Arduino with a Wire-capable
-   core). The sketch uses only `Arduino.h` and `Wire.h`, both included with
-   the core. Baud rate is 115200.
-2. Open `pinscope.html` in Chrome, Edge, or any Chromium browser. Firefox and
-   Safari work too if you only use the WiFi transport; the serial transport
-   needs the Web Serial API (Chromium-based).
-3. Click SERIAL and pick the board's COM port, or click WIFI and point it at
-   a WebSocket bridge (any small Python or Node service that pipes between a
-   WebSocket and the serial port works).
-4. The pin grid lights up. Click a pin's mode badge to cycle through OFF, IN,
-   IN-PU, OUT, PWM (when applicable), and FREQ (on interrupt-capable pins).
-
-## Wire protocol
-
-Both directions exchange line-delimited JSON at 115200 baud. One object per
-line, terminated by `\n` or `\r\n`.
-
-### Host to board
-
-| Command | Fields        | Notes                                            |
-| ------- | ------------- | ------------------------------------------------ |
-| `hello` | none          | Board responds with hello and a state packet.    |
-| `poll`  | none          | Board responds with one state packet.            |
-| `mode`  | `pin`, `mode` | Modes: `off`, `in`, `inp`, `out`, `pwm`, `freq`. |
-| `set`   | `pin`, `val`  | Drives a digital output 0 or 1.                  |
-| `pwm`   | `pin`, `val`  | 0..255 duty on a PWM-capable pin in PWM mode.    |
-| `hz`    | `val`         | State-push rate in Hz, 1..50. Default 10.        |
-| `i2c`   | `op`, ...     | See I2C section below.                           |
-
-### Board to host
-
-```
-{"t":"hello","id":"FI005-XXXX","name":"Arduino Uno Q","hz":10}
-{"t":"state","d":[14 ints],"a":[6 ints],"m":[14 strings],"v":[4 ints or null],"f":[14 ints]}
-{"t":"ack","cmd":"..."}
-{"t":"err","msg":"..."}
-{"t":"i2c","op":"scan","addrs":[...]}
-{"t":"i2c","op":"read","addr":N,"reg":N,"data":[...]}
+```sh
+git clone https://github.com/mbparks/pinscope.git
+cd pinscope
+open pinscope.html       # macOS
+xdg-open pinscope.html   # Linux
+start pinscope.html      # Windows
 ```
 
-The `f` array carries the measured frequency in Hz for pins in FREQ mode, or
-`-1` for pins not in FREQ mode. The firmware computes new Hz values every
-250 ms by counting RISING edges via `attachInterrupt`.
+There is no install step for the browser side. The Arduino firmwares need
+arduino-cli or the Arduino IDE 2.x, with the matching board cores and the
+ArduinoBLE, WiFiNINA, and ArduinoMqttClient libraries installed for the
+variants you want to use. See the per-section instructions below.
 
-### I2C ops
+## Hardware bring-up
 
-| Op         | Fields                                         | Notes                                          |
-| ---------- | ---------------------------------------------- | ---------------------------------------------- |
-| `scan`     | none                                           | Board scans 0x01..0x77 and reports responders. |
-| `read`     | `addr`, `reg`, `count`                         | Reads `count` bytes (1..8).                    |
-| `write`    | `addr`, `reg`, `data`                          | Writes a byte array.                           |
-| `poll`     | `slot`, `addr`, `reg`, `count`, `hz`, `signed` | Starts a periodic read into virtual slot 0..3. |
-| `stoppoll` | `slot`                                         | Cancels the poll on that slot.                 |
+`BRINGUP.md` walks through bringing PinScope up on real hardware
+phase-by-phase, with explicit pass criteria and known failure modes. It's
+tailored to the Arduino Uno Q on macOS but the general flow applies to
+any supported board. Start there before flashing if it's your first time.
 
-Each active poll assembles its bytes big-endian into an int32 (signed if
-requested) and reports the value in `v[slot]` of every state packet.
+## Files in this repo
+
+| File                       | What it is                                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `pinscope.html`            | The entire browser console. ~5950 lines, ~180 KB.                                                        |
+| `pinscope.ino`             | Serial firmware for the host MCU. Works on classic Uno, Uno R4, Nano 33 IoT, and (experimentally) Uno Q. |
+| `pinscope_ble.ino`         | BLE firmware for boards with ArduinoBLE support.                                                         |
+| `pinscope_mqtt.ino`        | MQTT firmware for boards with WiFi (Uno R4 WiFi, Nano 33 IoT).                                           |
+| `pinscope_mqtt_bridge.py`  | Serial-to-MQTT bridge for boards without WiFi.                                                           |
+| `plugins/`                 | Example plugins (hello, gauge, servo-sweep, field-notes).                                                |
+| `scripts/lint.sh`          | Same lint pipeline CI runs; supports `--fix`.                                                            |
+| `scripts/compile.sh`       | Stage and compile a sketch against a chosen FQBN.                                                        |
+| `.github/workflows/ci.yml` | GitHub Actions: lint + arduino-cli compile matrix.                                                       |
+| `BRINGUP.md`               | 11-phase hardware bring-up walkthrough.                                                                  |
+| `CONTRIBUTING.md`          | Style rules and PR expectations.                                                                         |
+
+## Browser support
+
+Web Serial (USB direct connect) needs Chromium-based browsers (Chrome, Edge,
+Brave, Arc, Opera). Web Bluetooth (BLE) is also Chromium-only. WebSocket
+(WiFi raw and MQTT-over-WS) works in every modern browser. CSV streaming
+needs the File System Access API and is Chromium-only; in Firefox and
+Safari the STREAM button is disabled with a tooltip explaining why.
+
+The page itself is plain HTML5 and runs anywhere; the transport buttons
+gray out if a browser doesn't support the underlying API.
+
+## Repo layout
+
+```
+pinscope/
+├── pinscope.html              # the entire console
+├── pinscope.ino               # serial firmware
+├── pinscope_ble.ino           # BLE firmware
+├── pinscope_mqtt.ino          # MQTT firmware (Uno R4 WiFi, Nano 33 IoT)
+├── pinscope_mqtt_bridge.py    # serial-to-MQTT bridge for boards without WiFi
+├── plugins/
+│   ├── hello.js               # minimal plugin (A0 + bar visualization)
+│   ├── gauge.js               # SVG arc gauge with persisted pin selection
+│   ├── servo-sweep.js         # triangle-wave PWM driver
+│   └── field-notes.js         # notebook + timestamped moments (persist demo)
+├── scripts/
+│   ├── lint.sh                # run the same checks CI runs
+│   └── compile.sh             # compile a sketch against a chosen FQBN
+├── .github/workflows/ci.yml   # GitHub Actions
+├── .jshintrc, .prettierrc, .prettierignore
+├── .gitignore
+├── BRINGUP.md
+├── CONTRIBUTING.md
+├── LICENSE                    # GPL-3.0-or-later
+└── README.md
+```
+
+## Publishing this repo
+
+```sh
+cd pinscope
+git init
+git add .
+git commit -m "initial commit: PinScope (Field Instrument 005)"
+git branch -M main
+git remote add origin https://github.com/mbparks/pinscope.git
+git push -u origin main
+```
+
+CI runs on the first push.
+
+---
 
 ## Pin model
 
-- D0 and D1 are reserved for the USB serial UART.
-- D2..D13 are user-controlled.
-- PWM-capable pins on the Uno family: 3, 5, 6, 9, 10, 11.
-- FREQ mode requires hardware interrupt support. On a classic Uno R3, that
-  means D2 and D3 only. On the Uno Q most pins have EXTI lines available; the
-  firmware checks `digitalPinToInterrupt` and rejects with an error if a pin
-  cannot interrupt. The PinScope UI is conservative and only offers FREQ on
-  D2 and D3 by default. To enable other pins in the UI, edit
-  `INTERRUPT_PINS` near the top of the script in `pinscope.html`.
-- A0..A5 are 10-bit by default (1023) and switchable to 12-bit (4095) per
-  device from the analog row. The toggle is cosmetic on classic Uno; on Uno Q
-  and other 12-bit cores the firmware already returns the full range and the
-  UI scales accordingly.
+Every device card maps the host MCU's pins to a uniform model:
 
-## Virtual channels
+- **D0-D13**, digital pins. Modes: `off`, `in` (high-Z input), `inp`
+  (input with pull-up), `out`, `pwm` (only on PWM-capable pins, marked
+  with a ~ in the UI), `freq` (only on interrupt-capable pins). Click
+  the mode badge to cycle.
+- **A0-A5**, analog inputs. 10-bit by default; toggle to 12-bit if the
+  board's core supports `analogReadResolution(12)`.
+- **V0-V3**, virtual channels. Filled in by I2C polling or cross-pin
+  math expressions. Treated identically to A0-A5 by every visualization,
+  alert, and CSV export.
+- **F0-F13**, frequency channels. Populated by pins in FREQ mode.
 
-The four virtual channels V0..V3 carry derived data. A slot can be configured
-two ways, mutually exclusive:
-
-- **I2C poll.** Pick an address in the scanner grid, choose a register, set
-  the byte count and poll rate, and start it. The board reads at that rate
-  and the value lands in `v[slot]`.
-- **Cross-pin math.** Type an expression in the math panel and assign it to a
-  slot. Each incoming state packet is fed through the expression and the
-  result lands in `v[slot]`.
-
-Math expressions can reference any pin by short name:
-
-- `a0`..`a5` for analog channels
-- `d0`..`d13` for digital pins (0 or 1)
-- `v0`..`v3` for the four virtual channels (a slot cannot reference itself
-  in a useful way; self-reference reads the prior value if any)
-- `f0`..`f13` for the frequency in Hz on any FREQ-mode pin
-
-The supported math functions are `abs`, `sqrt`, `min`, `max`, `pow`, `sin`,
-`cos`, `tan`, `log`, `log10`, `exp`, `floor`, `ceil`, `round`, `atan2`, and
-`sign`. Arithmetic uses the usual `+ - * / %` and parentheses. Anything else
-is rejected at compile time.
-
-Useful examples:
-
-```
-a0 - a1                             // differential
-(a0 + a1) / 2                       // common-mode
-sqrt(a0*a0 + a1*a1)                 // magnitude (a0 cos, a1 sin)
-a0 * 0.0048828                      // calibrated voltage at 5V/1023
-abs(a0 - a1) > 100                  // expressions return numbers; 0 or 1 here
-f2                                  // plot D2's measured frequency on V0
-```
-
-Virtual channels are first-class everywhere: strip chart, FFT, spectrogram,
-scatter, alerts, statistics, and CSV export. Pin labels are clickable to
-attach a linear calibration (`y = m*raw + b`) with a label, unit, and decimal
-count. Calibrated values then propagate through every view and the CSV.
+D0 and D1 are reserved (USB serial uses them) and grayed out.
 
 ## Sample rate
 
-Use the Hz selector at the top of each device card to change the firmware's
-state-push rate. Options are 5, 10, 20, 30, and 50 Hz. This is the rate the
-firmware sends `state` packets, so it sets the time resolution available to
-the FFT, the spectrogram, and the strip chart. Faster rates use more USB
-serial bandwidth and CPU; 10 Hz is plenty for most maker use, and 50 Hz is
-enough for slow control loops or 25 Hz signals at Nyquist.
+The Hz selector on each device card sets how often the firmware sends
+state packets. Range is 1 to 50 Hz. The default is 10 Hz. Higher rates
+give smoother strip charts and finer FFT resolution but consume more
+serial bandwidth.
 
-The selected rate is saved in the session and re-applied on reconnect.
-
-## RGB LED panel
-
-The Board LEDs section drives any three PWM-capable pins from an HTML color
-picker. It is useful both for the Uno Q's built-in indicator LEDs (wire the
-firmware's `LEDR/LEDG/LEDB` pins, or whichever your board exposes) and for
-any common-anode or common-cathode discrete RGB LED on the breadboard.
-
-Picking a color in the swatch:
-
-- sets each chosen pin to PWM mode if it is not already
-- writes the matching 0..255 duty cycles for R, G, B
-- persists the pin assignment and the most recent color in the session
-
-The OFF button writes zero duty to all three.
-
-## Spectrogram
-
-The Spectrogram tab is a rolling waterfall: it computes a windowed FFT every
-250 ms over a 1 s slice of the chosen channel and pushes a vertical column
-into the canvas. The X axis is time-into-the-past (right = now), the Y axis
-is frequency from DC up to the channel's Nyquist, and intensity is mapped to
-the amber gradient. The history window is 30 s, 1 min, 2 min, or 5 min.
-
-The same Hann window toggle used in the FFT view applies here. The PNG
-button saves the current waterfall with a caption strip.
-
-If you are looking for a frequency that the FFT view picks out clearly but
-the spectrogram does not, raise the firmware sample rate so the analysis
-window contains more cycles, or widen the slice (edit `sliceMs` in the
-script if you want longer slices at the cost of time resolution).
-
-## MQTT
-
-PinScope speaks MQTT 3.1.1 directly to a broker over WebSocket. There is no
-external library; the protocol is implemented inline as a small native codec
-covering the packets we need (CONNECT, CONNACK, PUBLISH, SUBSCRIBE, SUBACK,
-PINGREQ, PINGRESP, DISCONNECT) at QoS 0.
-
-Topic convention:
-
-    <base>/<deviceId>/out    board -> host  (state, hello, ack, err, i2c)
-    <base>/<deviceId>/in     host  -> board (commands)
-
-The base defaults to `pinscope`. Click MQTT, fill in the broker's WebSocket
-URL, optionally a base and a specific device-id filter, and connect. The
-browser subscribes to `<base>/+/out` and locks onto the first device id it
-sees. From then on, all commands route to `<base>/<thatDeviceId>/in`.
-
-Public brokers good for testing: `ws://broker.hivemq.com:8000/mqtt`,
-`ws://test.mosquitto.org:8080`. These are world-readable; do not send
-anything sensitive over them.
-
-The board itself does not speak MQTT in the reference firmware. To actually
-drive a board over MQTT, run `pinscope_mqtt_bridge.py` next to it. The
-bridge opens the board's USB serial port, connects to the same broker over
-plain TCP MQTT (port 1883 by default), reads the device id from the first
-hello packet, then forwards traffic both ways. A future firmware variant
-with native MQTT (over WiFi or Ethernet) would skip the bridge entirely.
-
-Example:
-
-    pip install paho-mqtt pyserial
-    python3 pinscope_mqtt_bridge.py \
-        --port /dev/ttyACM0 --baud 115200 \
-        --broker test.mosquitto.org --broker-port 1883 \
-        --topic-base pinscope
-
-Then in the browser: MQTT, broker URL `ws://test.mosquitto.org:8080`, base
-`pinscope`, leave the filter blank, CONNECT. Within a second or two the
-device card lights up.
-
-## BLE
-
-PinScope speaks Bluetooth Low Energy directly to a board running
-`pinscope_ble.ino`. The same firmware works on three target boards:
-
-- **Arduino Uno R4 WiFi**, RA4M1 host MCU with an ESP32-S3 BLE coprocessor.
-- **Arduino Nano 33 IoT**, SAMD21 host MCU with a NINA-W102 BLE coprocessor.
-- **Arduino Uno Q**, STM32U585 MCU with native BLE (experimental: the Uno Q
-  runs sketches under Zephyr OS via `arduino:zephyr:unoq`, so ArduinoBLE
-  compatibility depends on the core version; verify on your specific build
-  before committing).
-
-All three use the ArduinoBLE library, so a single sketch source builds for
-any of them. The sketch detects which board it was built for at compile time
-and announces itself accordingly in the hello packet.
-
-The committed BLE schema (must match `pinscope.html` and `pinscope_ble.ino`):
-
-    Service     7e2bf001-9d27-4e96-9c9f-1f4b8a0c5e6d   PinScope I/O console
-    Notify char 7e2bf002-9d27-4e96-9c9f-1f4b8a0c5e6d   board -> host
-    Write char  7e2bf003-9d27-4e96-9c9f-1f4b8a0c5e6d   host  -> board
-
-Both characteristics carry line-delimited JSON. The wire protocol is
-identical to Serial, WiFi, and MQTT. Either side chunks at 200 bytes per
-ATT write to stay safely under any default MTU on any of the three target
-boards. The receiver buffers chunks until it sees `\n` and dispatches one
-complete object per line.
-
-Click BLE in the rail (or press `B`) to open the system Bluetooth device
-chooser. Picking the entry advertised as `PinScope` opens a GATT
-connection, subscribes to the Notify char, and the device card lights up
-within a second.
-
-Web Bluetooth is Chromium-only and needs a user gesture (click) to open
-the picker the first time. On HTTPS pages, Chrome remembers the device
-after the first consent; on `file://` URLs it asks again each session.
-
-To build and flash:
-
-1. Install the ArduinoBLE library (Tools > Manage Libraries > "ArduinoBLE").
-2. Select your board: Uno R4 WiFi, Nano 33 IoT, or Uno Q.
-3. Open `pinscope_ble.ino`, compile, upload.
-4. On power-up the serial monitor prints
-   "PinScope BLE advertising as 'PinScope'". The board is now discoverable.
-
-The serial monitor stays available for debugging; the BLE firmware does not
-disable USB serial. State packets only stream while a central is connected.
-
-## Multi-board layout
-
-Connect a second board (or load a replay) and a card appears underneath the
-first. Click STACK in the top rail to flip to GRID; cards then lay out
-two-per-row on screens wider than 1400 px and stack again below that. The
-keyboard shortcut `G` toggles the layout from anywhere.
-
-## Replay
-
-Use the CAPTURE button on the strip chart toolbar to download the current
-recorder buffer as a `pinscope_capture_<id>_<stamp>.json` file. The file
-holds the raw wire-shape samples plus the device id, name, sample rate, and
-last-known pin modes; it is not a CSV and is not meant for analysis in
-external tools, just for replay.
-
-Click REPLAY in the top rail (or press `R`) and pick a capture file. PinScope
-spawns a virtual device that pumps the captured samples through the same
-pipeline as a live board, looping when it reaches the end. The pill in the
-device card head is purple and labeled `replay` so it never gets confused
-with a live unit. Commands sent to a replay device are silently dropped; the
-hardware is not there to honor them.
-
-## Raw command sender
-
-Each device card has a single-line JSON input at the bottom of the Wire Log
-section. Type any valid command object and hit SEND (or Enter). Useful for
-exercising new firmware features without UI controls, or sending things the
-UI does not expose yet (custom I2C ops, debug commands you add to your fork
-of the firmware, and so on). Arrow up and arrow down walk through the
-recent history (last 50).
+Inside the firmware, the state push period is `1000 / hz` milliseconds.
+Lower the rate if the wire log shows tx pressure or if you're on a slow
+transport like BLE; raise it for fast transients.
 
 ## Keyboard shortcuts
 
-Press `?` for a full list. Quick reference:
+| Key     | Action                                                             |
+| ------- | ------------------------------------------------------------------ |
+| `S`     | open the SERIAL connect dialog                                     |
+| `W`     | open the WIFI connect dialog                                       |
+| `M`     | open the MQTT connect dialog                                       |
+| `B`     | open the BLE connect dialog                                        |
+| `R`     | open a capture file (REPLAY)                                       |
+| `P`     | open the plugin manager                                            |
+| `G`     | toggle stacked vs grid layout when multiple devices are connected  |
+| `?`     | open the help modal                                                |
+| `1`-`4` | switch tabs (Strip / FFT / Spectro / Scatter) on the active device |
+| `Space` | pause / resume the strip chart on the active device                |
+| `C`     | clear the wire log on the active device                            |
+| `Esc`   | close any open modal                                               |
 
-| Key      | Action                                  |
-| -------- | --------------------------------------- |
-| `?`      | open this help                          |
-| `Space`  | pause / resume the active strip chart   |
-| `C`      | clear the wire log on the active device |
-| `G`      | toggle stack / grid layout              |
-| `S`      | open SERIAL connect (Web Serial only)   |
-| `W`      | open WIFI connect modal                 |
-| `M`      | open MQTT connect modal                 |
-| `B`      | open BLE device picker (Web Bluetooth)  |
-| `R`      | open a capture file for REPLAY          |
-| `1`..`4` | switch tabs on the active device        |
-| `Esc`    | close any open modal                    |
+Shortcuts are suppressed while typing in inputs or textareas.
 
-The "active device" is whichever card is closest to the top of the viewport.
-Shortcuts are suppressed while typing in an input or text area.
+## Multi-board layout
 
-## Companion sensor library
+PinScope handles multiple connected boards in the same window. The STACK
+button on the rail toggles between a single-column stack (one card on top
+of another) and a side-by-side grid (cards laid out in columns). Three
+or more connected boards still get the grid layout; STACK forces single
+column if you prefer that for note-taking or screen recording. Press `G`
+to toggle.
 
-Pre-baked I2C poll configs for common breakout sensors. In the I2C section,
-pick a sensor from the COMPANION SENSORS dropdown, confirm its address,
-hit APPLY. PinScope assigns free virtual slots to that sensor's registers
-and, when a unit-conversion math expression makes sense, prefills the
-math input below so you can apply it to a free slot with one click.
+## Raw command sender
 
-Current preset list:
+Every device card has a raw command input at the bottom for sending wire-
+protocol commands directly. Type a JSON object (e.g. `{"cmd":"mode","pin":4,"mode":"out"}`),
+hit Enter or SEND. The Up/Down arrow keys cycle through your command
+history (50 entries deep per session). Useful for debugging firmware or
+testing fields the UI doesn't expose.
 
-- **TMP102, TMP117, MCP9808**, temperature in degrees Celsius
-- **DS3231**, RTC seconds counter (BCD-unpacked)
-- **INA219**, shunt voltage in mV and bus voltage in V (two-slot preset)
-- **APDS-9301**, ambient light channel 0 (needs a one-time init write)
-- **PCF8591**, single-channel ADC
-
-The preset definitions live in `SENSOR_PRESETS` near the top of the
-I2CPanel code in `pinscope.html`. Adding a sensor is one record:
-default address, register list, byte count, signed flag, optional unit
-conversion math expression. PinScope's I2C scope is read-only polling,
-so sensors that need a wake/config write are flagged with a
-`requiresInit` hint rather than auto-initialized.
-
-## Oscilloscope-style trigger
-
-The strip chart has a one-shot trigger mode. Click **TRIG** to open the
-modal: pick a channel, condition (rising/falling/above/below), threshold
-value, and pre/post window in seconds. ARM, then go do whatever you
-need to do. When the condition fires, the chart freezes a snapshot of
-the captured window, pauses the recorder, and overlays a red vertical
-line at the fire time plus a red threshold line. The button pulses to
-show armed state, switches to FIRED once captured.
-
-RE-ARM to start fresh; DISARM to clear the trigger entirely. The
-trigger config persists in the session, so reconnecting auto-arms with
-the same parameters.
-
-## Scripted automation
-
-Every device card has a SCRIPTED AUTOMATION section with a JS sandbox
-for driving the board over time. The available helpers:
-
-- `setMode(pin, mode)`, change a pin's mode (`'out'`, `'in'`, `'pwm'`, etc.)
-- `setDigital(pin, hi)`, drive a digital output
-- `setPWM(pin, val)`, set PWM duty (0..255)
-- `await wait(ms)`, sleep
-- `read(pin)`, latest raw value for any pin key (`'a0'`, `'d2'`, `'v1'`)
-- `log(msg)`, print to the script's output panel
-- `assert(cond, msg)`, throw if `cond` is falsy
-
-JS loops, conditionals, variable declarations, and `await` all work.
-Network and storage globals (`fetch`, `localStorage`, `eval`, `Function`,
-`setTimeout`, `window`, `document`, etc.) are blocked at compile time
-via a strict identifier blocklist. Scripts run in a fresh function
-scope; they can't reach into the rest of the app.
-
-The RUN button starts the script; STOP aborts it (the helpers check an
-aborted flag before resuming). Script content auto-saves to the session
-so a refresh keeps your work. Output streams below the editor as the
-script runs.
-
-Example: ramp PWM duty and log analog readings.
-
-```js
-setMode(9, 'pwm');
-for (let duty = 0; duty <= 255; duty += 32) {
-  setPWM(9, duty);
-  await wait(200);
-  log('duty=' + duty + ' a0=' + read('a0'));
-}
-```
-
-## CSV streaming export
-
-The regular CSV button does a one-shot dump of the recorder buffer
-(9000 samples / 15 minutes at 10 Hz default). For longer tests, the
-STREAM button opens a save-file picker, then appends every new sample
-to that file as it arrives, batched at ~1 Hz for efficiency. Click
-STREAM again to close the file cleanly.
-
-This uses the File System Access API and is Chromium-only (Chrome,
-Edge, Brave, Arc, Opera). In Firefox and Safari the STREAM button is
-disabled with a tooltip explaining why; fall back to the one-shot CSV
-or to a capture file in those browsers.
+---
 
 ## Calibration
 
-Click any A0-A5 label on a device card to open the calibration modal. Two
-modes:
+Click any A0-A5 (or V0-V3) label on a device card to open the calibration
+modal. Two modes:
 
-- **Manual**, the default. Type a slope `m`, offset `b`, unit, decimals,
-  and a label. Linear conversion `y = m·raw + b` is applied to every
-  reading on that pin and propagates through the strip chart, FFT,
-  spectrogram, scatter, stats, alerts, and CSV export.
+**Manual** (the default). Type a slope `m`, offset `b`, unit, decimals,
+and a label. Linear conversion `y = m·raw + b` is applied to every
+reading on that pin and propagates through the strip chart, FFT,
+spectrogram, scatter, stats, alerts, and CSV export.
 
-- **Wizard**, for when you have a physical reference. Apply a known value
-  at the low end (often a short to ground, or your reference's zero),
-  click CAPTURE LOW. Apply a known value at the high end (a calibrator's
-  full-scale, or a known voltage), click CAPTURE HIGH. PinScope computes
-  the slope and offset from the two-point fit, shows a live preview using
-  the current raw reading, then SAVE writes the calibration to the pin.
+**Wizard**, for when you have a physical reference. Apply a known value
+at the low end (often a short to ground), click CAPTURE LOW. Apply a
+known value at the high end, click CAPTURE HIGH. PinScope computes the
+slope and offset from the two-point fit, shows a live preview using the
+current raw reading, then SAVE writes the calibration to the pin.
 
 The wizard does the algebra (`m = (hi - lo) / (rawHi - rawLo)`,
 `b = lo - m·rawLo`) so you don't have to. If the two raw captures are
 identical, the wizard refuses to fit and tells you so. Calibrations
 persist in the session and export with the JSON.
 
+## Virtual channels
+
+PinScope has four virtual analog slots (V0-V3) that show up in every
+visualization next to A0-A5. Two sources can feed a virtual slot:
+
+- **I2C polling**: configure a slot to poll an I2C register at a fixed
+  Hz; the latest read goes into the virtual channel. The companion
+  sensor library has one-click presets for common breakouts.
+- **Cross-pin math**: assign an expression like `v0 = sqrt(a0*a0 + a1*a1)`
+  to a slot; the expression is recomputed every state packet against the
+  latest readings.
+
+Math overrides I2C if both target the same slot. Slot configuration
+persists in the session.
+
+## Cross-pin math
+
+The math engine lets a virtual channel be a function of any other
+channels. The expression syntax is a small JS subset: arithmetic, the
+math globals (`sin`, `cos`, `sqrt`, `log`, `exp`, `abs`, `pow`, `min`,
+`max`, `floor`, `ceil`, `round`), and references to channels by their
+key (`a0` to `a5`, `d0` to `d13`, `v0` to `v3`, `f0` to `f13`).
+
+Examples:
+
+| Expression                        | What it derives                    |
+| --------------------------------- | ---------------------------------- |
+| `(a0 + a1) / 2`                   | average of two analog inputs       |
+| `sqrt(a0*a0 + a1*a1)`             | magnitude of an XY pair            |
+| `a0 - a1`                         | differential measurement           |
+| `v0 * 0.0078125`                  | TMP117 raw to degrees Celsius      |
+| `floor(v0 / 16) * 10 + (v0 % 16)` | BCD-unpacked seconds from a DS3231 |
+
+Expressions are compiled via `new Function(...)` with strict mode and
+no access to globals beyond the math helpers. Bad syntax surfaces in a
+toast; null/undefined inputs produce null outputs (the math doesn't
+crash on a momentarily-missing channel).
+
+## Strip chart
+
+The strip chart shows up to 14 channels at once. Click any chip in the
+ANALOG / DIGITAL / VIRTUAL rows under the chart to toggle that channel
+on. Click again to remove it. Each trace gets a deterministic color
+keyed off its name.
+
+The toolbar:
+
+| Button                | Action                                                                           |
+| --------------------- | -------------------------------------------------------------------------------- |
+| `15s` `1m` `5m` `15m` | window length                                                                    |
+| `STATS`               | toggle per-trace stats overlay (min, max, mean, std dev)                         |
+| `PAUSE`               | freeze the chart and recorder                                                    |
+| `CLEAR`               | drop the recorder buffer                                                         |
+| `CSV`                 | one-shot dump of the buffer to a CSV file                                        |
+| `STREAM`              | open a save-file picker and append every new sample to that file (Chromium only) |
+| `CAPTURE`             | save the buffer as a replayable JSON file                                        |
+| `BASELINE`            | load a capture file as a faded ghost trace overlay                               |
+| `DIFF`                | toggle a live-minus-baseline trace on top of the chart                           |
+| `TRIG`                | open the oscilloscope-style trigger modal                                        |
+| `PNG`                 | export the current chart as a PNG snapshot                                       |
+
+The recorder buffer caps at 9000 samples (about 15 minutes at 10 Hz,
+3 minutes at 50 Hz). For longer runs use STREAM.
+
 ## Baseline + diff view
 
-The strip chart can overlay a previously captured run as a faded
-dashed-line ghost, and can render a live-minus-baseline difference trace
-on top of it. Useful for "before vs after" comparisons: tweak a circuit,
-flash new firmware, swap a sensor, then see exactly how the new behavior
-differs from the saved one.
+The strip chart can overlay a previously captured run as a faded dashed
+ghost trace and render a live-minus-baseline diff trace on top. Useful
+for before-vs-after comparisons: tweak a circuit, flash new firmware,
+swap a sensor, see exactly how the new behavior differs from the saved
+one.
 
-Workflow:
-
-1. **CAPTURE** a baseline run (existing button on the strip chart).
-2. **BASELINE** loads a capture file as the baseline. It renders as a
-   ghost trace behind every active live trace. The button highlights to
-   show baseline is loaded; click again to clear.
-3. **DIFF** toggles a difference trace, computed as `live - baseline` for
-   each active channel, normalized across all active diffs and centered on
-   the chart's midline. A faint zero line marks the no-difference axis.
+1. CAPTURE a baseline run.
+2. BASELINE loads a capture file as the baseline. Click again to clear.
+3. DIFF toggles a difference trace, computed as `live - baseline` for
+   each active channel, normalized across all active diffs, centered on
+   the chart's midline.
 
 The baseline is aligned to "now" by tail-shifting its timestamps, so a
 capture from yesterday lines up with the current strip-chart window
-without any clock-sync gymnastics. The diff is computed via
-nearest-neighbor matching by time, which is good enough at typical
-sample rates (5 to 50 Hz).
+without any clock-sync gymnastics. Diff is nearest-neighbor by time,
+good enough at typical sample rates.
 
 ## Oscilloscope-style trigger
 
@@ -476,24 +372,180 @@ RE-ARM resets the trigger and resumes recording; DISARM clears it
 entirely. The trigger configuration persists in the session and
 re-arms automatically on the next connect.
 
+## FFT and spectrogram
+
+The FFT tab shows the magnitude spectrum of the active analog or virtual
+channel. The window length comes from the strip chart selector, the FFT
+size is computed from the available samples. Window functions (Hann,
+Hamming, Blackman, none) are selectable. Magnitude is plotted on a log
+y-axis by default; toggle to linear.
+
+The Spectrogram tab is a rolling waterfall of the same FFT over time.
+Useful for non-stationary signals where the frequency content shifts.
+The colormap is fixed (amber-on-dark to match the rest of the UI). One
+slice is computed per state packet at the current sample rate.
+
+## XY scatter
+
+The Scatter tab plots two channels against each other for
+Lissajous-style visualization. Pick X and Y from the dropdowns. Optional
+connecting lines link adjacent samples in time, so you can see the
+trajectory and not just the cloud. Useful for phase analysis, sensor
+correlation, or just looking at a circuit's transfer function.
+
+## Frequency measurement
+
+Pins in FREQ mode count rising edges via `attachInterrupt`. The firmware
+has one ISR per pin (small wrappers around a per-pin volatile counter).
+Every 250 ms the main loop reads and resets the counters with
+interrupts briefly off, and converts counts to Hz.
+
+Practical bounds:
+
+- Minimum measurable: roughly 4 Hz (one edge per 250 ms window). Below
+  that the readout flickers between 0 and 4 Hz; sample for several
+  seconds to average.
+- Maximum measurable: depends on the host MCU. On a classic Uno R3
+  (16 MHz) the ISR overhead caps out around 100-200 kHz before edges
+  are missed. On an Uno R4 WiFi or Nano 33 IoT, higher.
+
+Only pins with hardware interrupt support can be put in FREQ mode. On
+the classic Uno R3 that's D2 and D3 only; on the Uno R4 WiFi and Nano
+33 IoT, all digital pins. The firmware returns "no interrupt on pin" if
+you try to set FREQ on a non-interrupt pin.
+
+## Threshold alerts
+
+Each device card has a Threshold Alerts panel for raising an alert when
+a channel crosses a value. Pick a pin, pick a condition (above, below,
+rising, falling, equal), a value, and optionally a sound. Alerts fire
+when the condition transitions from false to true (not held continuously).
+
+Alerts persist in the session. Fired alerts show a toast and can play
+a short beep through Web Audio. Useful for hands-off monitoring while
+you do something else.
+
+---
+
+## I2C / Qwiic
+
+Every device card has an I2C / Qwiic section with two parts:
+
+**Scanner**, SCAN BUS sends an I2C scan and highlights every responding
+address on a 16×8 grid. Click a highlighted cell to populate the read
+tool with that address.
+
+**Read/write tool**, three buttons:
+
+- **READ**, read N bytes from a register at the selected address.
+- **WRITE**, write N bytes to a register.
+- **POLL**, configure a virtual slot to poll a register at a fixed Hz
+  (1-50 Hz). The latest read feeds the virtual channel.
+
+The firmware caps reads at 8 bytes per request to keep the wire packet
+small. Signed reads are supported (the firmware sign-extends per the
+byte count). Polls are paused while a one-shot read or write runs, then
+resume.
+
+## Companion sensor library
+
+The I2C panel ships with one-click presets for common breakout sensors.
+Pick a sensor from the COMPANION SENSORS dropdown, confirm the address,
+hit APPLY. PinScope assigns free virtual slots to that sensor's
+registers and, when a unit-conversion math expression makes sense,
+prefills the math input below so you can apply it to a free slot with
+one click.
+
+| Preset    | What it reads                           | Notes                                    |
+| --------- | --------------------------------------- | ---------------------------------------- |
+| TMP102    | 12-bit temperature, 0.0625 °C/LSB       | math: `(v0 / 256) * 0.0625`              |
+| TMP117    | precision temperature, 0.0078125 °C/LSB | math: `v0 * 0.0078125`                   |
+| DS3231    | RTC seconds counter, BCD                | math: `floor(v0/16)*10 + (v0%16)`        |
+| MCP9808   | 13-bit signed temperature               | math masks alert bits                    |
+| INA219    | shunt voltage (mV) and bus voltage (V)  | two-slot preset                          |
+| APDS-9301 | ambient light channel 0                 | requires power-on write to register 0xC0 |
+| PCF8591   | ADC channel 0                           | single byte, default channel             |
+
+The preset definitions live in `SENSOR_PRESETS` near the top of the
+I2CPanel code in `pinscope.html`. Adding a sensor is one record:
+default address, register list, byte count, signed flag, optional unit
+conversion math expression. PinScope's I2C scope is read-only polling,
+so sensors that need a wake/config write are flagged with a
+`requiresInit` hint rather than auto-initialized.
+
+## RGB LED panel
+
+Three dropdowns (R, G, B) select PWM pins, a color picker picks a
+color, APPLY puts each pin in PWM mode and writes the matching duty.
+OFF stops driving. Useful for common-anode/cathode RGB LEDs or any
+three-channel PWM device. The pin assignment and most recent color
+persist in the session.
+
+## Wire protocol
+
+PinScope speaks a small JSON line protocol over every transport. One
+JSON object per line (newline-terminated). The transport doesn't care
+about the framing beyond newline.
+
+### Host to board
+
+| Command                                                                              | Fields                                               | Notes                            |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------- | -------------------------------- |
+| `{"cmd":"hello"}`                                                                    |                                                      | request a hello packet           |
+| `{"cmd":"poll"}`                                                                     |                                                      | request a state packet on demand |
+| `{"cmd":"mode","pin":N,"mode":M}`                                                    | M is one of `off`, `in`, `inp`, `out`, `pwm`, `freq` |                                  |
+| `{"cmd":"set","pin":N,"val":V}`                                                      | V is 0 or 1                                          | only valid in `out` mode         |
+| `{"cmd":"pwm","pin":N,"val":V}`                                                      | V is 0-255                                           | only valid in `pwm` mode         |
+| `{"cmd":"hz","val":H}`                                                               | H is 1-50                                            | sample rate                      |
+| `{"cmd":"i2c","op":"scan"}`                                                          |                                                      | scan the bus                     |
+| `{"cmd":"i2c","op":"read","addr":A,"reg":R,"count":N}`                               |                                                      | one-shot read                    |
+| `{"cmd":"i2c","op":"write","addr":A,"reg":R,"data":[bytes]}`                         |                                                      | one-shot write                   |
+| `{"cmd":"i2c","op":"poll","slot":S,"addr":A,"reg":R,"count":N,"hz":H,"signed":bool}` |                                                      | configure a polling slot         |
+| `{"cmd":"i2c","op":"stoppoll","slot":S}`                                             |                                                      | stop a polling slot              |
+
+### Board to host
+
+| Packet                                                            | Fields | Notes                                                                                    |
+| ----------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| `{"t":"hello","id":"...","name":"...","hz":H}`                    |        | sent on connect and on `hello`                                                           |
+| `{"t":"state","d":[...],"a":[...],"m":[...],"v":[...],"f":[...]}` |        | periodic; `d` is digital readings, `a` analog, `m` pin modes, `v` virtual, `f` frequency |
+| `{"t":"i2c","op":"scan","addrs":[...]}`                           |        | scan result                                                                              |
+| `{"t":"i2c","op":"read","addr":A,"reg":R,"data":[bytes]}`         |        | read result                                                                              |
+| `{"t":"ack","cmd":"..."}`                                         |        | command accepted                                                                         |
+| `{"t":"err","msg":"..."}`                                         |        | command rejected                                                                         |
+
+The protocol is intentionally trivial: any embedded developer can speak
+it from a fresh sketch in an hour. PinScope itself parses with
+`JSON.parse` per line on the browser side. Firmware uses a tiny
+hand-rolled field scanner so it doesn't pull a JSON library.
+
+---
+
 ## Scripted automation
 
-Every device card has a Scripted Automation section: a textarea where
-you write a short async JS sequence to exercise the board. Useful for
-test rigs and repeatable sweeps. The script runs in a sandbox with these
-helpers and nothing else available:
+Every device card has a SCRIPTED AUTOMATION section with a JS sandbox
+for driving the board over time. The available helpers:
 
-| Helper                | What it does                                                 |
-| --------------------- | ------------------------------------------------------------ |
-| `setMode(pin, mode)`  | change pin mode (off, in, inp, out, pwm, freq)               |
-| `setDigital(pin, hi)` | drive a digital output 0 or 1                                |
-| `setPWM(pin, val)`    | set PWM duty (0..255) on a PWM-mode pin                      |
-| `await wait(ms)`      | sleep for the given number of milliseconds                   |
-| `read(pin)`           | latest raw reading from any pin key (`a0`, `d2`, `v1`, `f3`) |
-| `log(msg)`            | append a line to the script's output panel                   |
-| `assert(cond, msg)`   | throw a runtime error if `cond` is falsy                     |
+| Helper                | What it does                                              |
+| --------------------- | --------------------------------------------------------- |
+| `setMode(pin, mode)`  | change a pin's mode (`'out'`, `'in'`, `'pwm'`, etc.)      |
+| `setDigital(pin, hi)` | drive a digital output                                    |
+| `setPWM(pin, val)`    | set PWM duty (0..255)                                     |
+| `await wait(ms)`      | sleep                                                     |
+| `read(pin)`           | latest raw value for any pin key (`'a0'`, `'d2'`, `'v1'`) |
+| `log(msg)`            | print to the script's output panel                        |
+| `assert(cond, msg)`   | throw if `cond` is falsy                                  |
 
-Example:
+JS loops, conditionals, variable declarations, and `await` all work.
+Network and storage globals (`fetch`, `localStorage`, `eval`, `Function`,
+`setTimeout`, `window`, `document`, etc.) are blocked at compile time
+via a strict identifier blocklist.
+
+The RUN button starts the script; STOP aborts it (the helpers check an
+aborted flag before resuming). Script content auto-saves to the session
+so a refresh keeps your work.
+
+Example: ramp PWM duty and log analog readings.
 
 ```js
 setMode(9, 'pwm');
@@ -504,37 +556,244 @@ for (let duty = 0; duty <= 255; duty += 32) {
 }
 ```
 
-A blocklist rejects scripts at compile time that reference `window`,
-`document`, `fetch`, `localStorage`, `eval`, `Function`, `setTimeout`,
-`import`, or similar network and storage globals. The compiler uses an
-async function constructor with only the named helpers in scope, so
-unqualified references to other globals fail with `ReferenceError` at
-runtime. RUN starts the script; STOP aborts via a flag the helpers
-poll. Output streams to the panel under the textarea. Script content
-auto-saves with the session.
+## CSV export
 
-## CSV streaming
+The CSV button on the strip chart toolbar does a one-shot dump of the
+recorder buffer to a CSV file. Columns: timestamp_ms, ISO 8601 time,
+every digital pin, every analog raw plus its calibrated value if a
+calibration is set, every virtual raw plus calibrated.
 
-The recorder buffer caps at 9000 samples (about 15 minutes at 10 Hz,
-3 minutes at 50 Hz). For longer runs, click **STREAM** on the chart
-toolbar: a file picker opens (File System Access API), every new
-sample is appended in batches of up to 50 rows. Click STREAM again
-to stop and close the file.
+For longer runs, the STREAM button opens a save-file picker (File
+System Access API), then appends every new sample to that file in
+batches of up to 50 rows. Click STREAM again to stop and close the
+file. The streamed CSV uses the same column layout. Calibrations
+applied mid-stream affect subsequent rows.
 
-The streamed CSV has the same column layout as the one-shot CSV export:
-timestamp_ms, ISO 8601 time, every digital pin, every analog raw plus
-its calibrated value if a calibration is set, every virtual raw plus
-calibrated. Calibrations applied mid-stream affect subsequent rows.
+CSV streaming is Chromium-only. In Firefox and Safari the STREAM button
+is disabled with a tooltip explaining why; fall back to the one-shot
+CSV or to a capture file.
 
-CSV streaming requires the File System Access API, which is Chromium-only
-at time of writing. In Firefox or Safari the STREAM button is disabled
-with a tooltip explaining why; use the regular CSV button instead, which
-works in every browser.
+## Replay
+
+The REPLAY button on the rail loads a capture JSON file as a synthetic
+"device" card. The card shows up labeled `[replay]` and plays the
+captured samples back in real time. Useful for sharing a problematic
+recording with a colleague, or for reviewing a run without having to
+recreate the hardware setup.
+
+Capture files are produced by the CAPTURE button on the strip chart and
+include the full sample buffer plus enough device metadata (id, name,
+hz, modes) to fake the wire protocol. The replay loops by default;
+toggle to one-shot if you want it to stop at the end.
+
+## Plugins
+
+PinScope supports user-loaded extensions. Each plugin gets a panel on
+every device card and runs inside a sandboxed iframe with no network,
+no DOM access outside its own body, no `localStorage` of its own.
+Communication with the host happens through `postMessage` over a
+per-instance bridge id.
+
+Open the manager with the PLUGINS button on the rail, or press P. Paste
+plugin source or load it from a file, give it a name, click LOAD.
+Loaded plugins persist in `localStorage` under the key
+`pinscope.plugins.v1` and re-mount automatically the next time the
+page opens. The checkbox next to each loaded plugin toggles enable;
+REMOVE deletes it entirely.
+
+### Plugin API
+
+Inside the sandbox iframe, plugins call `PinScope.register({...})` exactly
+once with these fields:
+
+- `id`, unique alphanumeric identifier (`[a-zA-Z][\w-]{0,40}`)
+- `name`, human label shown in the panel head
+- `version`, any string
+- `onInit(api)`, called once after registration
+- `onState(state, api)`, called for every state packet
+- `onDestroy()`, called when the card disconnects or the plugin is disabled
+
+The `state` argument matches the wire protocol packet:
+`{ d: [14], a: [6], v: [4], f: [14], m: [14], t: timestamp }`.
+
+The `api` object provides:
+
+- `api.send(obj)`, send a wire command (subject to the same validation
+  the rest of PinScope uses)
+- `api.getState()`, Promise resolving to a state snapshot on demand
+- `api.log(msg)`, prints to the host's developer console
+- `api.render(html)`, replaces the plugin panel body with HTML (script
+  tags stripped, defense in depth)
+- `api.renderSVG(svgText)`, same but without script stripping, for
+  trusted SVG content
+- `api.persist(key, value)`, save plugin state; round-trips through
+  session export/import
+- `api.recall(key)`, Promise resolving to a previously persisted value
+
+### Persistence round-trip
+
+Anything a plugin writes through `api.persist` lands in
+`device.pluginState[plugin.id][key]` on the host and is part of the
+session snapshot. Plugin state survives:
+
+- page reload (via localStorage autosave, 400 ms debounce)
+- session EXPORT to JSON file
+- session IMPORT from JSON file (plugins are force-remounted so
+  `onInit` re-reads via `api.recall()`)
+
+Plugins should always read persisted state in `onInit`, not cache it
+from a previous lifecycle.
+
+### Example plugins
+
+The repo ships with four plugins under `plugins/`:
+
+- `hello.js`, the simplest possible plugin. Prints A0 with a bar
+  visualization. Useful as a template.
+- `gauge.js`, an SVG arc gauge for any analog pin. Demonstrates
+  `renderSVG`, `persist`/`recall` for the selected pin, and a button
+  group rendered into the plugin's own DOM.
+- `servo-sweep.js`, drives a PWM pin in a triangle wave with start and
+  stop controls. Demonstrates `api.send` to issue wire-protocol
+  commands and a small UI with selectable PWM pin.
+- `field-notes.js`, a persistent notebook attached to the device card.
+  Free-form notes textarea plus a list of timestamped "moments" that
+  snapshot the current state with optional labels. Demonstrates the
+  full `persist`/`recall` round-trip for both simple and complex value
+  types.
+
+### Security model
+
+The iframe sandbox is `sandbox="allow-scripts"` only. Lack of
+`allow-same-origin` is deliberate and blocks the iframe from reaching
+the parent document, navigating the top frame, or making same-origin
+network requests. The bridge id is randomized per instance, so a
+malicious plugin can't impersonate another plugin's messages.
+
+User-supplied plugin source is embedded into the iframe via
+`JSON.stringify` and run with `eval` inside the sandbox, which prevents
+template-literal breakout attacks on the host. The closing `script>`
+tag in the srcdoc is split across two string concatenations so the
+host HTML parser doesn't terminate the outer script block early.
+
+What plugins cannot do, by design: see other plugins' iframes, read the
+host's localStorage, access `fetch`, modify other device cards, override
+builtin PinScope behavior. Wire commands route through the same
+`device.send()` path as user actions, so any abuse appears in the
+Wire Log and can be paused or audited.
+
+---
+
+## USB serial firmware
+
+The default firmware is `pinscope.ino`. Flash it via the Arduino IDE
+or `arduino-cli`. It works on:
+
+- classic Arduino Uno R3 (and any compatible 16 MHz AVR)
+- Arduino Nano 33 IoT
+- Arduino Uno R4 WiFi
+- Arduino Uno Q (experimental, see `BRINGUP.md`; runs under
+  `arduino:zephyr:unoq` which behaves differently from classic Arduino
+  in subtle ways)
+
+Open the SERIAL connect dialog in PinScope, pick the matching
+`/dev/cu.usbmodem*` (macOS) or `COMx` (Windows) or `/dev/ttyACM*`
+(Linux), and the card appears.
+
+## WiFi firmware (raw socket)
+
+There isn't a dedicated raw-socket WiFi firmware in the repo; the WIFI
+button is intended for boards running a custom firmware that exposes
+the wire protocol on a TCP socket via a WebSocket server. The simplest
+real-world path is to use the MQTT firmware below (broker handles all
+the framing) or the serial firmware with the MQTT bridge.
+
+## MQTT
+
+`pinscope_mqtt.ino` connects to a broker directly over WiFi using the
+WiFiNINA + ArduinoMqttClient libraries. Tested on:
+
+- **Arduino Uno R4 WiFi**, ESP32-S3 coprocessor exposed via the
+  WiFiNINA API shim
+- **Arduino Nano 33 IoT**, NINA-W102 coprocessor
+
+Edit `WIFI_SSID`, `WIFI_PASS`, `MQTT_HOST`, `MQTT_PORT`, and
+`TOPIC_BASE` at the top of the sketch before flashing. The board
+derives its device id from the WiFi MAC at boot, so two boards on the
+same broker never collide.
+
+Topic schema:
+
+- `<base>/<deviceId>/out`, board to host (line-delimited JSON)
+- `<base>/<deviceId>/in`, host to board (one command per PUBLISH)
+
+The PinScope browser console connects to the broker's WebSocket port
+(typically 8080 or 8083), not the raw TCP port. The broker routes
+between the WS client and the TCP-only firmware.
+
+### Serial-to-MQTT bridge
+
+For boards without WiFi, `pinscope_mqtt_bridge.py` is a small Python
+script that reads serial frames from the board and republishes them
+to MQTT, and forwards MQTT commands back to serial. Requires
+`paho-mqtt` and `pyserial`:
+
+```sh
+pip install paho-mqtt pyserial
+python pinscope_mqtt_bridge.py --port /dev/cu.usbmodem1101 --broker test.mosquitto.org
+```
+
+The bridge sniffs the board's `hello` packet to learn its device id and
+constructs the topic names automatically.
+
+## BLE
+
+`pinscope_ble.ino` is the BLE-capable firmware variant for boards with
+ArduinoBLE support:
+
+- Arduino Uno R4 WiFi (ESP32-S3 BLE coprocessor)
+- Arduino Nano 33 IoT (NINA-W102 BLE coprocessor)
+- Arduino Uno Q (experimental; runs under Zephyr OS so ArduinoBLE
+  behavior depends on the core version, verify on your build)
+
+PinScope uses the following service and characteristic UUIDs:
+
+| Item                  | UUID                                   |
+| --------------------- | -------------------------------------- |
+| Service               | `7e2bf001-9d27-4e96-9c9f-1f4b8a0c5e6d` |
+| Notify (board → host) | `7e2bf002-9d27-4e96-9c9f-1f4b8a0c5e6d` |
+| Write (host → board)  | `7e2bf003-9d27-4e96-9c9f-1f4b8a0c5e6d` |
+
+Click BLE in the rail, pick the device from the browser's BLE picker
+(Chromium-only), grant permission. State packets stream over the
+notify characteristic; commands go out via the write characteristic.
+
+## Session diff
+
+A device card's session can be compared against another saved session
+to see exactly what changed. Open a card, click DIFF in the session
+controls (next to EXPORT and IMPORT), pick a session JSON file. A modal
+opens showing every field that differs:
+
+- per-pin calibrations (added, removed, changed slope/offset/label/unit)
+- threshold alerts (added, removed, condition or value changed)
+- I2C poll configurations (slot reassignments, address/register changes)
+- cross-pin math expressions (added, removed, expression changed)
+- trigger configuration changes
+- script source changes (unified diff inline)
+- plugin state changes
+
+The diff is read-only; it doesn't modify the active session. Useful
+for catching calibration drift between test rigs, confirming that a
+"identical" board is actually identical, or pre-flight checking a
+session JSON before committing it to a repo.
+
+---
 
 ## Sessions
 
-Every device card auto-saves its configuration to localStorage 400 ms after
-any change. The saved fields are:
+Every device card auto-saves its configuration to localStorage 400 ms
+after any change. The saved fields are:
 
 - alias, ADC resolution, sample rate
 - per-pin calibrations
@@ -545,182 +804,69 @@ any change. The saved fields are:
 - RGB LED pin assignment and most recent color
 - trigger configuration (channel, condition, value, pre/post windows)
 - scripted automation source
+- plugin state (everything plugins write via `api.persist`)
 
-The EXPORT button writes the same snapshot to a JSON file. IMPORT reads one
-back. The session file format is versioned (current version 1.2, additive
-over 1.1 and 1.0); older session files load fine with the new fields
-defaulted. Trigger state restores to "armed" so it can fire again, not
-stuck in the captured-but-frozen state.
+The EXPORT button writes the same snapshot to a JSON file. IMPORT
+reads one back. DIFF compares the current session against a file (see
+[Session diff](#session-diff)).
 
-## Frequency measurement notes
-
-The firmware uses RISING-edge interrupts with `attachInterrupt`. There is one
-ISR per pin (small wrappers around a per-pin volatile counter). Every 250 ms
-the main loop reads and resets the counters with interrupts briefly off, and
-converts counts to Hz.
-
-Practical bounds:
-
-- Minimum measurable frequency is roughly 4 Hz (one edge per 250 ms window).
-  Below that the readout flickers between 0 and 4 Hz; sample for several
-  cycles instead.
-- Maximum measurable frequency depends on the core. On a classic 16 MHz Uno
-  the ISR overhead is small enough to handle tens of kHz without dropping
-  edges, but the JSON serialization will bottleneck the host display long
-  before the ISR does. In practice, treat 1 kHz as a comfortable upper
-  bound and use a frequency divider for anything faster.
-- The reported Hz is averaged over the 250 ms calculation window, so a real
-  100 Hz signal reads as a steady 100, but a pulsed signal at one-pulse-per-
-  second reads as 4 Hz.
-
-If you need pulse width or duty cycle in addition to frequency, the easiest
-path is a math channel that combines two FREQ pins (rising and falling edge
-on adjacent pins via a small inverter or a level-trigger circuit). A direct
-duty-cycle mode is a candidate for tier 3.
-
-## Browser support
-
-- Chrome, Edge, Opera, Brave, Arc: full feature set including Web Serial
-  and Web Bluetooth (BLE).
-- Firefox, Safari: WiFi (WebSocket) and MQTT (also WebSocket) transports
-  work. Web Serial and Web Bluetooth are not available, so the SERIAL and
-  BLE buttons are disabled. Replay works in any browser since it reads a
-  local file.
-- The canvases use the standard 2D API, devicePixelRatio for crispness on
-  Retina, and `requestAnimationFrame` for the draw loops. No WebGL, no
-  WebAssembly.
-
-## MQTT firmware variant
-
-If your board has WiFi, you can skip the host-side bridge entirely. The
-`pinscope_mqtt.ino` sketch connects to a broker directly using WiFiNINA and
-ArduinoMqttClient, advertising itself on `<base>/<deviceId>/out` and
-listening for commands on `<base>/<deviceId>/in`. The device id is derived
-from the WiFi MAC at boot, so two boards on the same broker never collide.
-
-Tested on:
-
-- **Arduino Uno R4 WiFi**, ESP32-S3 coprocessor exposed via the WiFiNINA
-  API shim.
-- **Arduino Nano 33 IoT**, NINA-W102 coprocessor.
-
-Edit `WIFI_SSID`, `WIFI_PASS`, `MQTT_HOST`, `MQTT_PORT`, and `TOPIC_BASE`
-near the top of the sketch before flashing. The broker is plain TCP MQTT
-(default port 1883), not the WebSocket port. The PinScope browser console
-still uses the broker's WebSocket port (typically 8080 or 8000) to talk to
-the same broker; the broker routes between the two.
+Session file format is versioned. Current version is 1.3 (additive
+over 1.2, 1.1, and 1.0). Older session files load fine with the new
+fields defaulted. Trigger state restores to "armed" so it can fire
+again, not stuck in the captured-but-frozen state. Plugins are
+force-remounted on import so each plugin's `onInit` re-reads the
+restored state via `api.recall()`.
 
 ## Continuous integration
 
-The repo ships with a GitHub Actions workflow at `.github/workflows/ci.yml`
-that runs on every push and pull request, plus on demand via
-`workflow_dispatch`. It has four jobs:
+The repo ships with a GitHub Actions workflow at
+`.github/workflows/ci.yml` that runs on every push and pull request,
+plus on demand via `workflow_dispatch`. Five jobs:
 
-| Job              | What it does                                                                                                                                                                                                       |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `lint`           | Extracts the JS from `pinscope.html`, runs JSHint with `.jshintrc`, then checks formatting with Prettier and HTML validity with html-validate. Also fails the build if any em dash slips into the tracked sources. |
-| `compile-serial` | arduino-cli compile matrix for `pinscope.ino` on Uno R3, Nano 33 IoT, and Uno R4 WiFi. The serial firmware compiles on every classic Arduino core, so this is the broadest sanity check.                           |
-| `compile-ble`    | Compile matrix for `pinscope_ble.ino` on Nano 33 IoT and Uno R4 WiFi (the two boards with first-class ArduinoBLE support). Uno Q is omitted from CI pending Zephyr-core verification.                              |
-| `compile-mqtt`   | Compile matrix for `pinscope_mqtt.ino` on the two NINA boards, with `WiFiNINA` and `ArduinoMqttClient` pulled in by the workflow.                                                                                  |
-| `bridge-syntax`  | Compiles the Python bridge with `py_compile` and runs `ruff` for style.                                                                                                                                            |
+| Job              | What it does                                                                                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `lint`           | extracts the JS from `pinscope.html`, runs JSHint with `.jshintrc`, then Prettier on text files, html-validate, and a hard fail on em dashes anywhere in tracked sources |
+| `compile-serial` | arduino-cli compile matrix for `pinscope.ino` on Uno R3, Nano 33 IoT, and Uno R4 WiFi                                                                                    |
+| `compile-ble`    | matrix for `pinscope_ble.ino` on Nano 33 IoT and Uno R4 WiFi (the two boards with first-class ArduinoBLE support); Uno Q is omitted pending Zephyr-core verification     |
+| `compile-mqtt`   | matrix for `pinscope_mqtt.ino` on the two NINA boards with WiFiNINA and ArduinoMqttClient                                                                                |
+| `bridge-syntax`  | compiles the Python bridge with `py_compile` and runs `ruff` for style                                                                                                   |
 
-The workflow uses the official `arduino/compile-sketches@v1` action and the
-matrix-job pattern documented in Arduino's "GitHub Actions for Arduino"
-guide; staging each sketch into a folder of the same name keeps arduino-cli
-happy with the flat repo layout.
+The workflow uses the official `arduino/compile-sketches@v1` action.
+Each sketch is staged into a folder of the same name before compile so
+arduino-cli is happy with the flat repo layout.
 
-If you fork this and want to add a board, drop another entry in the
-relevant matrix and (if needed) install its core via the `platforms` key.
+To run the same lint checks locally:
 
-## Files
+```sh
+scripts/lint.sh             # all checks
+scripts/lint.sh --fix       # auto-format with Prettier
+scripts/lint.sh --js-only   # just JSHint on the embedded JS
+```
 
-- `pinscope.html` is the entire console: HTML, CSS, JavaScript, all in one
-  file. Around 165 KB and roughly 4200 lines. Open it directly from disk
-  or serve it; both work.
-- `pinscope.ino` is the reference firmware for USB serial. Around 550 lines.
-- `pinscope_ble.ino` is the BLE-capable firmware variant. One source for
-  Uno R4 WiFi, Nano 33 IoT, and (experimentally) Uno Q. Around 620 lines.
-- `pinscope_mqtt.ino` is the MQTT-capable firmware variant for Uno R4 WiFi
-  and Nano 33 IoT. Around 640 lines.
-- `pinscope_mqtt_bridge.py` is a small serial-to-MQTT bridge for boards
-  that lack WiFi. Needs `paho-mqtt` and `pyserial`.
-- `.github/workflows/ci.yml` is the CI workflow (compile matrix + lint).
-- `.jshintrc`, `.prettierrc`, `.prettierignore` are the lint configs.
-- `README.md` is this file.
+To compile a sketch locally against a chosen FQBN:
+
+```sh
+scripts/compile.sh pinscope.ino arduino:renesas_uno:unor4wifi
+```
+
+Requires `arduino-cli` on your PATH plus the relevant cores and
+libraries installed (see `CONTRIBUTING.md`).
 
 ## License
 
-PinScope (Field Instrument 005) is free software: you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation, either version 3 of the License,
-or (at your option) any later version.
+PinScope (Field Instrument 005) is free software: you can redistribute
+it and/or modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-more details.
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
 
-You should have received a copy of the GNU General Public License along
-with this program. If not, see https://www.gnu.org/licenses/gpl-3.0.html
+You should have received a copy of the GNU General Public License
+along with this program. If not, see https://www.gnu.org/licenses/gpl-3.0.html
 
 SPDX-License-Identifier: GPL-3.0-or-later
 
 Copyright (C) 2025-2026 Michael B. Parks · Green Shoe Garage
-
-## Repo layout
-
-```
-pinscope/
-├── pinscope.html              # the entire console
-├── pinscope.ino               # serial firmware (any classic Arduino)
-├── pinscope_ble.ino           # BLE firmware (Nano 33 IoT, Uno R4 WiFi, Uno Q experimental)
-├── pinscope_mqtt.ino          # MQTT firmware (Uno R4 WiFi, Nano 33 IoT)
-├── pinscope_mqtt_bridge.py    # serial-to-MQTT bridge for boards without WiFi
-├── scripts/
-│   ├── lint.sh                # run the same checks CI runs
-│   └── compile.sh             # compile a sketch against a chosen FQBN
-├── .github/workflows/ci.yml   # GitHub Actions: compile matrix + lint
-├── .jshintrc                  # lint config for the embedded JS
-├── .prettierrc                # formatter config
-├── .prettierignore            # paths Prettier skips
-├── .gitignore
-├── LICENSE                    # GPL-3.0-or-later
-├── CONTRIBUTING.md
-└── README.md
-```
-
-## First-time setup (fresh clone)
-
-```sh
-git clone https://github.com/mbparks/pinscope.git
-cd pinscope
-
-# Open the console directly in a browser
-open pinscope.html       # macOS
-xdg-open pinscope.html   # Linux
-start pinscope.html      # Windows
-```
-
-There is no install step for the browser side. The Arduino firmwares need
-arduino-cli or the Arduino IDE 2.x, with the matching board cores and the
-ArduinoBLE, WiFiNINA, and ArduinoMqttClient libraries installed for the
-variants you want to use. See the per-section instructions below.
-
-## Publishing this repo
-
-If you forked or are reading this in a fresh checkout, here is the
-exact sequence to take it from local files to a live GitHub repo:
-
-```sh
-cd pinscope
-git init
-git add .
-git commit -m "initial commit: PinScope (Field Instrument 005)"
-git branch -M main
-git remote add origin https://github.com/mbparks/pinscope.git
-git push -u origin main
-```
-
-The CI workflow runs on the first push and on every subsequent push and
-pull request. The badge at the top of this README will turn green within
-a few minutes of the first successful run.

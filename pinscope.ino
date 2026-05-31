@@ -51,6 +51,36 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+// -------- BOARD DETECTION ---------------------------------------------------
+// The board-specific defines let the firmware adapt to each MCU's quirks:
+//   - ADC bit width (Uno R4, Nano 33 IoT, Uno Q are 12-bit; classic Uno is 10)
+//   - Whether we should call analogReadResolution() at boot
+//   - A name we report in the hello packet so the browser can label the card
+// All three families use the standard Arduino API surface, so attachInterrupt,
+// digitalPinToInterrupt, pinMode, analogRead, Wire all behave the same way.
+#if defined(ARDUINO_ARCH_ZEPHYR)
+  #define PINSCOPE_BOARD_NAME "Arduino Uno Q"
+  #define PINSCOPE_ADC_BITS   12
+  #define PINSCOPE_SET_ADC_RES 1
+#elif defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
+  #define PINSCOPE_BOARD_NAME "Arduino Uno R4"
+  #define PINSCOPE_ADC_BITS   12
+  #define PINSCOPE_SET_ADC_RES 1
+#elif defined(ARDUINO_SAMD_NANO_33_IOT)
+  #define PINSCOPE_BOARD_NAME "Arduino Nano 33 IoT"
+  #define PINSCOPE_ADC_BITS   12
+  #define PINSCOPE_SET_ADC_RES 1
+#elif defined(ARDUINO_AVR_UNO) || defined(ARDUINO_ARCH_AVR)
+  #define PINSCOPE_BOARD_NAME "Arduino Uno"
+  #define PINSCOPE_ADC_BITS   10
+  #define PINSCOPE_SET_ADC_RES 0
+#else
+  // Unknown board: assume the safe defaults (10-bit ADC, don't change).
+  #define PINSCOPE_BOARD_NAME "Arduino"
+  #define PINSCOPE_ADC_BITS   10
+  #define PINSCOPE_SET_ADC_RES 0
+#endif
+
 // -------- CONFIG -----------------------------------------------------------
 static const uint32_t BAUD          = 115200;
 static const uint8_t  NUM_DIGITAL   = 14;
@@ -139,8 +169,12 @@ static void sendHello() {
     uint8_t nib = (id >> shift) & 0xF;
     Serial.print((char)(nib < 10 ? '0' + nib : 'A' + nib - 10));
   }
-  Serial.print(F("\",\"name\":\"Arduino Uno Q\",\"hz\":"));
+  Serial.print(F("\",\"name\":\""));
+  Serial.print(F(PINSCOPE_BOARD_NAME));
+  Serial.print(F("\",\"hz\":"));
   Serial.print(1000 / statePeriod);
+  Serial.print(F(",\"adcMax\":"));
+  Serial.print((uint16_t)((1UL << PINSCOPE_ADC_BITS) - 1));
   Serial.println(F("}"));
 }
 
@@ -491,6 +525,12 @@ void setup() {
     pwmVals[i]  = 0;
   }
   for (uint8_t i = 0; i < NUM_VIRTUAL; i++) polls[i].active = false;
+
+  // ADC resolution on 12-bit-capable boards. Classic AVR ignores this.
+#if PINSCOPE_SET_ADC_RES
+  analogReadResolution(PINSCOPE_ADC_BITS);
+#endif
+
   Wire.begin();
 }
 
