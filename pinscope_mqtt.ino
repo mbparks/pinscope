@@ -160,8 +160,12 @@ static void endPublish() {
 }
 
 // Convenience: print formatted text into the current publish.
-template <typename T>
-static void px(T v) { mqttClient.print(v); }
+static void px(int v) { mqttClient.print(v); }
+static void px(unsigned int v) { mqttClient.print(v); }
+static void px(long v) { mqttClient.print(v); }
+static void px(unsigned long v) { mqttClient.print(v); }
+static void px(float v) { mqttClient.print(v); }
+static void px(const char* v) { mqttClient.print(v); }
 
 static const char* modeName(uint8_t m) {
   switch (m) {
