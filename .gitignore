@@ -1,1 +1,42 @@
+# Editor / OS noise
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Node (only present locally if you run the lint helpers)
+node_modules/
+package-lock.json
+package.json
+
+# Python (only for the bridge)
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.ruff_cache/
+
+# Arduino build artifacts. Sketches build into a sibling "build" folder
+# when used with arduino-cli.
+build/
+*.elf
+*.bin
+*.hex
+*.eep
+*.map
+
+# CI workflow staging dirs (compile-sketches copies each .ino into here)
+sketches/
+
+# Saved data from PinScope itself
+captures/
+*.csv
+pinscope_capture_*.json
+pinscope_session_*.json
+
+# Local secrets file pattern for the MQTT firmware
+arduino_secrets.h

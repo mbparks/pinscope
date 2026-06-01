@@ -1,0 +1,11 @@
+# Arduino sketches are not handled by Prettier
+*.ino
+
+# Single-file artifact: too risky to auto-reformat a 4k-line file
+pinscope.html
+
+# Generated/derivative
+.github/
+node_modules/
+build/
+captures/
