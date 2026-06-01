@@ -1,6 +1,7 @@
 /*
  * pinscope_mqtt.ino
  *
+ *
  * MQTT-capable firmware for PINSCOPE (Field Instrument 005). Publishes the
  * PinScope JSON wire protocol directly to an MQTT broker over WiFi, so the
  * browser console can talk to the board with no host-side bridge process.
