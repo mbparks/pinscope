@@ -160,7 +160,7 @@ static void endPublish() {
 }
 
 // Convenience: print formatted text into the current publish.
-template <typename T>
+template<typename T>
 static void px(T v) { mqttClient.print(v); }
 
 static const char* modeName(uint8_t m) {
