@@ -1,7 +1,7 @@
 # PinScope · Field Instrument 005
 
 [![CI](https://github.com/mbparks/pinscope/actions/workflows/ci.yml/badge.svg)](https://github.com/mbparks/pinscope/actions/workflows/ci.yml)
-[![Docs](https://github.com/mbparks/pinscope/actions/workflows/pages.yml/badge.svg)](https://mbparks.github.io/pinscope/)
+[![Docs](https://img.shields.io/badge/docs-mbparks.github.io%2Fpinscope-d4a017)](https://mbparks.github.io/pinscope/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Single-file](https://img.shields.io/badge/runtime-single--file%20HTML-d4a017)](pinscope.html)
 
@@ -32,7 +32,6 @@ No build step. No framework. No external assets at runtime once loaded.
 
 The visual language is the same amber-on-dark "field instrument" treatment
 used in the rest of the M.B. Parks tool series.
-
 
 ## Table of contents
 
@@ -714,9 +713,12 @@ the framing) or the serial firmware with the MQTT bridge.
 `pinscope_mqtt.ino` connects to a broker directly over WiFi using the
 WiFiNINA + ArduinoMqttClient libraries. Tested on:
 
-- **Arduino Uno R4 WiFi**, ESP32-S3 coprocessor exposed via the
-  WiFiNINA API shim
 - **Arduino Nano 33 IoT**, NINA-W102 coprocessor
+
+Note: the Arduino Uno R4 WiFi uses a different WiFi stack (`WiFiS3`
+against an ESP32-S3 coprocessor) and is not supported by this sketch.
+R4 WiFi users can use the Serial transport instead, or run the
+serial-to-MQTT bridge below.
 
 Edit `WIFI_SSID`, `WIFI_PASS`, `MQTT_HOST`, `MQTT_PORT`, and
 `TOPIC_BASE` at the top of the sketch before flashing. The board
@@ -829,7 +831,7 @@ plus on demand via `workflow_dispatch`. Five jobs:
 | `lint`           | extracts the JS from `pinscope.html`, runs JSHint with `.jshintrc`, then Prettier on text files, html-validate, and a hard fail on em dashes anywhere in tracked sources |
 | `compile-serial` | arduino-cli compile matrix for `pinscope.ino` on Uno R3, Nano 33 IoT, and Uno R4 WiFi                                                                                    |
 | `compile-ble`    | matrix for `pinscope_ble.ino` on Nano 33 IoT and Uno R4 WiFi (the two boards with first-class ArduinoBLE support); Uno Q is omitted pending Zephyr-core verification     |
-| `compile-mqtt`   | matrix for `pinscope_mqtt.ino` on the two NINA boards with WiFiNINA and ArduinoMqttClient                                                                                |
+| `compile-mqtt`   | matrix for `pinscope_mqtt.ino` on Nano 33 IoT only (the only board with WiFiNINA + ArduinoMqttClient support)                                                            |
 | `bridge-syntax`  | compiles the Python bridge with `py_compile` and runs `ruff` for style                                                                                                   |
 
 The workflow uses the official `arduino/compile-sketches@v1` action.

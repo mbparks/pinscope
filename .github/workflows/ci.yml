@@ -127,12 +127,14 @@ jobs:
       fail-fast: false
       matrix:
         board:
+          # WiFiNINA targets the NINA-W102 coprocessor on the Nano 33 IoT
+          # (and on the legacy MKR WiFi 1010). The Uno R4 WiFi has a
+          # completely different WiFi stack (ESP32-S3 coprocessor + WiFiS3
+          # library) and is NOT supported by WiFiNINA. R4 WiFi MQTT support
+          # would need a separate sketch built on WiFiS3; that's deferred.
           - fqbn: arduino:samd:nano_33_iot
             platforms: |
               - name: arduino:samd
-          - fqbn: arduino:renesas_uno:unor4wifi
-            platforms: |
-              - name: arduino:renesas_uno
     steps:
       - uses: actions/checkout@v4
       - name: Stage sketch in matching folder
