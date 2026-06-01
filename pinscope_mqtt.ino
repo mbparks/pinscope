@@ -160,8 +160,17 @@ static void endPublish() {
 }
 
 // Convenience: print formatted text into the current publish.
-template <typename T>
-static void px(T v) { mqttClient.print(v); }
+// Overloaded inline wrappers around mqttClient.print() so call sites can
+// stay terse. We deliberately avoid a function template here because some
+// transfer pipelines (HTML sanitizers, certain text editors, web forms)
+// silently strip "template <typename T>" thinking the angle brackets are
+// HTML tags. Plain overloads sidestep the issue entirely.
+static inline void px(const char* v)   { mqttClient.print(v); }
+static inline void px(char v)          { mqttClient.print(v); }
+static inline void px(int v)           { mqttClient.print(v); }
+static inline void px(unsigned int v)  { mqttClient.print(v); }
+static inline void px(long v)          { mqttClient.print(v); }
+static inline void px(unsigned long v) { mqttClient.print(v); }
 
 static const char* modeName(uint8_t m) {
   switch (m) {
