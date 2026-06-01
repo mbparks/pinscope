@@ -81,6 +81,19 @@
   #define PINSCOPE_SET_ADC_RES 0
 #endif
 
+// -------- INTERRUPT PORTABILITY --------------------------------------------
+// digitalPinToInterrupt() returns int on most cores (AVR, SAMD, Renesas R4
+// older) but pin_size_t (unsigned) on newer Renesas cores and Zephyr. The
+// sentinel NOT_AN_INTERRUPT is also not defined on every core. Wrap the
+// "is this pin interrupt-capable" check in a helper that works on all of
+// them by promoting the return value to int and comparing against -1.
+#ifndef NOT_AN_INTERRUPT
+  #define NOT_AN_INTERRUPT -1
+#endif
+static inline bool pinscopeHasIrq(uint8_t pin) {
+  return (int)digitalPinToInterrupt(pin) != NOT_AN_INTERRUPT;
+}
+
 // -------- CONFIG -----------------------------------------------------------
 static const uint32_t BAUD          = 115200;
 static const uint8_t  NUM_DIGITAL   = 14;
@@ -296,7 +309,7 @@ static uint8_t readIntArray(const char* buf, const char* key, int* out, uint8_t 
 // -------- PIN MODE APPLICATION ---------------------------------------------
 static void detachIfFreq(uint8_t pin) {
   if (pinModes[pin] == MODE_FREQ) {
-    int irq = digitalPinToInterrupt(pin);
+    int irq = (int)digitalPinToInterrupt(pin);
     if (irq != NOT_AN_INTERRUPT) detachInterrupt(irq);
     noInterrupts();
     pulseCount[pin] = 0;
@@ -315,7 +328,7 @@ static void applyMode(uint8_t pin, const char* mode) {
   else if (!strcmp(mode, "out"))  code = MODE_OUT;
   else if (!strcmp(mode, "pwm"))  { if (!isPwmPin(pin)) { sendErr("not pwm pin"); return; } code = MODE_PWM; }
   else if (!strcmp(mode, "freq")) {
-    if (digitalPinToInterrupt(pin) == NOT_AN_INTERRUPT) { sendErr("no interrupt on pin"); return; }
+    if (!pinscopeHasIrq(pin)) { sendErr("no interrupt on pin"); return; }
     code = MODE_FREQ;
   }
   else { sendErr("bad mode"); return; }
