@@ -167,6 +167,9 @@ static void px(unsigned long v) { mqttClient.print(v); }
 static void px(float v) { mqttClient.print(v); }
 static void px(const char* v) { mqttClient.print(v); }
 
+template<typename T>
+static void px(T v) { mqttClient.print(v); }
+
 static const char* modeName(uint8_t m) {
   switch (m) {
     case MODE_IN:   return "in";
