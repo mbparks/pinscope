@@ -40,3 +40,4 @@ pinscope_session_*.json
 
 # Local secrets file pattern for the MQTT firmware
 arduino_secrets.h
+.DS_Store
