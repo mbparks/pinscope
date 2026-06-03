@@ -1,4 +1,4 @@
-# PinScope · Field Instrument 005
+# PinScope
 
 [![CI](https://github.com/mbparks/pinscope/actions/workflows/ci.yml/badge.svg)](https://github.com/mbparks/pinscope/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-mbparks.github.io%2Fpinscope-d4a017)](https://mbparks.github.io/pinscope/)
