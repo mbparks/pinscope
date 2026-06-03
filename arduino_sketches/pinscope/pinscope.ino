@@ -60,8 +60,14 @@
 // digitalPinToInterrupt, pinMode, analogRead, Wire all behave the same way.
 #if defined(ARDUINO_ARCH_ZEPHYR)
   #define PINSCOPE_BOARD_NAME "Arduino Uno Q"
-  #define PINSCOPE_ADC_BITS   12
-  #define PINSCOPE_SET_ADC_RES 1
+  // The Zephyr-Arduino core on the Uno Q is new and we've seen the firmware
+  // hang silently if we try to call analogReadResolution() in setup. Until
+  // that's understood, leave ADC resolution at the core's default and
+  // advertise 10-bit so the browser's scaling matches whatever the core
+  // does. If it turns out reads are actually 12-bit on this core, the bars
+  // will just look short, not broken; bump these to 12 and SET_ADC_RES=1.
+  #define PINSCOPE_ADC_BITS   10
+  #define PINSCOPE_SET_ADC_RES 0
 #elif defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
   #define PINSCOPE_BOARD_NAME "Arduino Uno R4"
   #define PINSCOPE_ADC_BITS   12
@@ -546,6 +552,11 @@ void setup() {
   uint32_t deadline = millis() + 2000;
   while (!Serial && millis() < deadline) { /* wait */ }
 
+  // Boot phase markers so silent hangs in setup() are visible in the
+  // serial monitor. If you only see "boot:start" and nothing after, the
+  // hang is between then and the next marker.
+  Serial.println(F("{\"t\":\"boot\",\"phase\":\"start\"}"));
+
   for (uint8_t i = 0; i < NUM_DIGITAL; i++) {
     pinModes[i] = 0;
     pwmVals[i]  = 0;
@@ -553,11 +564,15 @@ void setup() {
   for (uint8_t i = 0; i < NUM_VIRTUAL; i++) polls[i].active = false;
 
   // ADC resolution on 12-bit-capable boards. Classic AVR ignores this.
+  // Skipped on Zephyr until we understand whether the call hangs.
 #if PINSCOPE_SET_ADC_RES
+  Serial.println(F("{\"t\":\"boot\",\"phase\":\"pre-adc\"}"));
   analogReadResolution(PINSCOPE_ADC_BITS);
 #endif
 
+  Serial.println(F("{\"t\":\"boot\",\"phase\":\"pre-wire\"}"));
   Wire.begin();
+  Serial.println(F("{\"t\":\"boot\",\"phase\":\"ready\"}"));
 }
 
 void loop() {
