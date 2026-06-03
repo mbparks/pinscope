@@ -492,6 +492,43 @@ static void handleI2C(const char* buf) {
   sendErr("bad i2c op");
 }
 
+// -------- ONBOARD RGB LED -------------------------------------------------
+// The Uno Q's onboard RGB LED is wired to three named pins (LED3_R, LED3_G,
+// LED3_B) that are NOT the same as the user-facing D0-D13 GPIO numbers.
+// They're also active-low (LOW = ON), so we invert the duty before writing.
+// Symbols LED3_X are only defined on Zephyr/Uno Q; on other cores the
+// command falls through with a friendly error.
+static void handleLed(const char* buf) {
+#if defined(ARDUINO_ARCH_ZEPHYR)
+  int r, g, b;
+  if (!readIntVal(buf, "r", &r) || !readIntVal(buf, "g", &g) || !readIntVal(buf, "b", &b)) {
+    sendErr("missing r/g/b"); return;
+  }
+  if (r < 0) r = 0; if (r > 255) r = 255;
+  if (g < 0) g = 0; if (g > 255) g = 255;
+  if (b < 0) b = 0; if (b > 255) b = 255;
+  // Lazy-init pinMode the first time we're called. Cheaper than configuring
+  // unused pins in setup(), and means users who never use the onboard LED
+  // never touch those pins.
+  static bool led3Ready = false;
+  if (!led3Ready) {
+    pinMode(LED3_R, OUTPUT);
+    pinMode(LED3_G, OUTPUT);
+    pinMode(LED3_B, OUTPUT);
+    led3Ready = true;
+  }
+  // Active low: invert. 255 = full off, 0 = full brightness. analogWrite
+  // does PWM on capable pins and falls back to digital on/off on others.
+  analogWrite(LED3_R, 255 - r);
+  analogWrite(LED3_G, 255 - g);
+  analogWrite(LED3_B, 255 - b);
+  sendAck("led");
+#else
+  (void)buf;
+  sendErr("led not supported on this board");
+#endif
+}
+
 static void handleLine(char* buf) {
   char cmd[10];
   if (!readStringVal(buf, "cmd", cmd, sizeof(cmd))) { sendErr("no cmd"); return; }
@@ -543,6 +580,7 @@ static void handleLine(char* buf) {
     return;
   }
   if (!strcmp(cmd, "i2c")) { handleI2C(buf); return; }
+  if (!strcmp(cmd, "led")) { handleLed(buf); return; }
   sendErr("unknown cmd");
 }
 

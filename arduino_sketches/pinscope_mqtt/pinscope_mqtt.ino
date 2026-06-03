@@ -34,6 +34,27 @@
 #include <WiFiNINA.h>
 #include <ArduinoMqttClient.h>
 
+// -------- BOARD DETECTION ---------------------------------------------------
+// Macros mirror the serial firmware's detection block. Currently the MQTT
+// compile matrix only targets Nano 33 IoT (WiFiNINA is incompatible with
+// the R4 WiFi's WiFiS3 stack), but the Zephyr (Uno Q) branch is in place
+// for forward compatibility.
+#if defined(ARDUINO_ARCH_ZEPHYR)
+  #define PINSCOPE_BOARD_NAME "Arduino Uno Q"
+  // Zephyr-Arduino on Uno Q has been seen to hang silently if we call
+  // analogReadResolution() in setup(). Leave ADC at the core default.
+  #define PINSCOPE_ADC_BITS   10
+  #define PINSCOPE_SET_ADC_RES 0
+#elif defined(ARDUINO_SAMD_NANO_33_IOT)
+  #define PINSCOPE_BOARD_NAME "Arduino Nano 33 IoT"
+  #define PINSCOPE_ADC_BITS   12
+  #define PINSCOPE_SET_ADC_RES 1
+#else
+  #define PINSCOPE_BOARD_NAME "Arduino WiFi"
+  #define PINSCOPE_ADC_BITS   10
+  #define PINSCOPE_SET_ADC_RES 0
+#endif
+
 // -------- INTERRUPT PORTABILITY --------------------------------------------
 // digitalPinToInterrupt() returns int on most cores but pin_size_t (unsigned)
 // on newer Renesas cores and Zephyr. NOT_AN_INTERRUPT is also not defined on
@@ -135,13 +156,7 @@ static VoidFn pulseIsrs[NUM_DIGITAL] = {
 
 // -------- BOARD NAME (compile-time) ---------------------------------------
 static const char* boardName() {
-#if defined(ARDUINO_UNOR4_WIFI)
-  return "Arduino Uno R4 WiFi";
-#elif defined(ARDUINO_SAMD_NANO_33_IOT)
-  return "Arduino Nano 33 IoT";
-#else
-  return "Arduino WiFi";
-#endif
+  return PINSCOPE_BOARD_NAME;
 }
 
 // -------- PUBLISH HELPERS --------------------------------------------------
@@ -188,6 +203,7 @@ static void sendHello() {
   px("{\"t\":\"hello\",\"id\":\""); px(deviceId);
   px("\",\"name\":\""); px(boardName());
   px("\",\"hz\":"); px(1000 / statePeriod);
+  px(",\"adcMax\":"); px((int)((1UL << PINSCOPE_ADC_BITS) - 1));
   px("}\n");
   endPublish();
 }
@@ -475,6 +491,35 @@ static void handleI2C(const char* buf) {
   sendErr("bad i2c op");
 }
 
+// -------- ONBOARD RGB LED -------------------------------------------------
+// Mirror of the serial firmware's onboard LED handler. See pinscope.ino
+// for the full design notes (active-low, lazy pinMode init, Zephyr gate).
+static void handleLed(const char* buf) {
+#if defined(ARDUINO_ARCH_ZEPHYR)
+  int r, g, b;
+  if (!readIntVal(buf, "r", &r) || !readIntVal(buf, "g", &g) || !readIntVal(buf, "b", &b)) {
+    sendErr("missing r/g/b"); return;
+  }
+  if (r < 0) r = 0; if (r > 255) r = 255;
+  if (g < 0) g = 0; if (g > 255) g = 255;
+  if (b < 0) b = 0; if (b > 255) b = 255;
+  static bool led3Ready = false;
+  if (!led3Ready) {
+    pinMode(LED3_R, OUTPUT);
+    pinMode(LED3_G, OUTPUT);
+    pinMode(LED3_B, OUTPUT);
+    led3Ready = true;
+  }
+  analogWrite(LED3_R, 255 - r);
+  analogWrite(LED3_G, 255 - g);
+  analogWrite(LED3_B, 255 - b);
+  sendAck("led");
+#else
+  (void)buf;
+  sendErr("led not supported on this board");
+#endif
+}
+
 static void handleLine(char* buf) {
   char cmd[10];
   if (!readStringVal(buf, "cmd", cmd, sizeof(cmd))) { sendErr("no cmd"); return; }
@@ -524,6 +569,7 @@ static void handleLine(char* buf) {
     return;
   }
   if (!strcmp(cmd, "i2c")) { handleI2C(buf); return; }
+  if (!strcmp(cmd, "led")) { handleLed(buf); return; }
   sendErr("unknown cmd");
 }
 
@@ -600,6 +646,13 @@ void setup() {
     pwmVals[i]  = 0;
   }
   for (uint8_t i = 0; i < NUM_VIRTUAL; i++) polls[i].active = false;
+
+  // ADC resolution on 12-bit-capable boards. Skipped on Zephyr (see
+  // board-detection block at top of file for why).
+#if PINSCOPE_SET_ADC_RES
+  analogReadResolution(PINSCOPE_ADC_BITS);
+#endif
+
   Wire.begin();
 
   // Bring up WiFi
