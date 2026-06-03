@@ -5,6 +5,9 @@
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Single-file](https://img.shields.io/badge/runtime-single--file%20HTML-d4a017)](pinscope.html)
 
+<img width="1878" height="913" alt="Screenshot 2026-06-02 at 11 46 27 PM" src="https://github.com/user-attachments/assets/d911d16c-d022-461c-9553-43deb6653260" />
+
+
 **Docs site:** [mbparks.github.io/pinscope](https://mbparks.github.io/pinscope/)
 
 Single-file HTML console for the Arduino Uno Q (and any classic Uno-compatible
