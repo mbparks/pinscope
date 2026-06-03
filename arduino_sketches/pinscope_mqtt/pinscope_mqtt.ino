@@ -1,7 +1,6 @@
 /*
  * pinscope_mqtt.ino
  *
- *
  * MQTT-capable firmware for PINSCOPE (Field Instrument 005). Publishes the
  * PinScope JSON wire protocol directly to an MQTT broker over WiFi, so the
  * browser console can talk to the board with no host-side bridge process.
@@ -245,6 +244,10 @@ static void sendErr(const char* msg) {
 }
 
 // -------- TINY JSON SCANNER (same as other firmwares) ----------------------
+// A key must be followed by a colon to disambiguate it from a value that
+// happens to be the same string. Without this check, searching for the key
+// "mode" in {"cmd":"mode","pin":3,"mode":"in"} would match the value of cmd
+// instead of the actual mode key.
 static int findField(const char* buf, const char* key) {
   uint8_t klen = strlen(key);
   uint16_t len = strlen(buf);
@@ -253,7 +256,10 @@ static int findField(const char* buf, const char* key) {
     if (strncmp(buf + i + 1, key, klen) != 0) continue;
     if (buf[i + 1 + klen] != '"') continue;
     uint16_t j = i + 2 + klen;
-    while (j < len && (buf[j] == ' ' || buf[j] == ':')) j++;
+    while (j < len && buf[j] == ' ') j++;
+    if (j >= len || buf[j] != ':') continue;  // it's a value, not a key
+    j++;  // skip colon
+    while (j < len && buf[j] == ' ') j++;
     return (int)j;
   }
   return -1;

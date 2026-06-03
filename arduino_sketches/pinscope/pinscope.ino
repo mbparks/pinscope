@@ -243,6 +243,15 @@ static void sendErr(const char* msg) {
 }
 
 // -------- TINY JSON SCANNER -----------------------------------------------
+// Find the position of a key's VALUE in a JSON object string. Returns the
+// index of the first character of the value, or -1 if the key isn't present.
+//
+// Critical: a key must be followed by a colon (after optional whitespace).
+// Without that check, the scanner would match the literal substring "<key>"
+// anywhere in the buffer including inside values. For example, searching
+// for the key "mode" in {"cmd":"mode","pin":3,"mode":"in"} would otherwise
+// match the value of cmd at position 7 instead of the actual mode key at
+// position 22. The colon disambiguates key from value.
 static int findField(const char* buf, const char* key) {
   uint8_t klen = strlen(key);
   uint8_t len  = strlen(buf);
@@ -250,8 +259,12 @@ static int findField(const char* buf, const char* key) {
     if (buf[i] != '"') continue;
     if (strncmp(buf + i + 1, key, klen) != 0) continue;
     if (buf[i + 1 + klen] != '"') continue;
+    // Verify this is a key (followed by ':') and not a value
     uint8_t j = i + 2 + klen;
-    while (j < len && (buf[j] == ' ' || buf[j] == ':')) j++;
+    while (j < len && buf[j] == ' ') j++;
+    if (j >= len || buf[j] != ':') continue;  // not a key, keep searching
+    j++;  // skip the colon
+    while (j < len && buf[j] == ' ') j++;
     return j;
   }
   return -1;
