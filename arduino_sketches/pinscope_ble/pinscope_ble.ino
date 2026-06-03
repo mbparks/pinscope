@@ -508,9 +508,11 @@ static void handleLed(const char* buf) {
     pinMode(LED3_B, OUTPUT);
     led3Ready = true;
   }
-  analogWrite(LED3_R, 255 - r);
-  analogWrite(LED3_G, 255 - g);
-  analogWrite(LED3_B, 255 - b);
+  // Zephyr-Arduino's analogWrite() handles the LED's active-low polarity
+  // internally; write duty directly (0 = off, 255 = full brightness).
+  analogWrite(LED3_R, r);
+  analogWrite(LED3_G, g);
+  analogWrite(LED3_B, b);
   sendAck("led");
 #else
   (void)buf;

@@ -517,11 +517,15 @@ static void handleLed(const char* buf) {
     pinMode(LED3_B, OUTPUT);
     led3Ready = true;
   }
-  // Active low: invert. 255 = full off, 0 = full brightness. analogWrite
-  // does PWM on capable pins and falls back to digital on/off on others.
-  analogWrite(LED3_R, 255 - r);
-  analogWrite(LED3_G, 255 - g);
-  analogWrite(LED3_B, 255 - b);
+  // The Uno Q's RGB LED is wired active-low at the hardware level, but
+  // Zephyr-Arduino's analogWrite() already handles that inversion
+  // internally for these special LED pins. So we write the duty directly:
+  // 0 = off, 255 = full brightness. Empirically verified on real hardware.
+  // (digitalWrite() on the same pins follows the raw hardware polarity:
+  // LOW = on. The two APIs disagree, which surprised us.)
+  analogWrite(LED3_R, r);
+  analogWrite(LED3_G, g);
+  analogWrite(LED3_B, b);
   sendAck("led");
 #else
   (void)buf;
