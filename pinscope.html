@@ -1140,17 +1140,33 @@ class SerialTransport extends Transport {
 
   async send(obj) {
     if (!this.port?.writable) return;
-    const writer = this.port.writable.getWriter();
-    try {
-      const data = new TextEncoder().encode(JSON.stringify(obj) + '\n');
-      await writer.write(data);
-    } finally {
-      writer.releaseLock();
-    }
+    // SerialTransport.send is called from many code paths: click handlers,
+    // periodic polls, scripted automation, plugin commands. They can race,
+    // and Web Serial throws "WritableStream is locked" if getWriter() is
+    // called while a previous writer hasn't released its lock yet.
+    //
+    // Serialize all sends through a promise chain so only one writer is
+    // active at a time. catch() on the previous link prevents a single
+    // failed send from breaking the queue for subsequent sends.
+    const previous = this._sendQueue || Promise.resolve();
+    const current = previous.catch(() => {}).then(async () => {
+      if (!this.port?.writable) return;
+      const writer = this.port.writable.getWriter();
+      try {
+        const data = new TextEncoder().encode(JSON.stringify(obj) + '\n');
+        await writer.write(data);
+      } finally {
+        try { writer.releaseLock(); } catch {}
+      }
+    });
+    this._sendQueue = current;
+    return current;
   }
 
   async disconnect() {
     this.connected = false;
+    try { await this._sendQueue; } catch {}
+    this._sendQueue = null;
     try { await this.reader?.cancel(); } catch {}
     try { await this._readClosed; } catch {}
     try { await this.port?.close(); } catch {}
